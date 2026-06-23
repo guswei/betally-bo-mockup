@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notification Enhancement — Mockup (BetAlly BO + Member WebFE/App)</title>
+<style>
+  :root{
+    --bo-bg:#eef1f4; --bo-card:#fff; --bo-green:#2e9e5b; --bo-green-d:#247a47;
+    --bo-head:#cfe8d8; --bo-line:#e3e7eb; --bo-text:#2b3036; --bo-sub:#7b848d;
+    --new:#0f73d6; --warn:#d9822b; --danger:#c0392b;
+    --m-bg:#171717; --m-card:#1f1f1f; --m-yellow:#f5b800; --m-line:#333;
+    --rd:#fff8e1; --rd-bd:#e6c84d; --rd-tx:#6b5300;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang TC","Microsoft JhengHei",sans-serif;background:#dfe3e8;color:var(--bo-text)}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:0 0 4px}
+  .lead{color:#55606b;font-size:13px;margin:0 0 14px}
+  /* top controls */
+  .tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+  .tab{padding:8px 16px;border-radius:8px;border:1px solid #c3ccd5;background:#fff;cursor:pointer;font-size:14px;font-weight:600}
+  .tab.active{background:var(--bo-green);color:#fff;border-color:var(--bo-green)}
+  .spacer{flex:1}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:13px;background:#fff;border:1px solid #c3ccd5;border-radius:8px;padding:6px 12px;cursor:pointer}
+  .toggle input{accent-color:var(--bo-green)}
+  /* panels */
+  .panel{display:none}
+  .panel.active{display:block}
+  /* RD note system (§21: 繁中 開發註記) */
+  .rdnote{display:none;background:var(--rd);border:1px solid var(--rd-bd);border-left:4px solid var(--rd-bd);
+    color:var(--rd-tx);font-size:12px;line-height:1.55;border-radius:6px;padding:8px 10px;margin:6px 0}
+  body.shownotes .rdnote{display:block}
+  .rdnote b{color:#7a5d00}
+  .rdnote code{background:#fff3c4;padding:0 4px;border-radius:3px;font-size:11px}
+  .rdtag{display:none;font-size:10px;font-weight:700;color:#7a5d00;background:#ffe9a8;border:1px solid var(--rd-bd);
+    border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+  body.shownotes .rdtag{display:inline-block}
+  .pill-new{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--new);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .blk{display:none;font-size:10px;font-weight:700;color:#fff;background:var(--danger);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  body.shownotes .blk{display:inline-block}
+
+  /* ===== BO theme ===== */
+  .bo{background:var(--bo-bg);border-radius:10px;padding:16px;border:1px solid #d4dae0}
+  .bo-title{font-size:18px;font-weight:700;margin:2px 0 14px}
+  .filter-card{background:var(--bo-card);border-radius:8px;padding:16px;border:1px solid var(--bo-line)}
+  .frow{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+  .frow.new{grid-template-columns:1.4fr 1fr 2fr;background:#f0f8ff;border:1px dashed var(--new);border-radius:8px;padding:10px;margin:0 -2px 12px}
+  .field label{display:block;font-size:11px;color:var(--bo-sub);margin-bottom:4px;font-weight:600}
+  .field input,.field select{width:100%;padding:9px 10px;border:1px solid #cbd3da;border-radius:6px;font-size:13px;background:#fff}
+  .field input:disabled{background:#f4f6f8;color:#9aa3ab}
+  .btn-search{display:block;margin:6px auto 0;background:var(--bo-green);color:#fff;border:none;border-radius:6px;padding:10px 30px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn-search:hover{background:var(--bo-green-d)}
+  table{width:100%;border-collapse:collapse;background:#fff;margin-top:14px;border-radius:8px;overflow:hidden;border:1px solid var(--bo-line)}
+  thead th{background:var(--bo-head);text-align:left;font-size:12px;padding:10px 12px;color:#23613d;white-space:nowrap}
+  tbody td{padding:9px 12px;font-size:12.5px;border-top:1px solid #eef1f3;vertical-align:top}
+  tbody tr:nth-child(even){background:#f6faf7}
+  .uid{color:var(--new);text-decoration:underline;cursor:pointer}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:11px}
+  .b-unread{background:#fdecea;color:var(--danger);border:1px solid #f3b6af}
+  .b-read{background:#e8f5ec;color:var(--bo-green-d);border:1px solid #bfe3cc}
+  .col-new{position:relative}
+  .act{color:#7b848d;cursor:pointer;margin-right:8px}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:#6b747c}
+  .empty{padding:26px;text-align:center;color:#9aa3ab;font-size:13px}
+
+  /* ===== Member (dark) theme ===== */
+  .m-stage{background:#0e0e0e;border-radius:10px;padding:20px;display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+  .m-web{flex:1;min-width:420px;max-width:640px}
+  .m-card{background:var(--m-card);border:1px solid var(--m-line);border-radius:10px;overflow:hidden}
+  .m-head{background:var(--m-yellow);color:#1a1a1a;font-weight:700;padding:12px 16px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .m-tabs{display:flex;border-bottom:1px solid var(--m-line)}
+  .m-tab{padding:11px 18px;color:#cfcfcf;font-size:14px;cursor:pointer}
+  .m-tab.on{color:var(--m-yellow);border-bottom:2px solid var(--m-yellow);font-weight:700}
+  .m-item{border-bottom:1px solid #262626}
+  .m-row{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;cursor:pointer}
+  .m-row:hover{background:#242424}
+  .bell{flex:0 0 auto;position:relative;font-size:16px;line-height:1;margin-top:2px}
+  .bell.unread::after{content:"";position:absolute;top:-2px;right:-3px;width:7px;height:7px;border-radius:50%;background:#e53935}
+  .m-rowtext{flex:1;min-width:0}
+  .m-date{color:#8a8a8a;font-size:11px}
+  .m-subj{color:#fff;font-size:14px;font-weight:600;margin:2px 0 0}
+  .chev{flex:0 0 auto;color:var(--m-yellow);transition:transform .2s;margin-top:4px;font-size:12px}
+  .m-item.open .chev{transform:rotate(180deg)}
+  .m-expand{max-height:0;overflow:hidden;transition:max-height .28s ease}
+  .m-item.open .m-expand{max-height:640px}
+  .m-body{color:#cfcfcf;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;padding:0 16px 14px 44px}
+  .m-body a{color:var(--m-yellow);text-decoration:underline;cursor:pointer;font-weight:600}
+  /* phone */
+  .phone{width:330px;border:10px solid #000;border-radius:34px;background:#101010;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .phone .m-head{border-radius:0}
+  .demo-dialog{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:50}
+  .demo-dialog.show{display:flex}
+  .dd-box{background:#fff;border-radius:12px;max-width:380px;width:90%;padding:20px;text-align:left}
+  .dd-box h3{margin:0 0 8px;font-size:16px}
+  .dd-box p{font-size:13px;color:#444;line-height:1.6;margin:0 0 8px}
+  .dd-box .route{font-size:12px;background:#f0f8ff;border:1px solid #bcd9f5;border-radius:6px;padding:8px;color:#1c4e80;margin-bottom:6px}
+  .dd-box .route.ext{background:#fff7ec;border-color:#f0c48c;color:#7a4d10}
+  .dd-box button{margin-top:6px;background:var(--bo-green);color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer}
+  .demo-tag{font-size:10px;font-weight:700;color:#fff;background:#6b46c1;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .sec-h{color:#fff;font-size:13px;margin:0 0 8px;font-weight:600;opacity:.85}
+</style>
+</head>
+<body class="shownotes">
+<div class="wrap">
+  <h1>Notification Enhancement — Mockup</h1>
+  <p class="lead">BetAlly · 需求1(BO 過濾增強)+ 需求2(會員端 WebFE/App 連結可點)。黃底文字為 <b>RD 開發註記(繁中)</b>,UI 文案維持英文;此 mockup 為 spec 的視覺參考。</p>
+
+  <div class="tabs">
+    <div class="tab active" data-t="bo">① BO 後台</div>
+    <div class="tab" data-t="web">② 會員端 Web</div>
+    <div class="tab" data-t="app">③ 會員端 App</div>
+    <div class="spacer"></div>
+    <label class="toggle"><input type="checkbox" id="noteToggle" checked> 顯示 RD 註記</label>
+  </div>
+
+  <!-- ============ PANEL 1: BO ============ -->
+  <div class="panel active" id="p-bo">
+    <div class="bo">
+      <div class="bo-title">Notification Management</div>
+
+      <div class="rdnote"><b>需求1 範圍</b>:本頁僅動「過濾區 + 清單欄位」。新增 <code>Username or ID</code> 過濾(藍框)、<code>Read Status</code> 過濾與欄位。現有 <code>時間區間 / Type / Title / Content</code> 不變。所有過濾條件為 <b>AND 疊加</b>。</div>
+
+      <div class="filter-card">
+        <!-- existing filters (unchanged) -->
+        <div class="frow">
+          <div class="field"><label>Start Time – End Time</label><input disabled placeholder="2026-06-01 ~ 2026-06-23"></div>
+          <div class="field"><label>Type</label>
+            <select><option>All</option><option>PLAYER</option><option>AGENT</option><option>SYSTEM</option></select>
+          </div>
+          <div class="field"><label>Title</label><input placeholder="Title"></div>
+          <div class="field"><label>Content</label><input placeholder="Content"></div>
+        </div>
+
+        <!-- NEW filters -->
+        <div class="frow new">
+          <div class="field">
+            <label>Username or ID <span class="pill-new">NEW</span></label>
+            <input id="f-uid" placeholder="e.g. hank005">
+            <div class="rdnote" style="margin-top:6px"><code>text</code>,前後去空白,<b>完全比對(exact match)</b>。空值=不過濾。查無此帳號 → 回空清單 + empty state,<b>不可報錯</b>。模糊比對本期不做(要做需另議,影響後端查詢/索引)。</div>
+          </div>
+          <div class="field">
+            <label>Read Status <span class="pill-new">NEW</span><span class="blk">待確認</span></label>
+            <select id="f-read"><option value="all">All</option><option value="read">Read</option><option value="unread">Unread</option></select>
+            <div class="rdnote" style="margin-top:6px">enum <code>All|Read|Unread</code>,預設 <code>All</code>。<b>🚩 前置相依</b>:後端須已存每筆 <code>is_read</code>/<code>read_at</code>。若無 → 需新增欄位 + 會員端讀取時回寫 + BO 顯示(full-stack)。<b>此項 RD 先確認後端現況再估工。</b></div>
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end">
+            <button class="btn-search" onclick="applyFilter()">Search</button>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead><tr>
+          <th>Actions</th><th>Type</th><th>Username or ID</th><th>Title</th><th>Content</th>
+          <th class="col-new">Read Status <span class="pill-new">NEW</span></th>
+          <th>Updated By</th><th>Updated Time</th>
+        </tr></thead>
+        <tbody id="bo-tbody"></tbody>
+      </table>
+      <div class="rdnote"><b>Read Status 欄</b>:走現有 <code>Columns Settings</code> 可開關(預設開)。Badge:<code>Read</code>=綠 / <code>Unread</code>=紅。此欄值同樣相依後端 <code>is_read</code> 資料(同上前置相依)。</div>
+      <div class="meta-row">
+        <span id="bo-count">—</span>
+        <span>Items per page 10 &nbsp; | &nbsp; ❮ 1 ❯</span>
+      </div>
+
+      <div class="rdnote"><b>權限</b>:本頁操作者為 <code>Admin</code>,全部會員通知皆可查。<b>本期不做 Brand 隔離。</b></div>
+    </div>
+  </div>
+
+  <!-- ============ PANEL 2: Member Web ============ -->
+  <div class="panel" id="p-web">
+    <div class="m-stage">
+      <div class="m-web">
+        <p class="sec-h">WebFE — Notifications(accordion:點標題展開單則內文,連結可點)</p>
+        <div class="m-card">
+          <div class="m-head">🔔 Notifications</div>
+          <div class="m-tabs"><div class="m-tab on">System 4</div><div class="m-tab">Announcement</div></div>
+
+          <div class="m-item open">
+            <div class="m-row" onclick="toggleItem(this)">
+              <span class="bell">🔔</span>
+              <div class="m-rowtext"><div class="m-date">2026-06-20</div><div class="m-subj">Promotion available</div></div>
+              <span class="chev">▾</span>
+            </div>
+            <div class="m-expand">
+              <div class="m-body" data-raw="Selamat! Klaim bonus Anda di sini: https://m.betally.com/promo/welcome — berlaku 24 jam."></div>
+              <div class="rdnote" style="margin:0 16px 12px"><b>連結可點(需求2)</b>:展開內文時偵測 <code>https?://</code> 自動轉可點 <code>&lt;a&gt;</code>。不改 BO,管理者只要在 Content 貼網址,舊通知同步生效。結尾標點(<code>. , ) 」</code>)不納入連結。</div>
+            </div>
+          </div>
+
+          <div class="m-item">
+            <div class="m-row" onclick="toggleItem(this)">
+              <span class="bell unread">🔔</span>
+              <div class="m-rowtext"><div class="m-date">2026-06-18</div><div class="m-subj">Multiple links</div></div>
+              <span class="chev">▾</span>
+            </div>
+            <div class="m-expand">
+              <div class="m-body" data-raw="Info promo: https://m.betally.com/vip dan kontak CS https://t.me/betally_cs ya."></div>
+              <div class="rdnote" style="margin:0 16px 12px"><b>多連結 / 開啟方式</b>:每個網址各自可點。Web 一律<b>新分頁</b>開啟,<code>target="_blank"</code> + <code>rel="noopener noreferrer"</code>。<br><b>已讀示意</b>:此則為未讀(紅點),<b>展開即標已讀</b> → 紅點消失、回寫 <code>is_read</code>(相依後端,同需求1)。</div>
+            </div>
+          </div>
+
+          <div class="m-item open">
+            <div class="m-row" onclick="toggleItem(this)">
+              <span class="bell">🔔</span>
+              <div class="m-rowtext"><div class="m-date">2026-06-15</div><div class="m-subj">⚠️ Security demo — malicious payload</div></div>
+              <span class="chev">▾</span>
+            </div>
+            <div class="m-expand">
+              <div class="m-body" data-raw='Klik <script>alert(1)</script> dan javascript:stealCookie() dan <img src=x onerror=alert(2)> — coba https://ok.betally.com/safe'></div>
+              <div class="rdnote" style="margin:0 16px 12px"><b>⚠️ 安全基線(硬需求,與「網域全放行」無關)</b>:<br>• <b>禁止</b>把 Content 當 HTML 塞 <code>innerHTML</code>/<code>v-html</code>;必須 <b>escape-then-linkify</b>(整段先 HTML-escape,只把 URL 片段包成 anchor)。<br>• 只允許 <code>http/https</code>,<b>拒絕</b> <code>javascript:</code>/<code>data:</code>/<code>vbscript:</code>(即使全放行也要擋協定,否則 = 可點的腳本注入)。<br>• 上方 <code>&lt;script&gt;</code>、<code>onerror</code>、<code>javascript:</code> 已被當<b>純文字</b>顯示、未執行,只有合法 http(s) 連結可點 → 正確行為。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PANEL 3: Member App ============ -->
+  <div class="panel" id="p-app">
+    <div class="m-stage">
+      <div>
+        <p class="sec-h" style="text-align:center">App — Notifikasi</p>
+        <div class="phone">
+          <div class="m-head">🔔 Notifikasi</div>
+          <div class="m-tabs"><div class="m-tab on">System 4</div><div class="m-tab">Announcement</div></div>
+          <div class="m-item open">
+            <div class="m-row" onclick="toggleItem(this)">
+              <span class="bell unread">🔔</span>
+              <div class="m-rowtext"><div class="m-date">2026-06-20</div><div class="m-subj">Promotion available</div></div>
+              <span class="chev">▾</span>
+            </div>
+            <div class="m-expand">
+              <div class="m-body" data-app="1" data-raw="Klaim bonus: https://m.betally.com/promo atau join CS https://t.me/betally_cs ya."></div>
+            </div>
+          </div>
+          <div class="m-item">
+            <div class="m-row" onclick="toggleItem(this)">
+              <span class="bell">🔔</span>
+              <div class="m-rowtext"><div class="m-date">2026-06-08</div><div class="m-subj">Deposit successful</div></div>
+              <span class="chev">▾</span>
+            </div>
+            <div class="m-expand">
+              <div class="m-body" data-app="1" data-raw="Your deposit of 500.00 IDR(K) was successful."></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="max-width:420px">
+        <div class="rdnote" style="display:block"><b>App 連結開啟方式(本期簡化)</b>:點連結一律<b>叫起系統瀏覽器</b>開啟,<b>不分自家/外部、不做網域白名單</b>。<br><b>本期不做</b>:自家網域 → 站內 webview 保留登入態的深連跳轉(Agent BO 發的訊息目前不需深連到 App 內部頁)。未來若要做再補白名單路由。</div>
+        <div class="rdnote" style="display:block"><b>操作提示</b>:在左側手機點連結,會跳出 demo 對話框示意「以系統瀏覽器開啟」(<span class="demo-tag">DEMO</span> 僅示意,非真實導頁)。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- demo dialog for App routing -->
+<div class="demo-dialog" id="dlg" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="dd-box">
+    <h3 id="dlg-title">Link tapped <span class="demo-tag">DEMO</span></h3>
+    <div id="dlg-route"></div>
+    <p id="dlg-note"></p>
+    <button onclick="document.getElementById('dlg').classList.remove('show')">OK</button>
+  </div>
+</div>
+
+<script>
+/* ---------- §21: 安全 linkify 參考實作(escape-then-linkify) ---------- */
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+// 只允許 http/https;結尾標點不納入連結
+const URL_RE = /\bhttps?:\/\/[^\s<>"']+/gi;
+const TRAIL = /[.,;:!?)\]」』]+$/;
+function safeLinkify(raw, isApp){
+  // 1) 整段先 escape(關鍵:絕不 innerHTML 原始內容)
+  let esc = escapeHtml(raw);
+  // 2) 只把合法 http(s) URL 片段換成 anchor
+  return esc.replace(URL_RE, (m)=>{
+    let trail=''; const t=m.match(TRAIL);
+    if(t){ trail=t[0]; m=m.slice(0,-trail.length); }
+    // 協定白名單(理論上 regex 已限 http/https,雙重保險)
+    if(!/^https?:\/\//i.test(m)) return m+trail;
+    const href=m.replace(/"/g,'&quot;');
+    const onclick = isApp ? `appOpen('${href}');return false;` : '';
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer"${isApp?` onclick="${onclick}"`:''}>${m}</a>`+trail;
+  });
+}
+function renderBodies(){
+  document.querySelectorAll('.m-body').forEach(el=>{
+    const raw = el.getAttribute('data-raw')||'';
+    el.innerHTML = safeLinkify(raw, el.getAttribute('data-app')==='1');
+  });
+}
+
+/* ---------- accordion: 點標題展開/收合;展開即標已讀(回寫示意) ---------- */
+function toggleItem(el){
+  const item=el.closest('.m-item');
+  const wasOpen=item.classList.contains('open');
+  item.classList.toggle('open');
+  if(!wasOpen){ const b=item.querySelector('.bell'); if(b) b.classList.remove('unread'); }
+}
+
+/* ---------- App link demo:本期一律系統瀏覽器開啟,不分自家/外部 ---------- */
+function appOpen(href){
+  const h=(()=>{try{return new URL(href).hostname}catch(e){return href}})();
+  document.getElementById('dlg-route').innerHTML =
+    `<div class="route ext"><b>${h}</b> → 以系統<b>瀏覽器</b>開啟</div>`;
+  document.getElementById('dlg-note').textContent =
+    '本期 App 一律用系統瀏覽器開啟連結,不分自家/外部、不做網域白名單。';
+  document.getElementById('dlg').classList.add('show');
+}
+
+/* ---------- BO sample data + filter ---------- */
+const ROWS = [
+  {type:'PLAYER',uid:'hank005',title:'Promotion issued successfully',content:'Congratulations! You have received 0605test reward 100.00 IDR(K) in your account.',read:false,by:'SYSTEM',time:'2026-06-23 10:53:53'},
+  {type:'PLAYER',uid:'hank005',title:'Promotion merged successfully',content:'Your 0605test and 11223312313 have been merged into 0605test.',read:true,by:'SYSTEM',time:'2026-06-23 10:53:53'},
+  {type:'PLAYER',uid:'hank005',title:'Promotion issued successfully',content:'Congratulations! You have received 0605test reward 100.00 IDR(K) in your account.',read:false,by:'SYSTEM',time:'2026-06-23 10:46:13'},
+  {type:'PLAYER',uid:'tws001',title:'Withdrawal declined',content:'Your withdrawal request has been declined. Please contact support.',read:true,by:'SYSTEM',time:'2026-06-17 09:20:11'},
+  {type:'PLAYER',uid:'tws001',title:'Deposit successful',content:'Your deposit of 500.00 IDR(K) was successful.',read:false,by:'SYSTEM',time:'2026-06-08 14:02:30'},
+  {type:'PLAYER',uid:'james1',title:'Promotion issued successfully',content:'Congratulations! You have received reward 50.00 IDR(K).',read:true,by:'SYSTEM',time:'2026-05-13 11:11:00'},
+];
+function renderRows(list){
+  const tb=document.getElementById('bo-tbody');
+  if(!list.length){ tb.innerHTML=`<tr><td colspan="8" class="empty">No notifications found. （查無資料,空清單不報錯）</td></tr>`;
+    document.getElementById('bo-count').textContent='0 results'; return; }
+  tb.innerHTML=list.map(r=>`<tr>
+    <td><span class="act">💬</span><span class="act" style="color:#c0392b">⊗</span></td>
+    <td>${r.type}</td>
+    <td><span class="uid">${r.uid}</span></td>
+    <td>${r.title}</td>
+    <td>${r.content}</td>
+    <td><span class="badge ${r.read?'b-read':'b-unread'}">${r.read?'Read':'Unread'}</span></td>
+    <td>${r.by}</td>
+    <td>${r.time}</td>
+  </tr>`).join('');
+  document.getElementById('bo-count').textContent = `1 – ${list.length} of ${list.length}`;
+}
+function applyFilter(){
+  const uid=document.getElementById('f-uid').value.trim().toLowerCase();
+  const rd=document.getElementById('f-read').value;
+  let list=ROWS.filter(r=>{
+    if(uid && r.uid.toLowerCase()!==uid) return false;          // exact match
+    if(rd==='read' && !r.read) return false;
+    if(rd==='unread' && r.read) return false;
+    return true;
+  });
+  renderRows(list);
+}
+
+/* ---------- tabs + note toggle ---------- */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('p-'+t.dataset.t).classList.add('active');
+});
+document.getElementById('noteToggle').onchange=e=>{
+  document.body.classList.toggle('shownotes', e.target.checked);
+};
+
+/* init */
+renderRows(ROWS);
+renderBodies();
+</script>
+</body>
+</html>
