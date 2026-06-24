@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iovation Evidence — Mockup (BetAlly Agent BO)</title>
+<style>
+  :root{
+    --bo-bg:#eef1f4; --bo-card:#fff; --bo-green:#2e9e5b; --bo-green-d:#247a47;
+    --bo-head:#cfe8d8; --bo-line:#e3e7eb; --bo-text:#2b3036; --bo-sub:#7b848d;
+    --new:#0f73d6; --warn:#d9822b; --danger:#c0392b;
+    --rd:#fff8e1; --rd-bd:#e6c84d; --rd-tx:#6b5300;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang TC","Microsoft JhengHei",sans-serif;background:#dfe3e8;color:var(--bo-text)}
+  .wrap{max-width:1280px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:0 0 4px}
+  .lead{color:#55606b;font-size:13px;margin:0 0 14px}
+  .tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:13px;background:#fff;border:1px solid #c3ccd5;border-radius:8px;padding:6px 12px;cursor:pointer}
+  .toggle input{accent-color:var(--bo-green)}
+  /* RD note system (§21: 繁中 開發註記) */
+  .rdnote{display:none;background:var(--rd);border:1px solid var(--rd-bd);border-left:4px solid var(--rd-bd);
+    color:var(--rd-tx);font-size:12px;line-height:1.55;border-radius:6px;padding:8px 10px;margin:6px 0}
+  body.shownotes .rdnote{display:block}
+  .rdnote b{color:#7a5d00}
+  .rdnote code{background:#fff3c4;padding:0 4px;border-radius:3px;font-size:11px}
+  .pill-new{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--new);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .blk{display:none;font-size:10px;font-weight:700;color:#fff;background:var(--danger);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  body.shownotes .blk{display:inline-block}
+
+  /* ===== BO theme ===== */
+  .bo{background:var(--bo-bg);border-radius:10px;padding:16px;border:1px solid #d4dae0}
+  .bo-title{font-size:18px;font-weight:700;margin:2px 0 14px;display:flex;align-items:center;gap:10px}
+  .filter-card{background:var(--bo-card);border-radius:8px;padding:16px;border:1px solid var(--bo-line)}
+  .frow{display:grid;grid-template-columns:1.4fr 1fr 1.4fr 1.6fr;gap:12px}
+  .field label{display:block;font-size:11px;color:var(--bo-sub);margin-bottom:4px;font-weight:600}
+  .field input,.field select,.field textarea{width:100%;padding:9px 10px;border:1px solid #cbd3da;border-radius:6px;font-size:13px;background:#fff;font-family:inherit}
+  .field input:disabled{background:#f4f6f8;color:#9aa3ab}
+  .btn-search{display:block;margin:12px auto 0;background:var(--bo-green);color:#fff;border:none;border-radius:6px;padding:10px 30px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn-search:hover{background:var(--bo-green-d)}
+  table{width:100%;border-collapse:collapse;background:#fff;margin-top:14px;border-radius:8px;overflow:hidden;border:1px solid var(--bo-line)}
+  thead th{background:var(--bo-head);text-align:left;font-size:12px;padding:10px 12px;color:#23613d;white-space:nowrap}
+  tbody td{padding:9px 12px;font-size:12.5px;border-top:1px solid #eef1f3;vertical-align:middle;white-space:nowrap}
+  tbody tr:nth-child(even){background:#f6faf7}
+  .uid{color:var(--new);text-decoration:underline;cursor:pointer}
+  .col-new{position:relative;background:#bfe0cb}
+  .res-allowed{color:var(--bo-green-d);font-weight:600}
+  .res-denied{color:var(--danger);font-weight:600}
+  .res-review{color:var(--warn);font-weight:600}
+  /* evidence status cell */
+  .ev-none{color:#9aa3ab}
+  .ev-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:11px}
+  .ev-fraud{background:#fdecea;color:var(--danger);border:1px solid #f3b6af}
+  .ev-good{background:#e8f5ec;color:var(--bo-green-d);border:1px solid #bfe3cc}
+  .ev-other{background:#fff3e0;color:#9a5b12;border:1px solid #f0c48c}
+  .btn-ev{background:#fff;border:1px solid var(--bo-green);color:var(--bo-green-d);border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer}
+  .btn-ev:hover{background:var(--bo-green);color:#fff}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:#6b747c}
+  .empty{padding:26px;text-align:center;color:#9aa3ab;font-size:13px}
+
+  /* ===== Modal ===== */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal.show{display:flex}
+  .mbox{background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+  .mhead{background:var(--bo-green);color:#fff;padding:14px 18px;font-size:16px;font-weight:700;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+  .mhead .x{cursor:pointer;font-size:18px;opacity:.85}
+  .mbody{padding:18px}
+  .ctx{background:#f4f7fa;border:1px solid #dde4ea;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12.5px}
+  .ctx .crow{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #e2e8ee}
+  .ctx .crow:last-child{border-bottom:none}
+  .ctx .ck{color:var(--bo-sub)}
+  .ctx .cv{font-weight:600;font-family:ui-monospace,Menlo,monospace}
+  .mfield{margin-bottom:14px}
+  .mfield label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
+  .req{color:var(--danger)}
+  .confirm-row{display:flex;gap:8px;align-items:flex-start;font-size:13px;background:#fff7ec;border:1px solid #f0c48c;border-radius:8px;padding:10px;margin-bottom:14px}
+  .confirm-row input{margin-top:2px;accent-color:var(--danger)}
+  .mfoot{display:flex;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid var(--bo-line)}
+  .btn-cancel{background:#eef1f4;border:1px solid #c3ccd5;border-radius:6px;padding:9px 18px;font-size:13px;cursor:pointer}
+  .btn-submit{background:var(--bo-green);color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-submit:disabled{background:#a9c9b6;cursor:not-allowed}
+  .demo-tag{font-size:10px;font-weight:700;color:#fff;background:#6b46c1;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .charcount{font-size:11px;color:var(--bo-sub);text-align:right;margin-top:3px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body class="shownotes">
+<div class="wrap">
+  <h1>Iovation Evidence — Mockup</h1>
+  <p class="lead">BetAlly <b>Agent BO</b> · 在既有 <b>Iovation Report</b> 每列加 Evidence 回報。黃底文字為 <b>RD 開發註記(繁中)</b>,UI 文案維持英文;此 mockup 為 spec 的視覺參考。</p>
+
+  <div class="tabs">
+    <div class="spacer"></div>
+    <label class="toggle"><input type="checkbox" id="noteToggle" checked> 顯示 RD 註記</label>
+  </div>
+
+  <div class="bo">
+    <div class="bo-title">Iovation Report</div>
+
+    <div class="rdnote"><b>本需求範圍</b>:既有 Iovation Report(唯讀查核紀錄)<b>新增兩欄</b> — <code>Evidence</code>(已報狀態)與 <code>Actions</code>(Add Evidence)。<b>不動</b>既有過濾區、既有欄位、Export CSV、device check 流程。evidence 為「事後回報真實結果給 iovation」,屬風控/不可逆操作。</div>
+
+    <!-- existing filters (unchanged) -->
+    <div class="filter-card">
+      <div class="frow">
+        <div class="field"><label>Username</label><input placeholder="Username"></div>
+        <div class="field"><label>Type</label>
+          <select><option>All</option><option>PROMOTION</option><option>LOGIN</option><option>WITHDRAWAL</option></select>
+        </div>
+        <div class="field"><label>Device Id</label><input placeholder="Device Id"></div>
+        <div class="field"><label>Start Time – End Time</label><input disabled placeholder="2026-01-01 ~ 2026-12-31"></div>
+      </div>
+      <button class="btn-search">Search</button>
+    </div>
+    <div class="rdnote">既有過濾條件、欄位、分頁與 <code>Export CSV</code> 均<b>維持原狀</b>,本期不改。</div>
+
+    <table>
+      <thead><tr>
+        <th>Created Date</th><th>Usercode</th><th>Username</th><th>Device ID</th>
+        <th>IP</th><th>Full Name</th><th>Type</th><th>Result</th>
+        <th class="col-new">Evidence <span class="pill-new">NEW</span></th>
+        <th class="col-new">Actions <span class="pill-new">NEW</span></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="rdnote"><b>Evidence 欄(NEW)</b>:顯示該列是否已回報過 evidence。<b>iovation 無「查詢我送過哪些 evidence」的 API</b> → 此欄資料一律讀<b>我方自存的 evidence 紀錄表</b>(見下方資料模型註記),不向 iovation 即時查。未報過顯示 <code>—</code>;已報顯示類型 badge(hover 可看時間/操作者)。</div>
+    <div class="rdnote"><b>Actions 欄(NEW)</b>:每列 <code>Add Evidence</code> 按鈕 → 開 modal。<b>權限</b>:<b>所有可進此 Iovation Report 的操作者皆可送出</b>。⚠️ 風險註記:送出會回灌 iovation 且不可逆 → 故 modal 內<b>強制二次確認</b>當補償控制。日後若要收緊為「限管理層/獨立權限位」屬改版。</div>
+
+    <div class="meta-row">
+      <span id="count">—</span>
+      <span>Items per page 10 &nbsp; | &nbsp; ❮ 1 ❯</span>
+    </div>
+  </div>
+
+  <div class="rdnote" style="margin-top:14px"><b>資料模型(我方新增表,給 RD)</b> — <code>iovation_evidence_log</code>(審計鏈,金流/風控敏感):<br>
+    • <code>id</code> PK · <code>iovation_report_id</code> FK(關聯被報的那列 check) · <code>usercode</code>(=iovation account code) · <code>device_id</code>(=device alias) · <code>source_txn</code>(原始 check 的 iovation txn,可空)<br>
+    • <code>evidence_type</code> enum(<b>🚩 合法值待確認</b>,見下) · <code>comment</code> <code>VARCHAR</code> · <code>idempotency_key</code> UNIQUE(防重送)<br>
+    • <code>iovation_status</code>(iovation 回傳) · <code>iovation_evidence_id</code>(回傳識別,可空) · <code>operator_id</code> · <code>operator_role</code> · <code>created_at</code><br>
+    審計欄(operator/時間/回傳結果)<b>不可事後竄改</b>;此表即「已報狀態」與稽核來源。</div>
+</div>
+
+<!-- ===== Add Evidence Modal ===== -->
+<div class="modal" id="evModal" onclick="if(event.target===this)closeModal()">
+  <div class="mbox">
+    <div class="mhead"><span>Add Evidence <span class="demo-tag">DEMO</span></span><span class="x" onclick="closeModal()">✕</span></div>
+    <div class="mbody">
+      <!-- readonly context, prefilled from the row -->
+      <div class="ctx" id="ctxBox"></div>
+      <div class="rdnote"><b>脈絡(唯讀,帶自該列)</b>:送出時後端用 <code>usercode</code>(account code)+ <code>device_id</code>(device alias)+ <code>source_txn</code> 綁定,讓 evidence 精準掛到「這次查核的這台裝置」。操作者不可改這些值。</div>
+
+      <div class="mfield">
+        <label>Evidence Type <span class="req">*</span></label>
+        <select id="evType">
+          <option value="">— Select —</option>
+          <option value="FRAUD">Fraud</option>
+          <option value="CHARGEBACK">Chargeback</option>
+          <option value="ACCOUNT_TAKEOVER">Account Takeover</option>
+          <option value="BONUS_ABUSE">Bonus / Promotion Abuse</option>
+          <option value="GOOD_CUSTOMER">Good Customer (Trusted)</option>
+        </select>
+        <div class="rdnote" style="margin-top:6px"><b>🚩 Blocker — enum 待 iovation 確認</b>:上列為<b>常見假設值</b>。實際合法 <code>evidence_type</code> 是 iovation 按你帳號在 portal 設定的,<b>無動態 list API</b> → 定工時前 RD 請翻 device check 那份整合文件確認實際開了哪些,再以此為準。必填。</div>
+      </div>
+
+      <div class="mfield">
+        <label>Message / Comment <span class="req">*</span></label>
+        <textarea id="evMsg" rows="3" maxlength="500" placeholder="Describe the evidence (what happened, reference IDs, etc.)" oninput="onMsgInput()"></textarea>
+        <div class="charcount"><span id="cc">0</span>/500</div>
+        <div class="rdnote" style="margin-top:6px">操作者填的回報訊息,對應 iovation Evidence 的 <code>comment</code>/evidence value。<code>VARCHAR(500)</code>(上限待對 iovation 欄位上限);必填、去頭尾空白、不可全空白。純文字落地,顯示時須 escape 防 XSS。</div>
+      </div>
+
+      <div class="confirm-row">
+        <input type="checkbox" id="evConfirm" onchange="syncSubmit()">
+        <label for="evConfirm" style="font-weight:600">I understand this evidence will be reported to iovation and <u>cannot be undone</u>.</label>
+      </div>
+      <div class="rdnote"><b>不可逆 → 強制二次確認</b>:未勾選不可送(補償控制,因權限選最寬鬆)。<br><b>Idempotency(防重送)</b>:送出帶 <code>Idempotency-Key</code>;同一 (report_id + type) 重複送出 → 後端去重,不重複打 iovation。注意 Iovation Report 本就有同一裝置多列重複紀錄,需避免同一查核被連點重報。</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-submit" id="evSubmit" disabled onclick="submitEvidence()">Submit Evidence</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- sample data (mirrors the real Iovation Report) ---------- */
+const ROWS = [
+  {date:'2026-06-05 16:06:48',usercode:'OLEIDjames912',user:'james912',dev:'519364520292403301',ip:'10.78.1.108',name:'james',type:'PROMOTION',result:'Allowed',ev:null},
+  {date:'2026-06-02 09:38:34',usercode:'OLEIDkenchio',user:'kenchio',dev:'472972003417225270',ip:'10.78.1.105',name:'MemberFullName',type:'PROMOTION',result:'Allowed',ev:{type:'BONUS_ABUSE',by:'agent_lily',at:'2026-06-03 10:12'}},
+  {date:'2026-05-28 22:06:08',usercode:'OLEIDjames0912',user:'james0912',dev:'519364520292403301',ip:'10.78.1.108',name:'james',type:'PROMOTION',result:'Review',ev:null},
+  {date:'2026-05-08 09:15:17',usercode:'OLEIDsqatest649',user:'sqatest649',dev:'483672328367250129',ip:'10.78.4.108',name:'sqatest649',type:'PROMOTION',result:'Denied',ev:{type:'FRAUD',by:'agent_max',at:'2026-05-09 14:30'}},
+  {date:'2026-05-06 15:24:22',usercode:'OLEIDsamldr',user:'samldr',dev:'196659100331976104',ip:'10.78.4.113',name:'sam',type:'PROMOTION',result:'Allowed',ev:{type:'GOOD_CUSTOMER',by:'agent_lily',at:'2026-05-07 09:00'}},
+  {date:'2026-04-24 13:34:48',usercode:'OLEIDjames0912',user:'james0912',dev:'519364520292403301',ip:'10.78.1.108',name:'james',type:'PROMOTION',result:'Allowed',ev:null},
+];
+const TYPE_LABEL = {FRAUD:'Fraud',CHARGEBACK:'Chargeback',ACCOUNT_TAKEOVER:'Account Takeover',BONUS_ABUSE:'Bonus Abuse',GOOD_CUSTOMER:'Good Customer'};
+function evClass(t){ return t==='GOOD_CUSTOMER'?'ev-good':(t==='FRAUD'||t==='CHARGEBACK'||t==='ACCOUNT_TAKEOVER')?'ev-fraud':'ev-other'; }
+function resClass(r){ return r==='Allowed'?'res-allowed':r==='Denied'?'res-denied':'res-review'; }
+
+function renderRows(){
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=ROWS.map((r,i)=>`<tr>
+    <td>${r.date}</td>
+    <td>${r.usercode}</td>
+    <td><span class="uid">${r.user}</span></td>
+    <td>${r.dev}</td>
+    <td>${r.ip}</td>
+    <td>${r.name}</td>
+    <td>${r.type}</td>
+    <td class="${resClass(r.result)}">${r.result}</td>
+    <td class="col-new">${r.ev
+        ? `<span class="ev-badge ${evClass(r.ev.type)}" title="by ${r.ev.by} · ${r.ev.at}">${TYPE_LABEL[r.ev.type]}</span>`
+        : `<span class="ev-none">—</span>`}</td>
+    <td class="col-new"><button class="btn-ev" onclick="openModal(${i})">${r.ev?'Add more':'Add Evidence'}</button></td>
+  </tr>`).join('');
+  document.getElementById('count').textContent = `1 – ${ROWS.length} of 378`;
+}
+
+/* ---------- modal ---------- */
+let curIdx=null;
+function openModal(i){
+  curIdx=i; const r=ROWS[i];
+  document.getElementById('ctxBox').innerHTML = `
+    <div class="crow"><span class="ck">Usercode (account code)</span><span class="cv">${r.usercode}</span></div>
+    <div class="crow"><span class="ck">Username</span><span class="cv">${r.user}</span></div>
+    <div class="crow"><span class="ck">Device ID (alias)</span><span class="cv">${r.dev}</span></div>
+    <div class="crow"><span class="ck">Original Result</span><span class="cv">${r.type} / ${r.result}</span></div>
+    <div class="crow"><span class="ck">Checked At</span><span class="cv">${r.date}</span></div>`;
+  document.getElementById('evType').value='';
+  document.getElementById('evMsg').value='';
+  document.getElementById('cc').textContent='0';
+  document.getElementById('evConfirm').checked=false;
+  syncSubmit();
+  document.getElementById('evModal').classList.add('show');
+}
+function closeModal(){ document.getElementById('evModal').classList.remove('show'); curIdx=null; }
+function onMsgInput(){ document.getElementById('cc').textContent=document.getElementById('evMsg').value.length; syncSubmit(); }
+function syncSubmit(){
+  const ok = document.getElementById('evType').value
+          && document.getElementById('evMsg').value.trim().length>0
+          && document.getElementById('evConfirm').checked;
+  document.getElementById('evSubmit').disabled = !ok;
+}
+document.getElementById('evType').addEventListener('change',syncSubmit);
+
+function submitEvidence(){
+  // DEMO ONLY — 真實流程:前端 POST 後端 → 後端帶 Idempotency-Key 呼叫 iovation Evidence API → 落地 audit。前端不可直打 iovation。
+  const r=ROWS[curIdx];
+  const type=document.getElementById('evType').value;
+  r.ev={type, by:'current_operator', at:new Date().toISOString().slice(0,16).replace('T',' ')};
+  renderRows();
+  closeModal();
+  showToast(`Evidence submitted: ${TYPE_LABEL[type]} → ${r.usercode}  (DEMO,未真實送 iovation)`);
+}
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ---------- note toggle ---------- */
+document.getElementById('noteToggle').onchange=e=>document.body.classList.toggle('shownotes', e.target.checked);
+
+renderRows();
+</script>
+</body>
+</html>
