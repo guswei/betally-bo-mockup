@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Affiliate BO — Mobile Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#2e7d32; --green-d:#1b5e20; --green-active:#00a651;
+    --bg:#ededed; --card:#fff; --side:#171b20; --side-line:#252b32;
+    --th:#cfe8cf; --th-text:#2b4a2b; --row-alt:#f4f9f4;
+    --text:#222; --muted:#7a7a7a; --line:#e2e2e2;
+    --note:#fff8e1; --note-bd:#f0ad00; --note-text:#7a5b00;
+    --neg:#d32f2f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#cfd2d6;font-family:Roboto,"Noto Sans TC",sans-serif;color:var(--text);
+       display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 12px 60px}
+  .material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;
+       line-height:1;vertical-align:middle;-webkit-font-feature-settings:'liga';}
+
+  /* ---- dev tooling chrome (繁中 ok：非產品 UI) ---- */
+  .devbar{width:100%;max-width:920px;background:#1e2024;color:#fff;border-radius:12px;
+          padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+  .devbar h1{font-size:15px;margin:0;font-weight:700;letter-spacing:.2px}
+  .devbar .sub{font-size:11.5px;color:#aeb4bd;width:100%;margin-top:-2px}
+  .pagesel{display:flex;flex-wrap:wrap;gap:6px}
+  .pagesel button{font:inherit;font-size:12px;padding:6px 10px;border-radius:20px;border:1px solid #3a3f47;
+          background:transparent;color:#cdd2d9;cursor:pointer}
+  .pagesel button.active{background:var(--green-active);border-color:var(--green-active);color:#fff;font-weight:600}
+  .toggle{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#dfe3e8}
+  .switch{position:relative;width:42px;height:24px;background:#3a3f47;border-radius:20px;cursor:pointer;transition:.2s}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+  body.notes-on .switch{background:var(--note-bd)}
+  body.notes-on .switch::after{left:21px}
+
+  /* ---- phone ---- */
+  .stage{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;justify-content:center;width:100%}
+  .phone{width:390px;height:790px;flex:0 0 auto;background:#000;border-radius:42px;padding:12px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .screen{width:100%;height:100%;background:var(--bg);border-radius:32px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+
+  /* app bar (English UI) */
+  .appbar{height:52px;background:#fff;display:flex;align-items:center;gap:6px;padding:0 8px;border-bottom:1px solid var(--line);flex:0 0 auto;z-index:30}
+  .appbar .iconbtn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#444;cursor:pointer}
+  .appbar .iconbtn:active{background:#eee}
+  .appbar .title{font-size:15px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .appbar .logo{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7e57c2,#26a69a)}
+
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .page{display:none;padding:12px}
+  .page.active{display:block}
+
+  /* drawer */
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:.2s;z-index:40}
+  .scrim.open{opacity:1;visibility:visible}
+  .drawer{position:absolute;top:0;bottom:0;left:0;width:260px;background:var(--side);color:#cfd4da;
+          transform:translateX(-100%);transition:.22s;z-index:50;overflow-y:auto}
+  .drawer.open{transform:none}
+  .drawer .brand{display:flex;align-items:center;gap:10px;padding:16px 16px 14px;border-bottom:1px solid var(--side-line)}
+  .drawer .brand .logo{width:36px;height:36px}
+  .drawer .brand{cursor:pointer}
+  .drawer .grp-h{display:flex;align-items:center;gap:8px;margin:8px 10px 2px;padding:11px 14px;border-radius:8px;
+       background:linear-gradient(180deg,#3c424a,#2f343b);color:#e7eaee;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
+  .drawer .grp-h .lead{font-size:19px;color:#aeb4bd}
+  .drawer .grp-h .chev{margin-left:auto;font-size:20px;color:#aeb4bd;transition:.2s}
+  .drawer .grp.collapsed .grp-h .chev{transform:rotate(180deg)}
+  .drawer .grp.collapsed .grp-items{display:none}
+  .drawer a{display:block;padding:12px 20px;color:#bcc2cb;text-decoration:none;font-size:13.5px;cursor:pointer}
+  .drawer a:active{background:#20262d}
+  .drawer a.active{background:var(--green-active);color:#fff;font-weight:600;border-radius:8px;margin:2px 10px;padding:12px 14px}
+  body.notes-on .drawer a.noscope::after{content:"範圍外";float:right;font-size:9px;background:#4a4f57;color:#cfd4da;border-radius:4px;padding:1px 6px;font-weight:600}
+
+  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%) translateY(18px);background:#323232;color:#fff;
+       font-size:12px;padding:10px 16px;border-radius:8px;opacity:0;transition:.25s;z-index:60;pointer-events:none;white-space:nowrap;max-width:88%}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* segmented tabs (English UI) */
+  .seg{display:flex;background:#fff;border:1px solid var(--green);border-radius:8px;overflow:hidden;margin-bottom:12px}
+  .seg button{flex:1;font:inherit;font-size:12.5px;font-weight:600;padding:10px 4px;border:0;background:#fff;color:var(--green);cursor:pointer}
+  .seg button.active{background:var(--green);color:#fff}
+
+  h2.page-h{font-size:18px;margin:2px 2px 12px;font-weight:600}
+
+  /* filters */
+  .card{background:var(--card);border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:12px}
+  .field{margin-bottom:12px}
+  .field:last-child{margin-bottom:0}
+  .field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+  .field .inp{display:flex;align-items:center;gap:8px;border:1px solid #cfcfcf;border-radius:8px;padding:11px 12px;font-size:13px;color:#444;background:#fff}
+  .field .inp.ph{color:#9a9a9a}
+  .field .inp .material-symbols-outlined{font-size:18px;color:#8a8a8a;margin-left:auto}
+  .filter-actions{display:flex;gap:10px;margin-top:4px}
+  .btn{flex:1;font:inherit;font-size:13px;font-weight:600;padding:12px;border-radius:8px;border:0;cursor:pointer}
+  .btn.primary{background:var(--green);color:#fff}
+  .btn.ghost{flex:0 0 48px;background:#fff;border:1px solid #cfcfcf;color:#555}
+  details.filters summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#444}
+  details.filters summary::-webkit-details-marker{display:none}
+  details.filters summary .chev{margin-left:auto;transition:.2s}
+  details.filters[open] summary .chev{transform:rotate(180deg)}
+  details.filters .inner{padding-top:14px}
+
+  /* table */
+  .sectionhead{font-size:14px;font-weight:700;color:#333;margin:14px 2px 8px}
+  .scrollhint{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;margin:0 2px 6px}
+  .scrollhint .material-symbols-outlined{font-size:15px}
+  .tbl-wrap{overflow-x:auto;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);-webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse;width:max-content;min-width:100%;font-size:12px}
+  th,td{padding:11px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid #eee}
+  thead th{background:var(--th);color:var(--th-text);font-weight:600}
+  tbody tr:nth-child(even){background:var(--row-alt)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.neg{color:var(--neg)}
+  .status{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#e6f4ea;color:#1b7e3c}
+  /* frozen first column */
+  th:first-child,td:first-child{position:sticky;left:0;z-index:2;box-shadow:1px 0 0 #e6e6e6}
+  thead th:first-child{background:var(--th);z-index:3}
+  tbody td:first-child{background:#fff}
+  tbody tr:nth-child(even) td:first-child{background:var(--row-alt)}
+
+  .tblfoot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:#fff;border-radius:0 0 10px 10px;padding:10px 12px;margin-top:-4px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .colset{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#444;border:1px solid #d8d8d8;border-radius:8px;padding:7px 10px;background:#fff;cursor:pointer}
+  .colset .material-symbols-outlined{font-size:16px}
+  .pager{display:flex;align-items:center;gap:6px;margin-left:auto;font-size:11.5px;color:#555}
+  .pager .pg{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid #ddd;border-radius:6px;color:#777}
+  .pg.disabled{opacity:.4}
+
+  /* dashboard stat cards */
+  .stat{border-radius:10px;padding:14px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden;min-height:96px}
+  .stat h3{margin:0 0 10px;font-size:13px;font-weight:600;opacity:.95}
+  .stat .row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;opacity:.95}
+  .stat .row b{font-weight:700;font-size:14px}
+  .stat .ic{position:absolute;right:10px;bottom:8px;font-size:42px;opacity:.22}
+  .c-blue{background:#4a9fd4}.c-green{background:#34a853}.c-orange{background:#e08a3c}.c-indigo{background:#6f7fc4}
+  .c-magenta{background:#c45fb0}.c-purple{background:#8e63c4}.c-pink{background:#c44d7a}.c-gold{background:#b9a45a}.c-teal{background:#4a93a8}
+
+  /* tracking link cards */
+  .tl-head{background:#cfeccf;color:#256b29;text-align:center;font-weight:700;font-size:13px;padding:11px;border-radius:8px;margin-bottom:10px}
+  .tl-card{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:16px}
+  .tl-link{font-size:12.5px;color:#2e6fd0;word-break:break-all;margin-bottom:12px}
+  .tl-empty{font-size:12.5px;color:var(--muted);text-align:center;padding:6px 0 2px}
+
+  /* RD notes (繁中) */
+  .rd-note{display:none;background:var(--note);border:1px dashed var(--note-bd);color:var(--note-text);
+           border-radius:8px;padding:8px 10px;font-size:11.5px;line-height:1.5;margin:8px 0}
+  body.notes-on .rd-note{display:block}
+  .rd-note b{color:#5a4400}
+  .rd-panel{display:none;width:330px;flex:0 0 auto;background:#fffdf5;border:1px solid var(--note-bd);border-radius:12px;padding:14px 16px}
+  body.notes-on .rd-panel.active{display:block}
+  .rd-panel h4{margin:0 0 8px;font-size:13px;color:#7a5b00}
+  .rd-panel ul{margin:0;padding-left:18px}
+  .rd-panel li{font-size:12px;line-height:1.6;color:#4a4332;margin-bottom:7px}
+  .rd-panel code{background:#f0ead6;border-radius:4px;padding:1px 4px;font-size:11px}
+  .rd-panel .tag{display:inline-block;background:#f0ad00;color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:1px 5px;margin-right:4px}
+  .hint-foot{width:100%;max-width:920px;font-size:11.5px;color:#555;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="devbar">
+  <h1>Affiliate BO — Mobile RWD Mockup</h1>
+  <span class="sub">手機 390px · 沿用現站綠色 Angular Material 視覺 · 寬表策略：橫向捲動＋凍結首欄 · 此 devbar 與 RD 註記為開發用,不上線</span>
+  <div class="pagesel" id="pagesel">
+    <button data-p="dashboard" class="active">Dashboard</button>
+    <button data-p="players">Player List</button>
+    <button data-p="commission">Commission Report</button>
+    <button data-p="downline">Downline Commission</button>
+    <button data-p="preport">Player's Report</button>
+    <button data-p="tracking">Tracking Link</button>
+  </div>
+  <div class="toggle">顯示 RD 註記 <div class="switch" id="noteToggle"></div></div>
+</div>
+
+<div class="stage">
+  <div class="phone">
+    <div class="screen">
+      <!-- drawer -->
+      <div class="toast" id="toast"></div>
+      <div class="scrim" id="scrim"></div>
+      <nav class="drawer" id="drawer">
+        <div class="brand" data-p="dashboard"><div class="logo">LG</div><div><div style="font-weight:700;color:#fff;font-size:14px">Lucky Game</div><div style="font-size:11px;color:#7e8893">Affiliate BO</div></div></div>
+        <div class="grp">
+          <div class="grp-h"><span class="material-symbols-outlined lead">notifications</span>Notification<span class="material-symbols-outlined chev">expand_less</span></div>
+          <div class="grp-items"><a class="noscope">Notification</a></div>
+        </div>
+        <div class="grp">
+          <div class="grp-h">Management<span class="material-symbols-outlined chev">expand_less</span></div>
+          <div class="grp-items">
+            <a class="noscope">Sub Affiliates</a>
+            <a data-p="players">Player List</a>
+            <a class="noscope">Top Up for Affiliates</a>
+            <a class="noscope">Top Up for Players</a>
+          </div>
+        </div>
+        <div class="grp">
+          <div class="grp-h">Reports<span class="material-symbols-outlined chev">expand_less</span></div>
+          <div class="grp-items">
+            <a data-p="commission">Commission Report</a>
+            <a data-p="downline">Downline Commission Report</a>
+            <a data-p="preport">Player's Report</a>
+            <a class="noscope">Bets Report</a>
+            <a class="noscope">Transactions Report</a>
+            <a class="noscope">Games Report</a>
+            <a class="noscope">Ads Report</a>
+          </div>
+        </div>
+        <div class="grp">
+          <div class="grp-h">Marketing<span class="material-symbols-outlined chev">expand_less</span></div>
+          <div class="grp-items">
+            <a data-p="tracking">Tracking Link</a>
+            <a class="noscope">Promotion Banner</a>
+            <a class="noscope">Traffic Statistics</a>
+          </div>
+        </div>
+        <div class="grp">
+          <div class="grp-h">Settings<span class="material-symbols-outlined chev">expand_less</span></div>
+          <div class="grp-items">
+            <a class="noscope">Profile</a>
+            <a class="noscope">Contact Us</a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- app bar -->
+      <div class="appbar">
+        <div class="iconbtn" id="menuBtn"><span class="material-symbols-outlined">menu</span></div>
+        <div class="title" id="abTitle">Dashboard</div>
+        <div class="iconbtn"><span class="material-symbols-outlined">download</span></div>
+        <div class="iconbtn"><div class="avatar"></div></div>
+      </div>
+
+      <div class="body">
+
+      <!-- ===== DASHBOARD ===== -->
+      <section class="page active" data-p="dashboard">
+        <div class="seg" id="dashSeg"><button class="active" data-mode="direct">Direct Member</button><button data-mode="downline">Direct + Downline AFF Member</button></div>
+        <div class="rd-note"><b>卡片格線：</b>桌面 4 欄 → 手機 1 欄（CSS grid <code>auto-fill/minmax</code> 或 <code>BreakpointObserver</code>）。卡片<b>不可點</b>，純展示。</div>
+        <div class="stat c-blue"><h3>New Register</h3><div class="row"><span>Daily</span><b>0</b></div><div class="row"><span>Monthly</span><b>1</b></div><span class="material-symbols-outlined ic">person_add</span></div>
+        <div class="stat c-green"><h3>Active Player</h3><div class="row"><span>Daily</span><b>0</b></div><div class="row"><span>Monthly</span><b>0</b></div><span class="material-symbols-outlined ic">how_to_reg</span></div>
+        <div class="stat c-orange"><h3>Total Members</h3><div class="row"><span>Player Count</span><b>1</b></div><span class="material-symbols-outlined ic">diversity_3</span></div>
+        <div class="stat c-indigo"><h3>First Deposit Amount</h3><div class="row"><span>Daily</span><b>0</b></div><div class="row"><span>Monthly</span><b>0</b></div><span class="material-symbols-outlined ic">savings</span></div>
+        <div class="stat c-magenta"><h3>First Deposit Members</h3><div class="row"><span>Daily</span><b>0</b></div><div class="row"><span>Monthly</span><b>0</b></div><span class="material-symbols-outlined ic">payments</span></div>
+        <div class="stat c-purple"><h3>Total Deposit Amount</h3><div class="row"><span>Daily</span><b>0</b></div><div class="row"><span>Monthly</span><b>0</b></div><span class="material-symbols-outlined ic">account_balance_wallet</span></div>
+        <div class="stat c-pink"><h3>Withdraw Amount</h3><div class="row"><span>Daily</span><b>0</b></div><div class="row"><span>Monthly</span><b>0</b></div><span class="material-symbols-outlined ic">request_quote</span></div>
+        <div class="stat c-gold"><h3>Net Revenue <span class="material-symbols-outlined" style="font-size:15px;vertical-align:-2px;opacity:.85">help</span></h3><div class="row"><span>Daily</span><b>0</b></div><div class="row"><span>Monthly</span><b>0</b></div><span class="material-symbols-outlined ic">trending_up</span></div>
+        <div class="stat c-teal" id="commissionRateCard"><h3>Commission Rate</h3><div class="row"><span>Monthly Commission Rate</span><b>0%</b></div><span class="material-symbols-outlined ic">percent</span></div>
+        <div class="rd-note"><b>Tab 切換行為（重要）：</b><code>Direct Member</code> 顯示 <b>Commission Rate</b> 卡（共 9 張）；切到 <code>Direct + Downline AFF Member</code> 時<b>隱藏 Commission Rate 卡</b>（剩 8 張）。其餘卡片兩種模式都在，數值依模式重撈。</div>
+        <div class="rd-note"><b>金額/計數：</b>金額型別 <code>DECIMAL(18,2)</code>、右對齊、千分位；負值紅字（如 Net Revenue 可為負）。標題為 i18n key（印尼/英文），勿寫死。Net Revenue 旁 <code>help</code> icon 為 tooltip 說明。</div>
+      </section>
+
+      <!-- ===== PLAYER LIST ===== -->
+      <section class="page" data-p="players">
+        <h2 class="page-h">Player List</h2>
+        <div class="seg"><button class="active">Direct Member</button><button>Direct + Downline AFF Member</button></div>
+        <details class="filters card" open>
+          <summary>Filters <span class="material-symbols-outlined chev">expand_more</span></summary>
+          <div class="inner">
+            <div class="field"><label>Sub Affiliate</label><div class="inp ph">Sub Affiliate</div></div>
+            <div class="field"><label>Start Time – End Time</label><div class="inp">2026-06-01 – 2026-06-26 <span class="material-symbols-outlined">calendar_month</span></div></div>
+            <div class="filter-actions"><button class="btn primary">Search</button><button class="btn ghost"><span class="material-symbols-outlined">restart_alt</span></button></div>
+          </div>
+        </details>
+        <div class="rd-note"><b>篩選：</b>桌面多欄 → 手機單欄全寬、收進可收合「Filters」面板，Search/Reset 置底全寬；date range 手機用全螢幕 picker。</div>
+        <div class="scrollhint"><span class="material-symbols-outlined">swipe_left</span>首欄固定，左右滑看更多欄位</div>
+        <div class="tbl-wrap" data-table="players"></div>
+        <div class="tblfoot">
+          <div class="colset"><span class="material-symbols-outlined">tune</span>Columns Settings</div>
+          <div class="pager"><span class="pg disabled material-symbols-outlined">chevron_left</span>1 / 1<span class="pg disabled material-symbols-outlined">chevron_right</span></div>
+        </div>
+        <div class="rd-note"><b>凍結首欄：</b>保持原欄序，凍結 <code>Date of Registration</code>（已拍板）。</div>
+      </section>
+
+      <!-- ===== COMMISSION REPORT ===== -->
+      <section class="page" data-p="commission">
+        <h2 class="page-h">Commission Report</h2>
+        <div class="rd-note"><b>超寬表（15+ 欄）：</b>採橫向捲動＋凍結首欄（已拍板）。預設可只開識別＋1~2 關鍵欄，其餘交 Columns Settings 讓使用者開。</div>
+        <div class="scrollhint"><span class="material-symbols-outlined">swipe_left</span>首欄固定，左右滑看全部 15 欄</div>
+        <div class="tbl-wrap" data-table="commission"></div>
+        <div class="tblfoot">
+          <div class="colset"><span class="material-symbols-outlined">tune</span>Columns Settings</div>
+          <div class="pager"><span class="pg disabled material-symbols-outlined">chevron_left</span>1 / 1<span class="pg disabled material-symbols-outlined">chevron_right</span></div>
+        </div>
+      </section>
+
+      <!-- ===== DOWNLINE COMMISSION ===== -->
+      <section class="page" data-p="downline">
+        <h2 class="page-h">Downline Commission Report</h2>
+        <details class="filters card" open>
+          <summary>Filters <span class="material-symbols-outlined chev">expand_more</span></summary>
+          <div class="inner">
+            <div class="field"><label>Game Vendor Channel</label><div class="inp ph">Game Vendor Channel<span class="material-symbols-outlined">expand_more</span></div></div>
+            <div class="field"><label>Game Type</label><div class="inp ph">Game Type<span class="material-symbols-outlined">expand_more</span></div></div>
+            <div class="field"><label>Start Time – End Time</label><div class="inp">2025-01-01 – 2025-12-31 <span class="material-symbols-outlined">calendar_month</span></div></div>
+            <div class="filter-actions"><button class="btn primary">Search</button><button class="btn ghost"><span class="material-symbols-outlined">restart_alt</span></button></div>
+          </div>
+        </details>
+        <div class="sectionhead">Upline Commission</div>
+        <div class="scrollhint"><span class="material-symbols-outlined">swipe_left</span>首欄固定，左右滑</div>
+        <div class="tbl-wrap" data-table="upline"></div>
+        <div class="tblfoot"><div class="colset"><span class="material-symbols-outlined">tune</span>Columns Settings</div><div class="pager"><span class="pg material-symbols-outlined disabled">chevron_left</span>1–20 / 63<span class="pg material-symbols-outlined">chevron_right</span></div></div>
+        <div class="rd-note"><b>同頁兩張表：</b>Upline / Downline <b>各自獨立橫滑容器</b>，勿共用一條捲軸；區塊標題建議 sticky。</div>
+        <div class="sectionhead">Downline Commission</div>
+        <div class="scrollhint"><span class="material-symbols-outlined">swipe_left</span>首欄固定，左右滑</div>
+        <div class="tbl-wrap" data-table="dnline"></div>
+        <div class="tblfoot"><div class="colset"><span class="material-symbols-outlined">tune</span>Columns Settings</div><div class="pager"><span class="pg material-symbols-outlined disabled">chevron_left</span>1–7 / 7<span class="pg material-symbols-outlined disabled">chevron_right</span></div></div>
+      </section>
+
+      <!-- ===== PLAYER'S REPORT ===== -->
+      <section class="page" data-p="preport">
+        <h2 class="page-h">Player's Report</h2>
+        <div class="seg"><button class="active">Direct Member</button><button>Direct + Downline AFF Member</button></div>
+        <details class="filters card" open>
+          <summary>Filters <span class="material-symbols-outlined chev">expand_more</span></summary>
+          <div class="inner">
+            <div class="field"><label>Username</label><div class="inp ph">Username</div></div>
+            <div class="field"><label>Sub Affiliate</label><div class="inp ph">Sub Affiliate</div></div>
+            <div class="field"><label>VIP Level</label><div class="inp ph">VIP Level</div></div>
+            <div class="field"><label>Min. Deposit (Fiat)</label><div class="inp ph">Min. Deposit</div></div>
+            <div class="field"><label>Max. Deposit (Fiat)</label><div class="inp ph">Max. Deposit</div></div>
+            <div class="field"><label>Min. Withdraw (Fiat)</label><div class="inp ph">Min. Withdraw</div></div>
+            <div class="field"><label>Max. Withdraw (Fiat)</label><div class="inp ph">Max. Withdraw</div></div>
+            <div class="field"><label>Start Time – End Time</label><div class="inp">2026-06-01 – 2026-06-26 <span class="material-symbols-outlined">calendar_month</span></div></div>
+            <div class="filter-actions"><button class="btn primary">Search</button><button class="btn ghost"><span class="material-symbols-outlined">restart_alt</span></button></div>
+          </div>
+        </details>
+        <div class="rd-note"><b>8 個篩選欄：</b>手機全部單欄堆疊；建議預設收合，只露 Username＋日期，其餘展開再填。</div>
+        <div class="scrollhint"><span class="material-symbols-outlined">swipe_left</span>首欄固定，左右滑看 13 欄</div>
+        <div class="tbl-wrap" data-table="preport"></div>
+        <div class="tblfoot"><div class="colset"><span class="material-symbols-outlined">tune</span>Columns Settings</div><div class="pager"><span class="pg material-symbols-outlined disabled">chevron_left</span>1 / 1<span class="pg material-symbols-outlined disabled">chevron_right</span></div></div>
+      </section>
+
+      <!-- ===== TRACKING LINK ===== -->
+      <section class="page" data-p="tracking">
+        <h2 class="page-h">Tracking Link</h2>
+        <div class="tl-head">Recruit New Players</div>
+        <div class="tl-card">
+          <div class="tl-link">https://ogpida1.ogp99.xyz/register?inviteCode=OpdEQPX</div>
+          <button class="btn primary copybtn" data-copy="https://ogpida1.ogp99.xyz/register?inviteCode=OpdEQPX">COPY</button>
+        </div>
+        <div class="tl-head">Exclusive Domain</div>
+        <div class="tl-card"><div class="tl-empty">No exclusive domain assigned yet.</div></div>
+        <div class="tl-head">Recruit New Affiliates</div>
+        <div class="tl-card">
+          <div class="tl-link">https://affogpida1.ogp99.xyz/register?f=OpdEQPX</div>
+          <button class="btn primary copybtn" data-copy="https://affogpida1.ogp99.xyz/register?f=OpdEQPX">COPY</button>
+        </div>
+        <div class="rd-note"><b>卡片堆疊：</b>長 URL <code>word-break:break-all</code> 換行；COPY 置於 URL 下方全寬、≥44px；複製成功給英文 toast「Copied」；Exclusive Domain 空狀態給英文 empty-state，非空白。</div>
+      </section>
+
+      </div><!-- /body -->
+    </div><!-- /screen -->
+  </div><!-- /phone -->
+
+  <!-- RD note panels (繁中) -->
+  <div class="rd-panel active" data-p="dashboard">
+    <h4>RD 開發註記 — Dashboard</h4>
+    <ul>
+      <li><span class="tag">格線</span>桌面 4 欄統計卡 → 手機 1 欄（≥600px 可 2 欄）。</li>
+      <li><span class="tag">金額</span><code>DECIMAL(18,2)</code>、右對齊、千分位；負值紅字。前後端都不可用 float 存金額。</li>
+      <li><span class="tag">i18n</span>卡片標題為語系 key（已見印尼/英文），勿寫死字串。</li>
+      <li><span class="tag">Tab</span>Member Direct / Direct+Downline 手機改全寬 segmented。</li>
+    </ul>
+  </div>
+  <div class="rd-panel" data-p="players">
+    <h4>RD 開發註記 — Player List</h4>
+    <ul>
+      <li><span class="tag">寬表</span>橫向捲動＋凍結首欄：<code>position:sticky;left:0</code> 並補背景色避免透字。</li>
+      <li><span class="tag">凍結</span>保持原欄序，凍結 <code>Date of Registration</code>（已拍板）。</li>
+      <li><span class="tag">篩選</span>單欄全寬、可收合面板；date range 手機全螢幕 picker。</li>
+      <li><span class="tag">分頁</span>縮為「上一頁／Page x of N／下一頁」；Items per page 用原生 select。</li>
+      <li><span class="tag">狀態</span>Status 用 chip（enum：ACTIVE / INACTIVE / …，以後端為準）。</li>
+    </ul>
+  </div>
+  <div class="rd-panel" data-p="commission">
+    <h4>RD 開發註記 — Commission Report</h4>
+    <ul>
+      <li><span class="tag">超寬</span>15+ 欄，橫向捲動＋凍結首欄（Year）。</li>
+      <li><span class="tag">Columns</span>Columns Settings 手機保留；預設只開識別＋1~2 關鍵欄降低橫滑。</li>
+      <li><span class="tag">數值</span>金額欄 <code>DECIMAL(18,2)</code> 右對齊；Commission(%) 保留原精度。</li>
+      <li><span class="tag">Export</span>右上下載維持於 app bar。</li>
+    </ul>
+  </div>
+  <div class="rd-panel" data-p="downline">
+    <h4>RD 開發註記 — Downline Commission</h4>
+    <ul>
+      <li><span class="tag">兩表</span>Upline / Downline 各自獨立橫滑容器，勿共用捲軸；區塊標題建議 sticky。</li>
+      <li><span class="tag">篩選</span>Game Vendor Channel / Game Type / date range 單欄堆疊。</li>
+      <li><span class="tag">PT</span>PT Total / Comm 為百分比與金額並存，型別與精度依後端；Total Commission 可為負（見 -1,720.68），負值紅字。</li>
+    </ul>
+  </div>
+  <div class="rd-panel" data-p="preport">
+    <h4>RD 開發註記 — Player's Report</h4>
+    <ul>
+      <li><span class="tag">篩選</span>8 個欄位單欄堆疊；預設收合只露 Username＋日期。</li>
+      <li><span class="tag">寬表</span>13 欄，橫向捲動＋凍結首欄（Username）。</li>
+      <li><span class="tag">金額</span>Deposit/Withdraw/Rebate/Bonus/Revenue 皆 <code>DECIMAL(18,2)</code> 右對齊。</li>
+      <li><span class="tag">Tab</span>Direct / Direct+Downline 全寬 segmented。</li>
+    </ul>
+  </div>
+  <div class="rd-panel" data-p="tracking">
+    <h4>RD 開發註記 — Tracking Link</h4>
+    <ul>
+      <li><span class="tag">版面</span>卡片堆疊全寬；長 URL <code>word-break:break-all</code>。</li>
+      <li><span class="tag">COPY</span>按鈕 ≥44px、置於 URL 下方全寬；成功給英文 toast「Copied」。</li>
+      <li><span class="tag">空狀態</span>Exclusive Domain 給英文 empty-state，勿留空白。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="hint-foot">共用前端白標：此站同一份程式碼套多品牌皮（已見 OLE777 / Lucky Game / Betally）。改共用元件 → 全品牌手機版同時生效；RD 須先確認這幾頁是共用元件或各品牌各一份（決定工時）。斷點建議 &lt;960px 套手機版。</div>
+
+<script>
+  // ---- table data ----
+  const T = {
+    players:{
+      h:["Date of Registration","Username","Country of Registration","Affiliate","Status","Last Login Date","Last Deposit Time","First Deposit Amount","Total Deposit Amount","Deposit Count"],
+      num:[7,8,9],
+      rows:[["2026-06-18 17:08:29","gerry06","—","mo123",{s:"ACTIVE"},"2026-06-18 17:08:31","—","0","0","0"]]
+    },
+    commission:{
+      h:["Year","Month","Active Player","Total Player","Game Revenue","Vendor Fee","Net Revenue","Bonus Fee","Rebate Fee","Transaction Fee","Player Benefit Fee","Total Fee","Commission(%)","Total Commission","Downline Comm"],
+      num:[2,3,4,5,6,7,8,9,10,11,12,13,14],
+      rows:[["2026","6","0","1","0","0","0","0","0","0","0","0","0%","0","0"]]
+    },
+    upline:{
+      h:["Agent Prefix","Game Type","Game Vendor","Currency","Turnover","PT Total","Comm From Up Line"],
+      num:[4,5,6],
+      rows:[
+        ["OLEID","CARDS","King Midas","IDR(K)","383,172.02","0%","0"],
+        ["OLEID","CASINO","AFB","IDR(K)","544,433.53","0%","0"],
+        ["OLEID","SLOTS","JILI","IDR(K)","1,742,784","29.9%","0"],
+        ["OLEID","SLOTS","Pragmatic Play","IDR(K)","178,775.3","0%","0"],
+        ["OLEID","SPORTS","Saba","IDR(K)","26.15","4.3%","0"]
+      ]
+    },
+    dnline:{
+      h:["Agent Prefix","Product Type","Game Vendor","Currency","Down Line Turnover","Direct Down Line Pt Total","Comm To Down Line","PT Total","Comm From Up Line","Total Commission"],
+      num:[4,5,6,7,8,9],
+      rows:[
+        ["OLEIDA3","SLOTS","JILI_SLOTS","IDR","95,913.25","29.9%","1,720.68","20.9%","0",{n:"-1,720.68"}],
+        ["OLEIDA3","LOTTERY","HPL_LOTTERY","IDR","120","3%","0","3%","0","0"],
+        ["OLEIDA3","CASINO","PP_CASINO","IDR","4,101","25%","1.02","24%","0",{n:"-1.02"}],
+        ["OLEIDA6","SLOTS","JILI_SLOTS","IDR","313,172","29.9%","5,618.3","20.9%","0",{n:"-5,618.3"}]
+      ]
+    },
+    preport:{
+      h:["Username","VIP Level","Affiliate","First Deposit Amount","Deposit Count","Deposit Amount","Withdrawal Amount","Net Deposits","Rebate Amount","Bonus Amount","Total Wins","Total Loss","Game Revenue"],
+      num:[1,3,4,5,6,7,8,9,10,11,12],
+      rows:[["gerry06","0","mo123","0","0","0","0","0","0","0","0","0","0"]]
+    }
+  };
+
+  function buildTable(def){
+    const numset=new Set(def.num);
+    let h="<table><thead><tr>";
+    def.h.forEach((c,i)=>{h+=`<th class="${numset.has(i)?'num':''}">${c}</th>`});
+    h+="</tr></thead><tbody>";
+    def.rows.forEach(r=>{
+      h+="<tr>";
+      r.forEach((cell,i)=>{
+        if(cell&&cell.s){h+=`<td><span class="status">${cell.s}</span></td>`;}
+        else if(cell&&cell.n){h+=`<td class="num neg">${cell.n}</td>`;}
+        else{h+=`<td class="${numset.has(i)?'num':''}">${cell}</td>`;}
+      });
+      h+="</tr>";
+    });
+    return h+"</tbody></table>";
+  }
+  document.querySelectorAll('[data-table]').forEach(el=>{el.innerHTML=buildTable(T[el.dataset.table])});
+
+  // ---- page switching ----
+  const titles={dashboard:"Dashboard",players:"Player List",commission:"Commission Report",downline:"Downline Commission Report",preport:"Player's Report",tracking:"Tracking Link"};
+  function show(p){
+    document.querySelectorAll('.pagesel button').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+    document.querySelectorAll('.page').forEach(s=>s.classList.toggle('active',s.dataset.p===p));
+    document.querySelectorAll('.rd-panel').forEach(s=>s.classList.toggle('active',s.dataset.p===p));
+    document.querySelectorAll('.drawer a').forEach(a=>a.classList.toggle('active',a.dataset.p===p));
+    document.getElementById('abTitle').textContent=titles[p];
+    document.querySelector('.body').scrollTop=0;
+  }
+  document.getElementById('pagesel').addEventListener('click',e=>{if(e.target.dataset.p)show(e.target.dataset.p)});
+
+  // ---- segmented tabs (toggle active among siblings) ----
+  document.querySelectorAll('.seg').forEach(seg=>{
+    seg.addEventListener('click',e=>{
+      if(e.target.tagName!=='BUTTON')return;
+      seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===e.target));
+      if(seg.id==='dashSeg'){
+        // Direct Member -> show Commission Rate card; Direct+Downline -> hide it
+        document.getElementById('commissionRateCard').style.display = (e.target.dataset.mode==='downline') ? 'none' : '';
+      }
+    });
+  });
+
+  // ---- notes toggle ----
+  document.getElementById('noteToggle').addEventListener('click',()=>document.body.classList.toggle('notes-on'));
+
+  // ---- drawer ----
+  const dr=document.getElementById('drawer'),sc=document.getElementById('scrim');
+  const open=()=>{dr.classList.add('open');sc.classList.add('open')};
+  const close=()=>{dr.classList.remove('open');sc.classList.remove('open')};
+  document.getElementById('menuBtn').addEventListener('click',open);
+  sc.addEventListener('click',close);
+
+  // toast
+  let tT;const toastEl=document.getElementById('toast');
+  function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>toastEl.classList.remove('show'),1700);}
+
+  // group collapse
+  document.querySelectorAll('.drawer .grp-h').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('collapsed')));
+
+  // drawer item navigation (linked pages switch; out-of-scope items show note)
+  document.querySelectorAll('.drawer a, .drawer .brand').forEach(el=>el.addEventListener('click',()=>{
+    const p=el.dataset.p;
+    if(p){show(p);close();}
+    else if(el.classList.contains('noscope')){toast('此頁不在本次手機化範圍（mockup）');close();}
+  }));
+
+  // ---- copy ----
+  document.querySelectorAll('.copybtn').forEach(b=>b.addEventListener('click',()=>{
+    navigator.clipboard&&navigator.clipboard.writeText(b.dataset.copy);
+    const t=b.textContent;b.textContent="Copied";setTimeout(()=>b.textContent=t,1200);
+  }));
+</script>
+</body>
+</html>

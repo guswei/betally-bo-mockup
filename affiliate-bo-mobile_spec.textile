@@ -1,0 +1,78 @@
+h1. Affiliate BO 手機化（RWD）— RD 簡易 Spec
+
+p. Mockup：@affiliate-bo-mobile_mockup.html@（單檔，可傳手機開；右上「顯示 RD 註記」可看開發邊界）。
+視覺沿用現有 Angular Material 綠色主題，*不重新設計*。
+
+h2. 1. 背景與目標
+
+p. 現有 Affiliate BO 為 Angular + Angular Material 的桌面導向 SPA（已有 @width=device-width@ viewport，但版面照桌面設計，手機上擠壓／被迫橫向捲動）。本案在*同一份 Angular 專案*內，對指定 6 頁做響應式（RWD）改造，讓手機瀏覽器能順手使用。*不重寫、不另做 mobile 站、不改桌面版。*
+
+h2. 2. 範圍
+
+p. *IN（6 頁手機化）*：① Dashboard（統計卡）② Player List ③ Commission Report ④ Downline Commission Report ⑤ Player's Report ⑥ Tracking Link
+
+p. *OUT（本案不做）*：Notification、Sub Affiliates、Top Up for Affiliates/Players、Bets/Transactions/Games/Ads Report、Promotion Banner、Traffic Statistics、Settings(Profile/Contact Us)、桌面版（≥960px）版面。
+
+h2. 3. 共用規範（6 頁皆適用）
+
+|_. 項目 |_. 規範 |
+| 斷點 | @<960px@ 套手機版（Material Handset，建議用 CDK @BreakpointObserver@）；@≥960px@ 維持現有桌面版，不變。 |
+| 側欄 | 桌面 @mat-sidenav mode="side"@ 常駐 → 手機 @mode="over"@ 漢堡覆蓋抽屜；點 scrim／選單項關閉；群組可收合；6 個對應頁項目點擊切頁並高亮。 |
+| 篩選 | 桌面多欄橫排 → 手機單欄全寬，收進可收合「Filters」面板；Search／Reset 置底全寬；date range 手機用全螢幕 picker。 |
+| Tab（Direct／Downline） | 全寬 segmented control。 |
+| 寬表 | 橫向捲動容器 + *凍結首欄*（@position:sticky; left:0@ 並補背景色避免透字）；Columns Settings 保留；分頁列縮為「上一頁／Page x of N／下一頁」+ Items per page 原生 select。 |
+| 金額顯示 | 右對齊、千分位、小數 2 位（對應後端 @DECIMAL(18,2)@）；負值紅字。百分比保留原精度。 |
+| 觸控／a11y | 觸控目標 ≥44×44px；建議解除現站 viewport 的 @user-scalable=no@。 |
+
+h2. 4. 各頁規格
+
+h3. 4.1 Dashboard
+
+* 統計卡：桌面 4 欄 → 手機 1 欄（@≥600px@ 可 2 欄）。*卡片不可點，純展示。*
+* Tab 連動（重要）：@Direct Member@ 顯示 *9 張卡（含 Commission Rate）*；@Direct + Downline AFF Member@ *隱藏 Commission Rate 卡（剩 8 張）*。其餘卡兩模式都在，數值依模式重撈。
+* 卡片清單（英文 UI，標題為 i18n key）：New Register、Active Player、Total Members、First Deposit Amount、First Deposit Members、Total Deposit Amount、Withdraw Amount、Net Revenue（旁有 help tooltip）、Commission Rate（僅 Direct Member）。
+
+h3. 4.2 Player List
+
+* Tab：Direct Member／Direct + Downline AFF Member（全寬）。
+* 篩選：Sub Affiliate（輸入）、Start–End Time（date range）。
+* 寬表（約 10 欄）：Date of Registration、Username、Country of Registration、Affiliate、Status、Last Login Date、Last Deposit Time、First Deposit Amount、Total Deposit Amount、Deposit Count。
+* *凍結首欄＝Date of Registration（保持原欄序）*。
+* Status 用 chip（enum 以後端為準，如 @ACTIVE@）。
+* 分頁列。
+
+h3. 4.3 Commission Report
+
+* 單張 *15+ 欄*寬表：Year、Month、Active Player、Total Player、Game Revenue、Vendor Fee、Net Revenue、Bonus Fee、Rebate Fee、Transaction Fee、Player Benefit Fee、Total Fee、Commission(%)、Total Commission、Downline Comm。
+* *凍結首欄＝Year*。Columns Settings 保留；Export（app bar 下載 icon）。
+
+h3. 4.4 Downline Commission Report
+
+* 篩選：Game Vendor Channel、Game Type、Start–End Time。
+* 兩張表，*各自獨立橫滑容器*（勿共用同一條捲軸），區塊標題建議 sticky：
+** *Upline Commission*：Agent Prefix、Game Type、Game Vendor、Currency、Turnover、PT Total、Comm From Up Line。凍結 Agent Prefix。獨立分頁。
+** *Downline Commission*：Agent Prefix、Product Type、Game Vendor、Currency、Down Line Turnover、Direct Down Line Pt Total、Comm To Down Line、PT Total、Comm From Up Line、Total Commission。凍結 Agent Prefix。獨立分頁。
+* Total Commission 可為負 → 紅字。
+
+h3. 4.5 Player's Report
+
+* Tab：Direct Member／Direct + Downline AFF Member（全寬）。
+* 篩選（8 欄，手機單欄堆疊，建議預設收合只露 Username + date range）：Username、Sub Affiliate、VIP Level、Min/Max Deposit (Fiat)、Min/Max Withdraw (Fiat)、Start–End Time。
+* 寬表（13 欄）：Username、VIP Level、Affiliate、First Deposit Amount、Deposit Count、Deposit Amount、Withdrawal Amount、Net Deposits、Rebate Amount、Bonus Amount、Total Wins、Total Loss、Game Revenue。
+* *凍結首欄＝Username*。
+
+h3. 4.6 Tracking Link
+
+* 三區塊卡片堆疊全寬：Recruit New Players（link + COPY）、Exclusive Domain（空狀態）、Recruit New Affiliates（link + COPY）。
+* 長 URL @word-break:break-all@；COPY 按鈕 ≥44px、置 URL 下方全寬；複製成功 toast「Copied」。
+* Exclusive Domain 給英文 empty-state（勿留空白）。
+
+h2. 5. 後端相依
+
+p. 純前端版面層改造，*無新增 API*，沿用現有報表 API 與回傳欄位（假設，RD 核對）。
+
+h2. 6. 假設與待 RD 核對
+
+* *多品牌白標*：此站同一份前端套多品牌皮（已見 OLE777／Lucky Game／Betally）。RD 須先確認這 6 頁是*共用元件*或*各品牌各一份* → 決定改 1 處或 N 處（影響工時）。
+* 斷點 960px 為建議值，依現有 theme 可調整。
+* 金額 @DECIMAL(18,2)@ 為通則假設，實際以後端 schema 為準。
