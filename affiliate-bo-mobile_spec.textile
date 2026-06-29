@@ -39,14 +39,14 @@ h3. 4.2 Player List
 |_. 項目 |_. 規範 |
 | Tab | Direct Member／Direct + Downline AFF Member（全寬） |
 | 篩選 | Sub Affiliate（輸入）、Start–End Time（date range） |
-| 寬表（約 10 欄） | Date of Registration、Username、Country of Registration、Affiliate、Status、Last Login Date、Last Deposit Time、First Deposit Amount、Total Deposit Amount、Deposit Count |
+| 寬表（10 欄） | Date of Registration、Username、Country of Registration、Affiliate、Status、Last Login Date、Last Deposit Time、First Deposit Amount、Total Deposit Amount、Deposit Count |
 | 凍結首欄 | *Date of Registration*（保持原欄序） |
 | 特殊規則 | Status 用 chip（enum 以後端為準，如 @ACTIVE@）；保留分頁列 |
 
 h3. 4.3 Commission Report
 
 |_. 項目 |_. 規範 |
-| 寬表（15+ 欄，單張） | Year、Month、Active Player、Total Player、Game Revenue、Vendor Fee、Net Revenue、Bonus Fee、Rebate Fee、Transaction Fee、Player Benefit Fee、Total Fee、Commission(%)、Total Commission、Downline Comm |
+| 寬表（15 欄，單張） | Year、Month、Active Player、Total Player、Game Revenue、Vendor Fee、Net Revenue、Bonus Fee、Rebate Fee、Transaction Fee、Player Benefit Fee、Total Fee、Commission(%)、Total Commission、Downline Comm |
 | 凍結首欄 | *Year* |
 | 特殊規則 | Columns Settings 保留；Export（app bar 下載 icon） |
 
