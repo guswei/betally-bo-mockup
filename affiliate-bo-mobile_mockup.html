@@ -126,6 +126,27 @@
   .pager .pg{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid #ddd;border-radius:6px;color:#777}
   .pg.disabled{opacity:.4}
 
+  /* Columns Settings full-screen sheet */
+  .cs-scrim{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+  .cs-scrim.open{opacity:1;pointer-events:auto}
+  .cs-sheet{position:absolute;inset:0;background:#f4f6f8;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .25s;z-index:61}
+  .cs-sheet.open{transform:none}
+  .cs-head{text-align:center;font-weight:700;font-size:15px;color:#333;padding:16px;background:#fff;border-bottom:1px solid #eee}
+  .cs-list{flex:1;overflow-y:auto;padding:12px}
+  .cs-row{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:11px 12px;margin-bottom:8px;user-select:none}
+  .cs-row.dragging{opacity:.65;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+  .cs-handle{color:#b0b0b0;cursor:grab;touch-action:none;font-size:20px}
+  .cs-label{flex:1;text-align:center;font-size:13px;color:#333}
+  .cs-sw{width:42px;height:24px;border-radius:20px;background:#ccc;position:relative;flex:0 0 auto;cursor:pointer;transition:.2s}
+  .cs-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+  .cs-sw.on{background:var(--green)}
+  .cs-sw.on::after{left:20px}
+  .cs-foot{display:flex;gap:10px;padding:12px;background:#fff;border-top:1px solid #eee}
+  .cs-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;font:inherit;font-size:13px;font-weight:600;padding:12px;border-radius:8px;border:1px solid #d0d4d8;background:#fff;color:#555;cursor:pointer}
+  .cs-btn .material-symbols-outlined{font-size:17px}
+  .cs-btn.reset{color:#c0392b;border-color:#e0b4ae}
+  .cs-btn.save{background:var(--green);color:#fff;border-color:var(--green)}
+
   /* dashboard stat cards */
   .stat{border-radius:10px;padding:14px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden;min-height:96px}
   .stat h3{margin:0 0 10px;font-size:13px;font-weight:600;opacity:.95}
@@ -178,6 +199,19 @@
       <!-- drawer -->
       <div class="toast" id="toast"></div>
       <div class="scrim" id="scrim"></div>
+
+      <!-- Columns Settings full-screen sheet (報表頁共用；顯示/隱藏 + 拖曳排序) -->
+      <div class="cs-scrim" id="csScrim"></div>
+      <div class="cs-sheet" id="csSheet">
+        <div class="cs-head">Columns Settings</div>
+        <div class="cs-list" id="csList"></div>
+        <div class="cs-foot">
+          <button class="cs-btn" id="csCancel"><span class="material-symbols-outlined">close</span>Cancel</button>
+          <button class="cs-btn reset" id="csReset"><span class="material-symbols-outlined">restart_alt</span>Reset</button>
+          <button class="cs-btn save" id="csSave"><span class="material-symbols-outlined">check</span>Save</button>
+        </div>
+      </div>
+
       <nav class="drawer" id="drawer">
         <div class="brand" data-p="dashboard"><div class="logo">LG</div><div><div style="font-weight:700;color:#fff;font-size:14px">Lucky Game</div><div style="font-size:11px;color:#7e8893">Affiliate BO</div></div></div>
         <div class="grp">
@@ -274,7 +308,7 @@
       <!-- ===== COMMISSION REPORT ===== -->
       <section class="page" data-p="commission">
         <h2 class="page-h">Commission Report</h2>
-        <div class="rd-note"><b>超寬表（15+ 欄）：</b>採橫向捲動＋凍結首欄（已拍板）。預設可只開識別＋1~2 關鍵欄，其餘交 Columns Settings 讓使用者開。</div>
+        <div class="rd-note"><b>超寬表（15 欄）：</b>採橫向捲動＋凍結首欄（已拍板）。欄位顯示與順序由下方 <b>Columns Settings</b> 控制（見該面板註記）。</div>
         <div class="scrollhint"><span class="material-symbols-outlined">swipe_left</span>首欄固定，左右滑看全部 15 欄</div>
         <div class="tbl-wrap" data-table="commission"></div>
         <div class="tblfoot">
@@ -366,7 +400,8 @@
     <h4>RD 開發註記 — Player List</h4>
     <ul>
       <li><span class="tag">寬表</span>橫向捲動＋凍結首欄：<code>position:sticky;left:0</code> 並補背景色避免透字。</li>
-      <li><span class="tag">凍結</span>保持原欄序，凍結 <code>Date of Registration</code>（已拍板）。</li>
+      <li><span class="tag">凍結</span>預設凍結 <code>Date of Registration</code>（保持原欄序，已拍板）；經 Columns Settings 排序後，凍結欄＝第一個顯示中的欄位。</li>
+      <li><span class="tag">Columns</span><b>Columns Settings</b> 全螢幕面板：顯示/隱藏＋拖曳排序，底部 Cancel / Reset / Save（Save 才套用）。<b>待 RD 核對</b>：Player List 是否與報表頁一樣有此功能（已確認的是 Commission Report，見截圖）。</li>
       <li><span class="tag">篩選</span>單欄全寬、可收合面板；date range 手機全螢幕 picker。</li>
       <li><span class="tag">分頁</span>縮為「上一頁／Page x of N／下一頁」；Items per page 用原生 select。</li>
       <li><span class="tag">狀態</span>Status 用 chip（enum：ACTIVE / INACTIVE / …，以後端為準）。</li>
@@ -375,8 +410,10 @@
   <div class="rd-panel" data-p="commission">
     <h4>RD 開發註記 — Commission Report</h4>
     <ul>
-      <li><span class="tag">超寬</span>15+ 欄，橫向捲動＋凍結首欄（Year）。</li>
-      <li><span class="tag">Columns</span>Columns Settings 手機保留；預設只開識別＋1~2 關鍵欄降低橫滑。</li>
+      <li><span class="tag">超寬</span>15 欄，橫向捲動＋凍結首欄（預設 Year）。</li>
+      <li><span class="tag">Columns</span><b>Columns Settings</b>（點按鈕開全螢幕面板）：每欄一列＝拖曳 handle＋顯示開關。可<b>顯示/隱藏</b>與<b>拖曳排序</b>；底部 Cancel / Reset（回預設：全開、原序）/ Save。Save 才套用。建議用 Angular CDK <code>DragDrop</code>（原生支援觸控拖曳）。</li>
+      <li><span class="tag">凍結規則</span>凍結的是「排序後第一個<b>顯示中</b>的欄位」；若使用者把 Year 隱藏或往後拖，凍結欄隨之變成新的首欄。</li>
+      <li><span class="tag">設定保存</span>設定範圍（per-user / per-device、是否寫後端 user preference）<b>依現站既有機制</b>，本案不新增；RD 核對現況。</li>
       <li><span class="tag">數值</span>金額欄 <code>DECIMAL(18,2)</code> 右對齊；Commission(%) 保留原精度。</li>
       <li><span class="tag">Export</span>右上下載維持於 app bar。</li>
     </ul>
@@ -385,6 +422,7 @@
     <h4>RD 開發註記 — Downline Commission</h4>
     <ul>
       <li><span class="tag">兩表</span>Upline / Downline 各自獨立橫滑容器，勿共用捲軸；區塊標題建議 sticky。</li>
+      <li><span class="tag">Columns</span>兩表<b>各有獨立的 Columns Settings</b>（顯示/隱藏＋拖曳排序，Cancel / Reset / Save）；各自獨立保存，互不影響。凍結欄＝各表排序後第一個顯示中的欄位（預設 Agent Prefix）。</li>
       <li><span class="tag">篩選</span>Game Vendor Channel / Game Type / date range 單欄堆疊。</li>
       <li><span class="tag">PT</span>PT Total / Comm 為百分比與金額並存，型別與精度依後端；Total Commission 可為負（見 -1,720.68），負值紅字。</li>
     </ul>
@@ -393,7 +431,8 @@
     <h4>RD 開發註記 — Player's Report</h4>
     <ul>
       <li><span class="tag">篩選</span>8 個欄位單欄堆疊；預設收合只露 Username＋日期。</li>
-      <li><span class="tag">寬表</span>13 欄，橫向捲動＋凍結首欄（Username）。</li>
+      <li><span class="tag">寬表</span>13 欄，橫向捲動＋凍結首欄（預設 Username）。</li>
+      <li><span class="tag">Columns</span><b>Columns Settings</b> 全螢幕面板：顯示/隱藏＋拖曳排序，Cancel / Reset / Save（Save 才套用）。凍結欄＝排序後第一個顯示中的欄位。</li>
       <li><span class="tag">金額</span>Deposit/Withdraw/Rebate/Bonus/Revenue 皆 <code>DECIMAL(18,2)</code> 右對齊。</li>
       <li><span class="tag">Tab</span>Direct / Direct+Downline 全寬 segmented。</li>
     </ul>
@@ -451,23 +490,89 @@
     }
   };
 
-  function buildTable(def){
-    const numset=new Set(def.num);
+  // per-table column view: order = original indices in display order; hidden = original indices not shown
+  const view={};
+  Object.keys(T).forEach(k=>{view[k]={order:T[k].h.map((_,i)=>i),hidden:new Set()}});
+
+  function buildTable(key){
+    const def=T[key],v=view[key],numset=new Set(def.num);
+    const ord=v.order.filter(oi=>!v.hidden.has(oi));   // frozen first = first visible after reorder
     let h="<table><thead><tr>";
-    def.h.forEach((c,i)=>{h+=`<th class="${numset.has(i)?'num':''}">${c}</th>`});
+    ord.forEach(oi=>{h+=`<th class="${numset.has(oi)?'num':''}">${def.h[oi]}</th>`});
     h+="</tr></thead><tbody>";
     def.rows.forEach(r=>{
       h+="<tr>";
-      r.forEach((cell,i)=>{
+      ord.forEach(oi=>{
+        const cell=r[oi];
         if(cell&&cell.s){h+=`<td><span class="status">${cell.s}</span></td>`;}
         else if(cell&&cell.n){h+=`<td class="num neg">${cell.n}</td>`;}
-        else{h+=`<td class="${numset.has(i)?'num':''}">${cell}</td>`;}
+        else{h+=`<td class="${numset.has(oi)?'num':''}">${cell}</td>`;}
       });
       h+="</tr>";
     });
     return h+"</tbody></table>";
   }
-  document.querySelectorAll('[data-table]').forEach(el=>{el.innerHTML=buildTable(T[el.dataset.table])});
+  function renderTable(key){const el=document.querySelector(`[data-table="${key}"]`);if(el)el.innerHTML=buildTable(key)}
+  Object.keys(T).forEach(renderTable);
+
+  // ---- Columns Settings sheet (show/hide + drag reorder) ----
+  let csKey=null,csWork=null,dragEl=null;
+  const csScrim=document.getElementById('csScrim'),csSheet=document.getElementById('csSheet'),csList=document.getElementById('csList');
+  function csRenderList(){
+    const def=T[csKey];
+    csList.innerHTML=csWork.order.map(oi=>{
+      const on=!csWork.hidden.has(oi);
+      return `<div class="cs-row" data-oi="${oi}"><span class="cs-handle material-symbols-outlined">drag_indicator</span><span class="cs-label">${def.h[oi]}</span><span class="cs-sw ${on?'on':''}" data-oi="${oi}"></span></div>`;
+    }).join('');
+  }
+  function csOpen(key){
+    csKey=key;
+    csWork={order:view[key].order.slice(),hidden:new Set(view[key].hidden)};
+    csRenderList();csScrim.classList.add('open');csSheet.classList.add('open');
+  }
+  function csClose(){csScrim.classList.remove('open');csSheet.classList.remove('open');csKey=null}
+  // toggle a column (keep ≥1 visible)
+  csList.addEventListener('click',e=>{
+    const sw=e.target.closest('.cs-sw');if(!sw)return;
+    const oi=+sw.dataset.oi;
+    if(csWork.hidden.has(oi)){csWork.hidden.delete(oi);sw.classList.add('on');}
+    else{
+      if(csWork.order.filter(i=>!csWork.hidden.has(i)).length<=1){toast('至少保留一個欄位');return;}
+      csWork.hidden.add(oi);sw.classList.remove('on');
+    }
+  });
+  // drag reorder via handle (pointer = mouse + touch)
+  function rowAfter(y){return [...csList.querySelectorAll('.cs-row:not(.dragging)')].find(r=>{const b=r.getBoundingClientRect();return y<b.top+b.height/2})||null}
+  csList.addEventListener('pointerdown',e=>{
+    const h=e.target.closest('.cs-handle');if(!h)return;
+    dragEl=h.closest('.cs-row');dragEl.classList.add('dragging');dragEl.setPointerCapture(e.pointerId);e.preventDefault();
+  });
+  csList.addEventListener('pointermove',e=>{
+    if(!dragEl)return;
+    const after=rowAfter(e.clientY);
+    if(after==null)csList.appendChild(dragEl);else if(after!==dragEl)csList.insertBefore(dragEl,after);
+  });
+  csList.addEventListener('pointerup',()=>{
+    if(!dragEl)return;
+    dragEl.classList.remove('dragging');
+    csWork.order=[...csList.querySelectorAll('.cs-row')].map(r=>+r.dataset.oi);
+    dragEl=null;
+  });
+  document.getElementById('csCancel').addEventListener('click',csClose);
+  csScrim.addEventListener('click',csClose);
+  document.getElementById('csReset').addEventListener('click',()=>{
+    csWork={order:T[csKey].h.map((_,i)=>i),hidden:new Set()};csRenderList();
+  });
+  document.getElementById('csSave').addEventListener('click',()=>{
+    view[csKey]={order:csWork.order.slice(),hidden:new Set(csWork.hidden)};
+    renderTable(csKey);csClose();toast('Columns updated');
+  });
+  // each colset button → the nearest table above it (handles Downline's 2 tables)
+  document.querySelectorAll('.colset').forEach(btn=>btn.addEventListener('click',()=>{
+    let el=btn.closest('.tblfoot');el=el&&el.previousElementSibling;
+    while(el&&!el.classList.contains('tbl-wrap'))el=el.previousElementSibling;
+    if(el)csOpen(el.dataset.table);
+  }));
 
   // ---- page switching ----
   const titles={dashboard:"Dashboard",players:"Player List",commission:"Commission Report",downline:"Downline Commission Report",preport:"Player's Report",tracking:"Tracking Link"};

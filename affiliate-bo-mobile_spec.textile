@@ -21,7 +21,8 @@ h2. 3. 共用規範（6 頁皆適用）
 | 側欄 | 桌面 @mat-sidenav mode="side"@ 常駐 → 手機 @mode="over"@ 漢堡覆蓋抽屜；點 scrim／選單項關閉；群組可收合；6 個對應頁項目點擊切頁並高亮 |
 | 篩選 | 桌面多欄橫排 → 手機單欄全寬，收進可收合「Filters」面板；Search／Reset 置底全寬；date range 手機用全螢幕 picker |
 | Tab（Direct／Downline） | 全寬 segmented control |
-| 寬表 | 橫向捲動容器 + *凍結首欄*（@position:sticky; left:0@ 並補背景色避免透字）；Columns Settings 保留；分頁列縮為「上一頁／Page x of N／下一頁」+ Items per page 原生 select |
+| 寬表 | 橫向捲動容器 + *凍結首欄*（@position:sticky; left:0@ 並補背景色避免透字）；凍結的是「Columns Settings 排序後第一個*顯示中*的欄位」，各頁預設首欄見 §4；分頁列縮為「上一頁／Page x of N／下一頁」+ Items per page 原生 select |
+| Columns Settings | 各報表寬表頁保留此功能；手機改為*全螢幕面板*：每欄一列＝拖曳 handle ＋ 顯示/隱藏開關，可*顯示/隱藏*與*拖曳排序*；底部 Cancel／Reset（回預設：全部顯示、原順序）／Save，*Save 才套用*至表格。建議用 Angular CDK @DragDrop@（原生支援觸控拖曳）。至少需保留 1 欄顯示。設定保存範圍（per-user／per-device／寫後端 preference）*依現站既有機制*，本案不新增 |
 | 金額顯示 | 右對齊、千分位、小數 2 位（對應後端 @DECIMAL(18,2)@）；負值紅字。百分比保留原精度 |
 | 觸控／a11y | 觸控目標 ≥44×44px；建議解除現站 viewport 的 @user-scalable=no@ |
 
@@ -47,8 +48,8 @@ h3. 4.3 Commission Report
 
 |_. 項目 |_. 規範 |
 | 寬表（15 欄，單張） | Year、Month、Active Player、Total Player、Game Revenue、Vendor Fee、Net Revenue、Bonus Fee、Rebate Fee、Transaction Fee、Player Benefit Fee、Total Fee、Commission(%)、Total Commission、Downline Comm |
-| 凍結首欄 | *Year* |
-| 特殊規則 | Columns Settings 保留；Export（app bar 下載 icon） |
+| 凍結首欄 | *Year*（預設；排序後隨第一個顯示中的欄位變動） |
+| 特殊規則 | Columns Settings（顯示/隱藏＋拖曳排序，見 §3）；Export（app bar 下載 icon） |
 
 h3. 4.4 Downline Commission Report
 
@@ -57,6 +58,7 @@ h3. 4.4 Downline Commission Report
 | 版面 | 兩張表，*各自獨立橫滑容器*（勿共用同一條捲軸），區塊標題建議 sticky |
 | 表一：Upline Commission | 欄位：Agent Prefix、Game Type、Game Vendor、Currency、Turnover、PT Total、Comm From Up Line。凍結首欄＝*Agent Prefix*。獨立分頁 |
 | 表二：Downline Commission | 欄位：Agent Prefix、Product Type、Game Vendor、Currency、Down Line Turnover、Direct Down Line Pt Total、Comm To Down Line、PT Total、Comm From Up Line、Total Commission。凍結首欄＝*Agent Prefix*。獨立分頁 |
+| Columns Settings | 兩張表*各有獨立的 Columns Settings*（見 §3），各自保存、互不影響 |
 | 特殊規則 | Total Commission 可為負 → 紅字 |
 
 h3. 4.5 Player's Report
@@ -81,4 +83,6 @@ p. 純前端版面層改造，*無新增 API*，沿用現有報表 API 與回傳
 h2. 6. 待 RD 核對
 
 * *多品牌白標*：此站同一份前端套多品牌皮（已見 OLE777／Lucky Game／Betally）。RD 須先確認這 6 頁是*共用元件*或*各品牌各一份* → 決定改 1 處或 N 處（影響工時）
+* *Columns Settings 涵蓋頁面*：已確認 Commission Report 具備（見截圖）。其餘報表頁與 Player List 是否同樣具備此功能，請 RD 核對；具備者套用 §3 的手機化規範
+* *Columns Settings 設定保存*：現站此設定存哪（per-user／per-device／後端 preference）請 RD 確認；本案沿用現況、不新增保存機制
 * 斷點 960px 為建議值，依現有 theme 可調整
