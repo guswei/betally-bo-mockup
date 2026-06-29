@@ -31,39 +31,51 @@
 ## 4. 各頁規格
 
 ### 4.1 Dashboard
-- 統計卡：桌面 4 欄 → 手機 1 欄（`≥600px` 可 2 欄）。**卡片不可點，純展示。**
-- Tab 連動（重要）：`Direct Member` 顯示 **9 張卡（含 Commission Rate）**；`Direct + Downline AFF Member` **隱藏 Commission Rate 卡（剩 8 張）**。其餘卡兩模式都在，數值依模式重撈。
-- 卡片清單（英文 UI，標題為 i18n key）：New Register、Active Player、Total Members、First Deposit Amount、First Deposit Members、Total Deposit Amount、Withdraw Amount、Net Revenue（旁有 help tooltip）、Commission Rate（僅 Direct Member）。
+| 項目 | 規範 |
+|---|---|
+| 版面 | 統計卡：桌面 4 欄 → 手機 1 欄（`≥600px` 可 2 欄）。**卡片不可點，純展示。** |
+| Tab 連動（重要） | `Direct Member` 顯示 **9 張卡（含 Commission Rate）**；`Direct + Downline AFF Member` **隱藏 Commission Rate 卡（剩 8 張）**。其餘卡兩模式都在，數值依模式重撈。 |
+| 卡片清單 | （英文 UI，標題為 i18n key）New Register、Active Player、Total Members、First Deposit Amount、First Deposit Members、Total Deposit Amount、Withdraw Amount、Net Revenue（旁有 help tooltip）、Commission Rate（僅 Direct Member）。 |
 
 ### 4.2 Player List
-- Tab：Direct Member / Direct + Downline AFF Member（全寬）。
-- 篩選：Sub Affiliate（輸入）、Start–End Time（date range）。
-- 寬表（約 10 欄）：Date of Registration、Username、Country of Registration、Affiliate、Status、Last Login Date、Last Deposit Time、First Deposit Amount、Total Deposit Amount、Deposit Count。
-- **凍結首欄＝Date of Registration（保持原欄序）**。
-- Status 用 chip（enum 以後端為準，如 `ACTIVE`）。
-- 分頁列。
+| 項目 | 規範 |
+|---|---|
+| Tab | Direct Member / Direct + Downline AFF Member（全寬）。 |
+| 篩選 | Sub Affiliate（輸入）、Start–End Time（date range）。 |
+| 寬表（約 10 欄） | Date of Registration、Username、Country of Registration、Affiliate、Status、Last Login Date、Last Deposit Time、First Deposit Amount、Total Deposit Amount、Deposit Count。 |
+| 凍結首欄 | **Date of Registration**（保持原欄序）。 |
+| 特殊規則 | Status 用 chip（enum 以後端為準，如 `ACTIVE`）；保留分頁列。 |
 
 ### 4.3 Commission Report
-- 單張 **15+ 欄**寬表：Year、Month、Active Player、Total Player、Game Revenue、Vendor Fee、Net Revenue、Bonus Fee、Rebate Fee、Transaction Fee、Player Benefit Fee、Total Fee、Commission(%)、Total Commission、Downline Comm。
-- **凍結首欄＝Year**。Columns Settings 保留；Export（app bar 下載 icon）。
+| 項目 | 規範 |
+|---|---|
+| 寬表（15+ 欄，單張） | Year、Month、Active Player、Total Player、Game Revenue、Vendor Fee、Net Revenue、Bonus Fee、Rebate Fee、Transaction Fee、Player Benefit Fee、Total Fee、Commission(%)、Total Commission、Downline Comm。 |
+| 凍結首欄 | **Year**。 |
+| 特殊規則 | Columns Settings 保留；Export（app bar 下載 icon）。 |
 
 ### 4.4 Downline Commission Report
-- 篩選：Game Vendor Channel、Game Type、Start–End Time。
-- 兩張表，**各自獨立橫滑容器**（勿共用同一條捲軸），區塊標題建議 sticky：
-  - **Upline Commission**：Agent Prefix、Game Type、Game Vendor、Currency、Turnover、PT Total、Comm From Up Line。凍結 Agent Prefix。獨立分頁。
-  - **Downline Commission**：Agent Prefix、Product Type、Game Vendor、Currency、Down Line Turnover、Direct Down Line Pt Total、Comm To Down Line、PT Total、Comm From Up Line、Total Commission。凍結 Agent Prefix。獨立分頁。
-- Total Commission 可為負 → 紅字。
+| 項目 | 規範 |
+|---|---|
+| 篩選 | Game Vendor Channel、Game Type、Start–End Time。 |
+| 版面 | 兩張表，**各自獨立橫滑容器**（勿共用同一條捲軸），區塊標題建議 sticky。 |
+| 表一：Upline Commission | 欄位：Agent Prefix、Game Type、Game Vendor、Currency、Turnover、PT Total、Comm From Up Line。凍結首欄＝**Agent Prefix**。獨立分頁。 |
+| 表二：Downline Commission | 欄位：Agent Prefix、Product Type、Game Vendor、Currency、Down Line Turnover、Direct Down Line Pt Total、Comm To Down Line、PT Total、Comm From Up Line、Total Commission。凍結首欄＝**Agent Prefix**。獨立分頁。 |
+| 特殊規則 | Total Commission 可為負 → 紅字。 |
 
 ### 4.5 Player's Report
-- Tab：Direct Member / Direct + Downline AFF Member（全寬）。
-- 篩選（8 欄，手機單欄堆疊，建議預設收合只露 Username + date range）：Username、Sub Affiliate、VIP Level、Min/Max Deposit (Fiat)、Min/Max Withdraw (Fiat)、Start–End Time。
-- 寬表（13 欄）：Username、VIP Level、Affiliate、First Deposit Amount、Deposit Count、Deposit Amount、Withdrawal Amount、Net Deposits、Rebate Amount、Bonus Amount、Total Wins、Total Loss、Game Revenue。
-- **凍結首欄＝Username**。
+| 項目 | 規範 |
+|---|---|
+| Tab | Direct Member / Direct + Downline AFF Member（全寬）。 |
+| 篩選（8 欄） | 手機單欄堆疊，建議預設收合只露 Username + date range：Username、Sub Affiliate、VIP Level、Min/Max Deposit (Fiat)、Min/Max Withdraw (Fiat)、Start–End Time。 |
+| 寬表（13 欄） | Username、VIP Level、Affiliate、First Deposit Amount、Deposit Count、Deposit Amount、Withdrawal Amount、Net Deposits、Rebate Amount、Bonus Amount、Total Wins、Total Loss、Game Revenue。 |
+| 凍結首欄 | **Username**。 |
 
 ### 4.6 Tracking Link
-- 三區塊卡片堆疊全寬：Recruit New Players（link + COPY）、Exclusive Domain（空狀態）、Recruit New Affiliates（link + COPY）。
-- 長 URL `word-break:break-all`；COPY 按鈕 ≥44px、置 URL 下方全寬；複製成功 toast「Copied」。
-- Exclusive Domain 給英文 empty-state（勿留空白）。
+| 項目 | 規範 |
+|---|---|
+| 版面 | 三區塊卡片堆疊全寬：Recruit New Players（link + COPY）、Exclusive Domain（空狀態）、Recruit New Affiliates（link + COPY）。 |
+| 連結與 COPY | 長 URL `word-break:break-all`；COPY 按鈕 ≥44px、置 URL 下方全寬；複製成功 toast「Copied」。 |
+| 空狀態 | Exclusive Domain 給英文 empty-state（勿留空白）。 |
 
 ## 5. 後端相依
 - 純前端版面層改造，**無新增 API**，沿用現有報表 API 與回傳欄位（假設，RD 核對）。
