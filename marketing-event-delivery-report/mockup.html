@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Marketing Event Delivery Report — Mockup</title>
+  <style>
+    :root{--green:#319b00;--green2:#c7e9cf;--dark:#20252a;--bg:#efefef;--line:#e0e4e7;--muted:#747d85}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);font:13px Arial,sans-serif;color:#222}
+    button,input,select{font:inherit}.shell{display:flex;min-height:100vh}.side{width:238px;background:var(--dark);color:#bdc4ca;padding:24px 12px;flex:none}
+    .logo{font-size:20px;font-weight:900;color:#fff;margin:0 18px 30px}.logo b{color:#91c34a}.group{padding:13px 14px;font-weight:700;border-radius:7px;margin:3px 0}.group.active{color:#fff}.item{margin:2px 0 10px 18px;padding:12px 14px;border-radius:7px;background:#35aa00;color:#fff;font-weight:700}
+    .main{flex:1;min-width:0}.top{height:58px;background:#f4f4f4;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-weight:700}
+    .content{padding:18px}.mockbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fff8d8;border:1px solid #efd16b;border-radius:6px;margin-bottom:12px;color:#745b00}
+    .mockbar select{padding:5px 8px}.title-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}h1{font-size:21px;margin:0 0 4px}.sub{font-size:12px;color:var(--muted)}
+    .btn{border:1px solid #d5dbd5;background:#fff;border-radius:6px;padding:9px 15px;cursor:pointer}.export{color:var(--green);font-weight:700}.search{background:var(--green);color:#fff;border:0;font-weight:700;min-width:120px}.reset{color:var(--green)}
+    .card{background:#fff;border-radius:6px;padding:16px;box-shadow:0 1px 2px #0000000d}.filters{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted)}
+    .field input,.field select{border:1px solid #d6dce0;border-radius:5px;padding:9px 10px;background:#fff;color:#333;min-width:0}.range{grid-column:span 2}.rangebox{display:flex;gap:8px}.actions{text-align:center;margin-top:16px}.error{color:#c32929;font-weight:700;margin-top:4px}
+    .table-card{background:#fff;border-radius:6px;margin-top:12px;overflow:hidden;box-shadow:0 1px 2px #0000000d}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;min-width:1240px}th{background:var(--green2);color:#2d7445;padding:11px 12px;text-align:left;white-space:nowrap}td{padding:12px;border-bottom:1px solid #edf0f2;white-space:nowrap}tbody tr:hover{background:#f6fcf7}.num{text-align:right;font-family:monospace}.link{color:#248d00}.pill{padding:4px 9px;border-radius:12px;font-size:11px;font-weight:700}.ok{background:#d9f6e2;color:#087a30}.fail{background:#ffe0e0;color:#b71919}.view{border:1px solid #45a92c;color:#318b19;background:#fff;border-radius:5px;padding:5px 9px;cursor:pointer}
+    .pager{display:flex;justify-content:space-between;padding:12px;color:var(--muted)}.empty{text-align:center!important;color:#999;padding:35px!important}
+    .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.box{background:#fff;border-radius:9px;width:min(680px,100%);max-height:90vh;overflow:auto}.mhead{background:var(--green);color:#fff;padding:15px 18px;display:flex;justify-content:space-between;font-weight:700}.mbody{padding:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;background:#f5f7f8;padding:14px;border-radius:6px}.kv small{display:block;color:#7a838b;margin-bottom:3px}.wide{grid-column:span 2}pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:auto;line-height:1.5}.mfoot{text-align:right;padding:13px 18px;border-top:1px solid var(--line)}
+    @media(max-width:1100px){.filters{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.side{display:none}.filters{grid-template-columns:1fr}.range{grid-column:auto}.rangebox{display:block}.rangebox input{width:100%;margin-bottom:6px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side"><div class="logo">◉ BET<b>ALLY</b></div><div id="menu"></div></aside>
+  <main class="main">
+    <div class="top"><span>17:15, 14 Jul, 2026 · GMT+07:00</span><span>Admin</span></div>
+    <div class="content">
+      <div class="mockbar"><b>Mockup view：</b><select id="role"><option value="agent">Agent BO</option><option value="admin">Admin BO</option></select><span>此切換器只供驗收，不屬於正式 BO UI。</span></div>
+      <div class="title-row"><div><h1>Marketing Event Delivery Report</h1><div class="sub" id="subtitle"></div></div><button class="btn export" id="export">⇩ Export CSV</button></div>
+      <section class="card">
+        <div class="filters">
+          <label class="field" id="prefixField"><span>Prefix</span><select id="prefix"><option>All</option><option>AG001</option><option>AG002</option><option>AG003</option></select></label>
+          <label class="field"><span>Username</span><input id="username" placeholder="Username"></label>
+          <label class="field"><span>Provider</span><select id="provider"><option value="ALL">All</option><option value="META">Meta</option><option value="ADJUST">Adjust</option><option value="CLEVERTAP">CleverTap</option></select></label>
+          <label class="field"><span>Event</span><select id="event"><option value="ALL">All</option></select></label>
+          <label class="field"><span>Status</span><select id="status"><option value="SUCCESS">Success</option><option value="FAILED">Failed</option><option value="ALL">All</option></select></label>
+          <label class="field range"><span>Start Time – End Time</span><div class="rangebox"><input id="start" value="2026-07-14 00:00:00"><input id="end" value="2026-07-14 23:59:59"></div><span class="error" id="dateError"></span></label>
+        </div>
+        <div class="actions"><button class="btn search" id="search">⌕ Search</button> <button class="btn reset" id="reset">↻</button></div>
+      </section>
+      <section class="table-card"><div class="scroll"><table><thead><tr><th>Sent Date</th><th>Prefix</th><th>Username</th><th>Provider</th><th>User Behavior</th><th>Provider Event</th><th>Status</th><th>Amount</th><th>Transaction ID</th><th>Details</th></tr></thead><tbody id="rows"></tbody></table></div><div class="pager"><span id="count"></span><span>Items per page 10　|　‹ 1 ›</span></div></section>
+    </div>
+  </main>
+</div>
+<div class="modal" id="modal"><div class="box"><div class="mhead"><span>Event Delivery Details</span><button class="btn" id="x">✕</button></div><div class="mbody" id="detail"></div><div class="mfoot"><button class="btn search" id="close">Close</button></div></div></div>
+<script>
+const data=[
+{id:'evt_108',attempt:1,date:'14/07/2026 15:42:18',prefix:'AG001',user:'test123',provider:'META',behavior:'Deposit',event:'AddToCart',status:'SUCCESS',amount:'100.00',tx:'DEP260714000108',http:200,error:'—',msg:'—',props:{Username:'test123',Amount:'100.00',access_token:'***'},response:{accepted:true,event_id:'fb_901882'}},
+{id:'evt_107',attempt:1,date:'14/07/2026 15:36:04',prefix:'AG002',user:'player888',provider:'CLEVERTAP',behavior:'Deposit Completed',event:'Deposit Completed',status:'SUCCESS',amount:'250000.00',tx:'DEP260714000107',http:200,error:'—',msg:'—',props:{Amount:'250000.00','Transaction ID':'DEP260714000107',Method:'Bank Transfer'},response:{status:'success'}},
+{id:'evt_106',attempt:1,date:'14/07/2026 15:30:51',prefix:'AG001',user:'newplayer01',provider:'CLEVERTAP',behavior:'Sign Up',event:'Sign Up',status:'SUCCESS',amount:null,tx:null,http:200,error:'—',msg:'—',props:{Username:'newplayer01','Phone Number':'***',Whatsapp:'***',Telegram:'***',Platform:'H5'},response:{status:'success'}},
+{id:'evt_105',attempt:1,date:'14/07/2026 15:22:39',prefix:'AG003',user:'firstdep77',provider:'META',behavior:'First Deposit',event:'Purchase',status:'FAILED',amount:'300.00',tx:'DEP260714000105',http:400,error:'META_INVALID_PARAMETER',msg:'Provider rejected the event payload.',props:{Username:'firstdep77',Amount:'300.00',access_token:'***'},response:{accepted:false,code:100}},
+{id:'evt_104',attempt:2,date:'14/07/2026 15:18:22',prefix:'AG001',user:'vipqueen',provider:'CLEVERTAP',behavior:'VIP Upgrade',event:'VIP Upgrade',status:'SUCCESS',amount:null,tx:null,http:200,error:'—',msg:'—',props:{'Previous Level':'Gold','New Level':'Platinum'},response:{status:'success'}},
+{id:'evt_103',attempt:1,date:'14/07/2026 15:09:10',prefix:'AG002',user:'depositadjust',provider:'ADJUST',behavior:'Deposit',event:'Deposit',status:'SUCCESS',amount:'125000.00',tx:'DEP260714000103',http:200,error:'—',msg:'—',props:{Username:'depositadjust',Amount:'125000.00'},response:{status:'success'}},
+{id:'evt_102',attempt:1,date:'14/07/2026 14:58:47',prefix:'AG001',user:'gamehero',provider:'CLEVERTAP',behavior:'Bet Placed',event:'Bet Placed',status:'SUCCESS',amount:'5000.00',tx:'BET260714000102',http:200,error:'—',msg:'—',props:{Provider:'PG Soft','Game Type':'Slot','Game Name':'Mahjong Ways',Amount:'5000.00'},response:{status:'success'}},
+{id:'evt_101',attempt:1,date:'14/07/2026 14:51:33',prefix:'AG001',user:'faileddeposit',provider:'ADJUST',behavior:'Deposit',event:'Deposit',status:'FAILED',amount:'80000.00',tx:'DEP260714000101',http:'—',error:'TIMEOUT',msg:'Provider request timed out.',props:{Username:'faileddeposit',Amount:'80000.00'},response:null}
+];
+const catalogs={ALL:[],META:['Deposit','First Deposit'],ADJUST:['Deposit'],CLEVERTAP:['Sign Up','Deposit Initiated','Deposit Completed','Withdrawal Initiated','Withdrawal Completed','VIP Upgrade','Bet Placed']};
+const $=id=>document.getElementById(id);let current=[];const providerName=v=>v==='META'?'Meta':v==='ADJUST'?'Adjust':'CleverTap';
+function role(){return $('role').value}function setupRole(){const admin=role()==='admin';$('prefixField').style.display=admin?'flex':'none';$('subtitle').textContent=admin?'Admin view · All agent prefixes':'Agent view · AG001';$('menu').innerHTML=admin?'<div class="group">Agent-Setting　›</div><div class="group">Agent Report　›</div><div class="group active">System Report　⌄</div><div class="item">Marketing Event Delivery Report</div><div class="group">System Setting　›</div>':'<div class="group">System Info</div><div class="group">Player Management　›</div><div class="group active">Report Management　⌄</div><div class="item">Marketing Event Delivery Report</div><div class="group">System Setting　›</div>';render()}
+function setupEvents(){const options=['<option value="ALL">All</option>',...catalogs[$('provider').value].map(v=>`<option>${v}</option>`)].join('');$('event').innerHTML=options}
+function validate(){const re=/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;if(!re.test($('start').value)||!re.test($('end').value))return'Use YYYY-MM-DD HH:mm:ss.';const a=new Date($('start').value.replace(' ','T')),b=new Date($('end').value.replace(' ','T'));if(a>b)return'Start Time must not be later than End Time.';if(b-a>31*86400000)return'The date range must not exceed 31 days.';return''}
+function render(){const err=validate();$('dateError').textContent=err;if(err)return;current=data.filter(r=>(role()==='admin'||r.prefix==='AG001')&&($('prefix').value==='All'||role()!=='admin'||r.prefix===$('prefix').value)&&(!$('username').value||r.user.toLowerCase().includes($('username').value.trim().toLowerCase()))&&($('provider').value==='ALL'||r.provider===$('provider').value)&&($('event').value==='ALL'||r.behavior===$('event').value)&&($('status').value==='ALL'||r.status===$('status').value));$('rows').innerHTML=current.length?current.map((r,i)=>`<tr><td>${r.date}</td><td><b>${r.prefix}</b></td><td class="link">${r.user}</td><td>${providerName(r.provider)}</td><td>${r.behavior}</td><td>${r.event||'—'}</td><td><span class="pill ${r.status==='SUCCESS'?'ok':'fail'}">${r.status==='SUCCESS'?'Success':'Failed'}</span></td><td class="num">${r.amount||'—'}</td><td class="num">${r.tx||'—'}</td><td><button class="view" onclick="detail(${i})">◉ View</button></td></tr>`).join(''):'<tr><td colspan="10" class="empty">No Data</td></tr>';$('count').textContent=`${current.length} item${current.length===1?'':'s'}`}
+function detail(i){const r=current[i];$('detail').innerHTML=`<div class="grid"><div class="kv"><small>Delivery ID</small><b>${r.id}</b></div><div class="kv"><small>Attempt</small><b>${r.attempt}</b></div><div class="kv"><small>Prefix</small><b>${r.prefix}</b></div><div class="kv"><small>Username</small><b>${r.user}</b></div><div class="kv"><small>HTTP Status</small><b>${r.http}</b></div><div class="kv"><small>Error Code</small><b>${r.error}</b></div><div class="kv wide"><small>Error Message</small><b>${r.msg}</b></div></div><h3>Request Properties (Sensitive values masked)</h3><pre>${JSON.stringify(r.props,null,2)}</pre><h3>Provider Response</h3><pre>${r.response?JSON.stringify(r.response,null,2):'—'}</pre>`;$('modal').classList.add('show')}
+function close(){ $('modal').classList.remove('show') }function reset(){['username'].forEach(id=>$(id).value='');$('prefix').value='All';$('provider').value='ALL';$('status').value='SUCCESS';$('start').value='2026-07-14 00:00:00';$('end').value='2026-07-14 23:59:59';setupEvents();render()}
+function exportCsv(){const h=['Sent Date','Prefix','Username','Provider','User Behavior','Provider Event','Status','Amount','Transaction ID'];const rows=current.map(r=>[r.date,r.prefix,r.user,providerName(r.provider),r.behavior,r.event,r.status,r.amount||'',r.tx||'']);const csv=[h,...rows].map(a=>a.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');const u=URL.createObjectURL(new Blob([csv],{type:'text/csv'})),a=document.createElement('a');a.href=u;a.download='marketing-event-delivery-report.csv';a.click();URL.revokeObjectURL(u)}
+$('role').onchange=setupRole;$('provider').onchange=()=>{setupEvents();render()};$('search').onclick=render;$('reset').onclick=reset;$('export').onclick=exportCsv;$('x').onclick=close;$('close').onclick=close;$('modal').onclick=e=>{if(e.target===$('modal'))close()};setupEvents();setupRole();
+</script>
+</body>
+</html>
