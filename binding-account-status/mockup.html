@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binding Account Activate / Deactivate — Mockup (GCP Agent BO)</title>
+<style>
+  :root{
+    --bo-bg:#eef1f4; --bo-card:#fff; --bo-green:#2e9e5b; --bo-green-d:#247a47;
+    --bo-head:#cfe8d8; --bo-line:#e3e7eb; --bo-text:#2b3036; --bo-sub:#7b848d;
+    --new:#0f73d6; --warn:#d9822b; --danger:#c0392b;
+    --rd:#fff8e1; --rd-bd:#e6c84d; --rd-tx:#6b5300;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang TC","Microsoft JhengHei",sans-serif;background:#dfe3e8;color:var(--bo-text)}
+  .wrap{max-width:1400px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:0 0 4px}
+  .lead{color:#55606b;font-size:13px;margin:0 0 14px;line-height:1.6}
+  .tabs{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:13px;background:#fff;border:1px solid #c3ccd5;border-radius:8px;padding:6px 12px;cursor:pointer}
+  .toggle input{accent-color:var(--bo-green)}
+  .rolebox{display:flex;align-items:center;gap:8px;font-size:13px;background:#fff;border:1px solid #c3ccd5;border-radius:8px;padding:6px 12px}
+  .rolebox select{border:1px solid #cbd3da;border-radius:5px;padding:3px 6px;font-size:12px;font-family:inherit}
+
+  /* RD note system (繁中 開發註記) */
+  .rd-note{display:none;background:var(--rd);border:1px solid var(--rd-bd);border-left:4px solid var(--rd-bd);
+    color:var(--rd-tx);font-size:12px;line-height:1.6;border-radius:6px;padding:8px 10px;margin:6px 0}
+  body.shownotes .rd-note{display:block}
+  .rd-note b{color:#7a5d00}
+  .rd-note code{background:#fff3c4;padding:0 4px;border-radius:3px;font-size:11px}
+  .pill-new{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--new);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .demo-tag{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#6b46c1;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+
+  /* ===== BO theme ===== */
+  .bo{background:var(--bo-bg);border-radius:10px;padding:16px;border:1px solid #d4dae0}
+  .crumb{font-size:12px;color:var(--bo-sub);margin-bottom:10px}
+  .crumb b{color:var(--bo-text)}
+  .subtabs{display:flex;border-bottom:1px solid #cfe0d4;margin-bottom:0;background:#e8f2ea;border-radius:8px 8px 0 0;overflow:hidden}
+  .subtab{padding:10px 20px;font-size:13px;font-weight:600;color:#7b8a80;cursor:pointer;background:transparent}
+  .subtab.active{background:#fff;color:var(--bo-green-d);border-bottom:2px solid var(--bo-green)}
+  .panel{background:#fff;border:1px solid var(--bo-line);border-top:none;border-radius:0 0 8px 8px;padding:16px}
+  .filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .field{min-width:200px}
+  .field label{display:block;font-size:11px;color:var(--bo-sub);margin-bottom:4px;font-weight:600}
+  .field select,.field input{width:100%;padding:9px 10px;border:1px solid #cbd3da;border-radius:6px;font-size:13px;background:#fff;font-family:inherit}
+  .btn-search{background:var(--bo-green);color:#fff;border:none;border-radius:6px;padding:9px 26px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-search:hover{background:var(--bo-green-d)}
+  .btn-icon{background:#fff;border:1px solid #c3ccd5;border-radius:6px;padding:9px 14px;font-size:13px;cursor:pointer}
+  .btn-add{background:var(--bo-green);color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-add:hover{background:var(--bo-green-d)}
+
+  table{width:100%;border-collapse:collapse;background:#fff;margin-top:14px;border:1px solid var(--bo-line);border-radius:8px;overflow:hidden}
+  thead th{background:var(--bo-head);text-align:left;font-size:11.5px;padding:10px 10px;color:#23613d;white-space:nowrap}
+  tbody td{padding:9px 10px;font-size:12.5px;border-top:1px solid #eef1f3;vertical-align:middle;white-space:nowrap}
+  tbody tr:nth-child(even){background:#f6faf7}
+  tbody tr.inactive-row{background:#f7f8f9;color:#8b949c}
+  tbody tr.inactive-row:nth-child(even){background:#f2f4f5}
+  .col-new{background:#bfe0cb}
+  .dash{color:#b3bcc4}
+
+  .st-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 10px;border-radius:11px}
+  .st-active{background:#e8f5ec;color:var(--bo-green-d);border:1px solid #bfe3cc}
+  .st-inactive{background:#eceff1;color:#78868f;border:1px solid #cfd6db}
+  .def-yes{color:var(--bo-green-d);font-weight:700}
+  .def-no{color:#aab3ba}
+
+  .actions{display:flex;gap:5px;flex-wrap:nowrap;align-items:center}
+  .ic{background:#fff;border:1px solid #c3ccd5;border-radius:5px;width:28px;height:28px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
+  .ic.del{border-color:#e8b4ae;color:var(--danger)}
+  .ic.del:hover{background:var(--danger);color:#fff}
+  .btn-act{border-radius:5px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .btn-deact{background:#fff;border:1px solid var(--warn);color:#9a5b12}
+  .btn-deact:hover:not(:disabled){background:var(--warn);color:#fff}
+  .btn-actv{background:#fff;border:1px solid var(--bo-green);color:var(--bo-green-d)}
+  .btn-actv:hover:not(:disabled){background:var(--bo-green);color:#fff}
+  .btn-act:disabled{background:#f1f3f5;border-color:#dde2e6;color:#b0b8be;cursor:not-allowed}
+  .hint{font-size:10.5px;color:var(--bo-sub);margin-top:2px;white-space:normal;max-width:190px;line-height:1.4}
+
+  .meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:#6b747c}
+
+  /* ===== Modal ===== */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal.show{display:flex}
+  .mbox{background:#fff;border-radius:12px;max-width:540px;width:100%;max-height:94vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+  .mhead{background:var(--bo-green);color:#fff;padding:14px 18px;font-size:16px;font-weight:700;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+  .mhead.warn{background:var(--warn)}
+  .mhead.danger{background:var(--danger)}
+  .mhead .x{cursor:pointer;font-size:18px;opacity:.85}
+  .mbody{padding:18px;font-size:13px;line-height:1.7}
+  .ctx{background:#f4f7fa;border:1px solid #dde4ea;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px}
+  .ctx .crow{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #e2e8ee}
+  .ctx .crow:last-child{border-bottom:none}
+  .ctx .ck{color:var(--bo-sub)}
+  .ctx .cv{font-weight:600;font-family:ui-monospace,Menlo,monospace}
+  .warnbox{background:#fdecea;border:1px solid #f3b6af;border-radius:8px;padding:11px 12px;margin:12px 0;font-size:12.5px;color:#8c2f24;line-height:1.65}
+  .confirm-row{display:flex;gap:8px;align-items:flex-start;font-size:13px;background:#fff7ec;border:1px solid #f0c48c;border-radius:8px;padding:10px;margin:12px 0}
+  .confirm-row input{margin-top:3px;accent-color:var(--danger)}
+  .mfoot{display:flex;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid var(--bo-line)}
+  .btn-cancel{background:#eef1f4;border:1px solid #c3ccd5;border-radius:6px;padding:9px 18px;font-size:13px;cursor:pointer}
+  .btn-submit{background:var(--bo-green);color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-submit.warn{background:var(--warn)}
+  .btn-submit.danger{background:var(--danger)}
+  .btn-submit:disabled{opacity:.45;cursor:not-allowed}
+
+  /* Dev notes panel */
+  .devpanel{margin-top:18px;background:#2b3036;color:#dfe4e8;border-radius:10px;overflow:hidden}
+  .devhead{padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;background:#20252a}
+  .devbody{padding:16px;font-size:12px;line-height:1.75;display:none}
+  .devpanel.open .devbody{display:block}
+  .devbody h4{margin:14px 0 6px;font-size:12.5px;color:#8fd3a8}
+  .devbody h4:first-child{margin-top:0}
+  .devbody code{background:#3a4149;padding:1px 5px;border-radius:3px;font-size:11px;color:#ffd479}
+  .devbody table{margin:6px 0;background:transparent;border-color:#3a4149}
+  .devbody thead th{background:#3a4149;color:#8fd3a8;font-size:11px}
+  .devbody tbody td{border-top-color:#3a4149;color:#dfe4e8;font-size:11.5px;white-space:normal}
+  .devbody tbody tr:nth-child(even){background:#31373d}
+  .devbody ul{margin:4px 0;padding-left:18px}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body class="shownotes">
+<div class="wrap">
+  <h1>Binding Account — Activate / Deactivate Mockup</h1>
+  <p class="lead">GCP <b>Agent BO</b> · <code>2.1 Player List</code> → <code>Player's Info</code> → 頁面下方 <b>Binding Account</b> 分頁。<br>
+  黃底文字為 <b>RD 開發註記(繁體中文)</b>，UI 文案一律維持英文。此 mockup 是 spec 的視覺與規則參考。</p>
+
+  <div class="tabs">
+    <div class="rolebox">
+      <span>綁定帳號狀態管理權限<span class="demo-tag">DEMO</span></span>
+      <select id="roleSel">
+        <option value="granted" selected>有此權限</option>
+        <option value="denied">無此權限</option>
+      </select>
+    </div>
+    <div class="spacer"></div>
+    <label class="toggle"><input type="checkbox" id="noteToggle" checked> 顯示 RD 註記</label>
+  </div>
+
+  <div class="rd-note">上方 <b>權限切換器是 dev-only 工具</b>，用來展示有無此權限時的畫面差異，<b>正式上線必須移除</b>。實際權限由登入者在後台被授予的權限節點決定，不由 4-tier 層級決定。</div>
+
+  <div class="bo">
+    <div class="crumb">2.1 Player List &nbsp;›&nbsp; <b>a11113</b> &nbsp;›&nbsp; Player's Info</div>
+
+    <div class="subtabs">
+      <div class="subtab">Balance</div>
+      <div class="subtab active">Binding Account</div>
+    </div>
+
+    <div class="panel">
+      <div class="rd-note"><b>本需求範圍</b>：既有 Binding Account 清單<b>新增一欄</b> <code>Status</code>，<b>新增兩個動作</b> Activate / Deactivate，並在既有 Delete 加二次確認。<br>
+      <b>不動</b>：既有欄位與順序、Binding Type 篩選、Add 流程、Edit 對話框、玩家層級的 Block、提款流程本身。<br>
+      <b>Status 欄放在最後一欄</b>，不插進既有欄位中間——避免 RD 動到既有欄位順序與既有前端對應。</div>
+
+      <div class="filter-row">
+        <div class="field">
+          <label>Binding Account Type</label>
+          <select><option>ALL</option><option>Bank Card</option><option>E-Wallet</option><option>Pulsa</option></select>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="stFilter">
+            <option value="ALL">ALL</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+        </div>
+        <button class="btn-search" onclick="applyFilter()">Search</button>
+        <button class="btn-icon" onclick="resetFilter()">&#8635;</button>
+        <div class="spacer"></div>
+        <button class="btn-add" onclick="openAdd()">&#128441; Add</button>
+      </div>
+
+      <div class="rd-note"><b>Status 篩選為新增</b>（既有只有 Binding Account Type 篩選）。加了停用資料之後清單會變長，沒有這個篩選找不到人。<b>此項為 PM 推定，尚未經 user 逐條拍板，請以最終 spec 為準。</b><br>
+      篩選值 <code>ALL</code> / <code>ACTIVE</code> / <code>INACTIVE</code>，預設 <code>ALL</code>（停用資料要看得到，這是本需求的核心訴求）。</div>
+
+      <table>
+        <thead><tr>
+          <th>Actions</th><th>Binding Type</th><th>Bank Branch</th><th>Bank Name</th>
+          <th>Account Name</th><th>Bank Account No</th><th>Wallet Name</th><th>Wallet Address</th>
+          <th>Default Value</th>
+          <th class="col-new">Status <span class="pill-new">NEW</span></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+
+      <div class="meta-row"><span id="count">—</span><span>Items per page: 10</span></div>
+
+      <div class="rd-note"><b>Status 欄（NEW）</b>：型別 <code>enum</code>，值只有 <code>ACTIVE</code> / <code>INACTIVE</code> 兩個，<code>NOT NULL</code>，預設 <code>ACTIVE</code>。<br>
+      顯示：<code>ACTIVE</code> 綠底 <b>Active</b>；<code>INACTIVE</code> 灰底 <b>Inactive</b> 且整列以灰階呈現，讓操作員一眼掃出哪些是停用的。<br>
+      <b>不要</b>引入參考截圖上的 <code>Blocked</code> 與 <code>Verify Status</code>——那是別的系統的欄位，本系統沒有。</div>
+
+      <div class="rd-note"><b>Actions 欄</b>：既有 Edit（鉛筆）與 Delete（紅 X）<b>位置與權限都不變</b>，新增 Activate / Deactivate 按鈕。<br>
+      <code>ACTIVE</code> 的列出現 <b>Deactivate</b>；<code>INACTIVE</code> 的列出現 <b>Activate</b>。兩者互斥，不會同時出現。<br>
+      <b>狀態可逆</b>：<code>ACTIVE</code> ⇄ <code>INACTIVE</code> 雙向可切換，<b>沒有終態</b>。</div>
+
+      <div class="rd-note"><b>Deactivate 的兩個擋門——兩者的前端行為刻意不同，依「前端有沒有判斷資料」決定</b><br>
+      ① <b>預設帳號不可停用</b>：<code>Default Value</code> 前端清單本來就有，可以直接判斷 → Deactivate <b>disable ＋ 說明文字</b>，操作員先去 Edit 把預設改給別筆。後端仍要擋，回 <code>409</code> <code>BINDING_ACCOUNT_IS_DEFAULT</code>。<br>
+      ② <b>有處理中提款單不可停用</b>：前端<b>沒有</b>這筆資料，無法預先判斷 → 按鈕<b>可以按</b>，按下後依 API 回應顯示錯誤（點第三列的 Deactivate 看效果）。後端回 <code>409</code> <code>BINDING_ACCOUNT_HAS_PENDING_WITHDRAWAL</code>。<br>
+      兩個 <code>409</code> 用<b>不同錯誤鍵</b>，前端才能顯示對應原因。<br>
+      這兩種都是<b>業務規則</b>造成的不可操作，一律附原因說明，<b>不用隱藏</b>——操作員要知道為什麼不能按、下一步做什麼。<b>權限不足才用隱藏</b>（見下一則）。<br>
+      <b>併發保護</b>：後端檢查「有無處理中提款單」與寫入 <code>INACTIVE</code> 要在同一交易內並對該筆取鎖，否則會出現檢查通過後、寫入前剛好有人建立提款單的競態。</div>
+
+      <div class="rd-note"><b>權限：由後台權限節點控制，不綁 4-tier 層級</b>（user 2026-08-14 拍板）。<br>
+      被授予「綁定帳號狀態管理」權限的操作者就能執行，<b>與他是 Admin 還是 Sub Agent Admin 無關</b>。因此要新增一個對應的權限節點掛進既有權限設定畫面（節點名稱與位置由 RD 依既有結構決定）。<br>
+      <b>權限不足時按鈕直接隱藏</b>，不是 disable——本 BO 既有慣例（user 2026-08-13 確認）。切上方權限開關到「無此權限」可看到效果：Activate / Deactivate 消失，Edit / Delete 仍在。<br>
+      Delete 的權限<b>維持現狀不動</b>（user 拍板），不因本需求收緊，所以它不受這個新權限節點影響。<br>
+      前端隱藏只是顯示層，<b>後端一律要驗權並回 <code>403</code></b>，不可只靠前端。</div>
+    </div>
+  </div>
+
+  <!-- ===== Dev Notes ===== -->
+  <div class="devpanel" id="devpanel">
+    <div class="devhead" onclick="document.getElementById('devpanel').classList.toggle('open')">
+      <span>&#9881; Dev Notes / RD 開發邊界（點擊展開，正式 demo 可收合）</span><span>&#9660;</span>
+    </div>
+    <div class="devbody">
+      <h4>1. 狀態機</h4>
+      <ul>
+        <li>欄位 <code>status</code>，型別 <code>enum('ACTIVE','INACTIVE')</code>，<code>NOT NULL</code>，預設 <code>ACTIVE</code>。</li>
+        <li>轉換：<code>ACTIVE → INACTIVE</code>（Deactivate）、<code>INACTIVE → ACTIVE</code>（Activate）。雙向可逆，<b>無終態</b>。</li>
+        <li>既有資料 migration：所有現存綁定帳號一律填 <code>ACTIVE</code>。</li>
+        <li>玩家層級的 <code>Block</code> 是另一個軸，與本欄位無關，本需求不碰。</li>
+      </ul>
+
+      <h4>2. 唯一性約束（本需求的技術核心）</h4>
+      <ul>
+        <li>自然鍵依 <code>Binding Type</code> 分：Bank Card = 銀行 ＋ 帳號；E-Wallet = 錢包位址；Pulsa = 手機號。</li>
+        <li><b>唯一範圍涵蓋 <code>INACTIVE</code></b>——停用的資料<b>繼續佔用</b>該帳號，其他玩家不能註冊。這與一般軟刪除「刪掉即釋放」相反，是客戶的明確訴求。</li>
+        <li><b>原玩家自己也擋</b>：同一玩家重加自己已停用的帳號同樣撞唯一鍵，UI 引導改用 Activate。因此<b>不需要 partial index</b>，單純全表唯一即可。</li>
+        <li>擋在 <b>DB unique index ＋ 應用層</b>，前端只做提示，不可只靠前端。</li>
+      </ul>
+
+      <h4>3. Delete 的邊界（刻意保留的逃生門，非疏漏）</h4>
+      <ul>
+        <li>Delete <b>保留、權限不動</b>（user 2026-08-13 拍板）。刪除會<b>真的清掉資料並釋放唯一鍵</b>，該帳號之後可被其他玩家註冊。</li>
+        <li>因此 Delete 是繞過「停用後帳號被佔住」的合法路徑。user 已知悉，選擇<b>以二次確認的文案提示處理，不以權限封鎖</b>。</li>
+        <li>二次確認的文案必須明講「刪除後此帳號可被其他玩家註冊」與「若只是暫停使用請改用 Deactivate」，否則操作員會照舊習慣按 Delete，這個需求等於白做。</li>
+      </ul>
+
+      <h4>4. API 形態</h4>
+      <table>
+        <thead><tr><th>Method / Path</th><th>用途</th><th>錯誤碼</th></tr></thead>
+        <tbody>
+          <tr><td><code>PATCH /players/{playerId}/binding-accounts/{id}/deactivate</code></td><td>停用單筆</td><td><code>403</code> 權限不足 / <code>409</code> 預設帳號 / <code>409</code> 有處理中提款單 / <code>404</code> 不存在</td></tr>
+          <tr><td><code>PATCH /players/{playerId}/binding-accounts/{id}/activate</code></td><td>啟用單筆</td><td><code>403</code> 權限不足 / <code>404</code> 不存在</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li>採<b>兩個獨立路徑</b>，不用 <code>action_type</code> 參數區分——權限控管與審計記錄比較好寫。</li>
+        <li>操作對象是<b>單筆</b>，以該筆綁定帳號的 <code>id</code> 指定，不接受批次。</li>
+        <li>兩個 <code>409</code> 要用<b>不同的錯誤代碼或訊息鍵</b>區分，前端才能顯示對應的原因。</li>
+      </ul>
+
+      <h4>5. 會員端（FE）影響</h4>
+      <ul>
+        <li>FE 的提款帳號選單<b>只取 <code>status = ACTIVE</code></b>。停用的帳號不得出現。</li>
+        <li>此項<b>需 FE 團隊同步改動</b>，不是 BO 單邊可完成，已列 ASM。</li>
+      </ul>
+
+      <h4>6. 審計</h4>
+      <ul>
+        <li>每次 Activate / Deactivate 都要留紀錄：操作者、時間、對象綁定帳號、變更前後值。</li>
+        <li><b>落點待 RD 確認</b>：Player's Info 已有 <code>Update History</code> 分頁，若其機制已涵蓋綁定帳號異動則沿用，未涵蓋則另建。已列 ASM。</li>
+      </ul>
+
+      <h4>7. 本期範圍外</h4>
+      <ul>
+        <li>不引入 <code>Verify Status</code>、不引入 <code>Blocked</code>（皆為參考截圖上其他系統的欄位）。</li>
+        <li>不動玩家層級 <code>Block</code>、不動提款流程與退款邏輯、不動 Edit 對話框既有欄位。</li>
+        <li><b>不回補</b>既有已刪除的綁定帳號（user 2026-08-14 拍板）。那些帳號的自然鍵維持可用，其他玩家可以註冊。</li>
+      </ul>
+
+      <h4>8. 本 mockup 的合成資料</h4>
+      <ul>
+        <li>玩家 <code>a11113</code>、銀行 BCA / MANDIRI / ALLO BANK INDONESIA、金額與帳號皆為 <b>DEMO 假資料</b>，非真實資料。</li>
+        <li>權限切換器為 dev-only，正式上線移除。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Deactivate modal ===== -->
+<div class="modal" id="mDeact">
+  <div class="mbox">
+    <div class="mhead warn"><span>Deactivate Binding Account</span><span class="x" onclick="closeAll()">&times;</span></div>
+    <div class="mbody">
+      <div class="ctx" id="deactCtx"></div>
+      <p>This account will be set to <b>Inactive</b>. It stays in the list but will no longer appear on the player frontend, and the player cannot use it for withdrawal.</p>
+      <p>The account remains reserved. No other player can register the same account while it is inactive.</p>
+      <p>You can set it back to <b>Active</b> at any time.</p>
+      <div class="rd-note">上方英文段落是<b>會原樣上線的功能文案，維持英文</b>。要點：①停用後不出現在 FE ②帳號仍被佔住 ③可逆。<br>
+      <b>不需要</b>二次確認勾選——停用可逆、不刪資料，加勾選只是增加操作成本。Delete 才需要（不可逆）。</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-cancel" onclick="closeAll()">Cancel</button>
+      <button class="btn-submit warn" onclick="doDeact()">Deactivate</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Activate modal ===== -->
+<div class="modal" id="mAct">
+  <div class="mbox">
+    <div class="mhead"><span>Activate Binding Account</span><span class="x" onclick="closeAll()">&times;</span></div>
+    <div class="mbody">
+      <div class="ctx" id="actCtx"></div>
+      <p>This account will be set to <b>Active</b>. It will appear on the player frontend again and can be used for withdrawal as before.</p>
+      <div class="rd-note">啟用是回復性操作，<b>不需要</b>額外確認機制。<br>
+      <b>不改變 <code>Default Value</code></b>：停用前是預設就不會是預設了（預設帳號本來就不能被停用），啟用回來也不自動變回預設。</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-cancel" onclick="closeAll()">Cancel</button>
+      <button class="btn-submit" onclick="doAct()">Activate</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Delete modal (NEW 二次確認) ===== -->
+<div class="modal" id="mDel">
+  <div class="mbox">
+    <div class="mhead danger"><span>Delete Binding Account</span><span class="x" onclick="closeAll()">&times;</span></div>
+    <div class="mbody">
+      <div class="ctx" id="delCtx"></div>
+      <div class="warnbox">
+        <b>This action cannot be undone.</b><br>
+        The account record will be permanently removed. Once deleted, the same bank account, e-wallet or phone number <b>can be registered again by another player</b>.
+      </div>
+      <p>If you only want to suspend this account temporarily, use <b>Deactivate</b> instead. A deactivated account stays in the list, is hidden from the player frontend, and cannot be registered by anyone else.</p>
+      <label class="confirm-row"><input type="checkbox" id="delChk" onchange="document.getElementById('delBtn').disabled=!this.checked">
+        <span>I understand this account will be permanently deleted and can be registered by another player.</span></label>
+      <div class="rd-note"><b>這個二次確認是本需求新增的</b>（user 2026-08-13 拍板）。Delete 本身的<b>權限與行為都不變</b>，只加確認層。<br>
+      文案的兩個重點缺一不可：①<b>刪除後帳號會被釋放</b>（這是操作員最不知道的後果）②<b>引導改用 Deactivate</b>。<br>
+      勾選框未勾時 Delete 按鈕 <code>disabled</code>。這是防誤觸，不是權限控制。</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-cancel" onclick="closeAll()">Cancel</button>
+      <button class="btn-submit danger" id="delBtn" disabled onclick="doDel()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Pending withdrawal error modal ===== -->
+<div class="modal" id="mErr">
+  <div class="mbox">
+    <div class="mhead danger"><span>Cannot Deactivate</span><span class="x" onclick="closeAll()">&times;</span></div>
+    <div class="mbody">
+      <div class="ctx" id="errCtx"></div>
+      <div class="warnbox">
+        A withdrawal is currently in progress for this account. It cannot be deactivated until the withdrawal is completed or cancelled.
+      </div>
+      <p>Check <b>Withdraw List</b> for the pending request, then try again.</p>
+      <div class="rd-note">這是 <code>409</code> <code>BINDING_ACCOUNT_HAS_PENDING_WITHDRAWAL</code> 的畫面。<br>
+      前端沒有提款單資料，所以是<b>按下去才知道</b>，不是預先 disable。錯誤訊息要講清楚兩件事：①為什麼不能停用 ②去哪裡看那張單。</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-cancel" onclick="closeAll()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Add collision modal ===== -->
+<div class="modal" id="mAdd">
+  <div class="mbox">
+    <div class="mhead danger"><span>Account Already Exists</span><span class="x" onclick="closeAll()">&times;</span></div>
+    <div class="mbody">
+      <div class="ctx">
+        <div class="crow"><span class="ck">Binding Type</span><span class="cv">Bank Card</span></div>
+        <div class="crow"><span class="ck">Bank Name</span><span class="cv">ALLO BANK INDONESIA</span></div>
+        <div class="crow"><span class="ck">Bank Account No</span><span class="cv">12313131</span></div>
+      </div>
+      <p>This account already exists for this player and is currently <b>Inactive</b>.</p>
+      <p>Use <b>Activate</b> on the existing record instead of adding a new one.</p>
+      <div class="rd-note"><b>這是唯一性約束撞號時的畫面。</b>示範情境：操作員想幫 <code>a11113</code> 重新加回他自己已停用的 ALLO BANK 帳號。<br>
+      撞號分兩種，<b>訊息要不一樣</b>：<br>
+      ① 撞到<b>同一玩家</b>自己的停用資料 → 就是本畫面，明確引導改用 Activate。<br>
+      ② 撞到<b>其他玩家</b>的資料（不論啟用或停用）→ <b>不得揭露是誰</b>，只回一般性訊息如 <code>This account is already registered.</code>。揭露其他玩家的綁定關係屬個資外洩。<br>
+      兩種都由<b>後端判定並回不同錯誤鍵</b>，前端不自行推斷。</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-cancel" onclick="closeAll()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DEMO 合成資料（非真實資料）─────────────────────────────
+const rows = [
+  { id:'BA-1001', type:'Bank Card', branch:'-', bank:'BCA', name:'BUN BUNDIYANTO BUN',
+    acct:'8740170261', wname:'-', waddr:'-', def:true,  status:'ACTIVE', pending:false },
+  { id:'BA-1002', type:'Bank Card', branch:'PANTAI INDAH SELATAN, PIK', bank:'MANDIRI', name:'BUN BUNDIYANTO BUN',
+    acct:'1680001464906', wname:'-', waddr:'-', def:false, status:'ACTIVE', pending:false },
+  { id:'BA-1003', type:'E-Wallet', branch:'-', bank:'-', name:'BUN BUNDIYANTO BUN',
+    acct:'-', wname:'OVO', waddr:'081234567890', def:false, status:'ACTIVE', pending:true },
+  { id:'BA-1004', type:'Bank Card', branch:'-', bank:'ALLO BANK INDONESIA', name:'IDR Test',
+    acct:'12313131', wname:'-', waddr:'-', def:false, status:'INACTIVE', pending:false },
+  { id:'BA-1005', type:'Pulsa', branch:'-', bank:'-', name:'BUN BUNDIYANTO BUN',
+    acct:'-', wname:'Telkomsel', waddr:'+6285575757', def:false, status:'INACTIVE', pending:false },
+];
+
+// 權限：由後台權限節點控制，不綁 4-tier 層級（user 2026-08-14 拍板）
+const canToggle = p => p === 'granted';
+let role = 'granted', filter = 'ALL', target = null;
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dash = v => (v === '-' || v === '' || v == null) ? '<span class="dash">-</span>' : esc(v);
+
+function render(){
+  const tb = document.getElementById('tbody');
+  const list = rows.filter(r => filter === 'ALL' || r.status === filter);
+  tb.innerHTML = '';
+
+  if (!list.length){
+    tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:26px;color:#9aa3ab">No Data</td></tr>';
+    document.getElementById('count').textContent = 'Showing 0 of 0 entries';
+    return;
+  }
+
+  list.forEach(r => {
+    const tr = document.createElement('tr');
+    if (r.status === 'INACTIVE') tr.className = 'inactive-row';
+
+    // Actions：權限不足一律隱藏（BO 慣例），業務規則擋則 disable + 說明
+    let act = '';
+    if (canToggle(role)){
+      if (r.status === 'ACTIVE'){
+        const blockedBy = r.def ? 'default' : (r.pending ? 'pending' : null);
+        if (blockedBy === 'default'){
+          act = '<button class="btn-act btn-deact" disabled>Deactivate</button>'
+              + '<div class="hint">Default account cannot be deactivated. Change the default first.</div>';
+        } else if (blockedBy === 'pending'){
+          act = '<button class="btn-act btn-deact" onclick="openErr(\'' + r.id + '\')">Deactivate</button>';
+        } else {
+          act = '<button class="btn-act btn-deact" onclick="openDeact(\'' + r.id + '\')">Deactivate</button>';
+        }
+      } else {
+        act = '<button class="btn-act btn-actv" onclick="openAct(\'' + r.id + '\')">Activate</button>';
+      }
+    }
+
+    tr.innerHTML =
+      '<td><div class="actions">' +
+        '<button class="ic" title="Edit">&#9998;</button>' +
+        '<button class="ic del" title="Delete" onclick="openDel(\'' + r.id + '\')">&times;</button>' +
+        '<div style="display:inline-block">' + act + '</div>' +
+      '</div></td>' +
+      '<td>' + esc(r.type) + '</td>' +
+      '<td>' + dash(r.branch) + '</td>' +
+      '<td>' + dash(r.bank) + '</td>' +
+      '<td>' + dash(r.name) + '</td>' +
+      '<td>' + dash(r.acct) + '</td>' +
+      '<td>' + dash(r.wname) + '</td>' +
+      '<td>' + dash(r.waddr) + '</td>' +
+      '<td>' + (r.def ? '<span class="def-yes">true</span>' : '<span class="def-no">false</span>') + '</td>' +
+      '<td class="col-new">' + (r.status === 'ACTIVE'
+        ? '<span class="st-badge st-active">Active</span>'
+        : '<span class="st-badge st-inactive">Inactive</span>') + '</td>';
+
+    tb.appendChild(tr);
+  });
+
+  document.getElementById('count').textContent =
+    'Showing 1 to ' + list.length + ' of ' + list.length + ' entries';
+}
+
+function ctxHtml(r){
+  return '<div class="crow"><span class="ck">Binding Type</span><span class="cv">' + esc(r.type) + '</span></div>'
+       + '<div class="crow"><span class="ck">Account Name</span><span class="cv">' + esc(r.name) + '</span></div>'
+       + '<div class="crow"><span class="ck">' + (r.type === 'Bank Card' ? 'Bank Account No' : 'Wallet Address') + '</span>'
+       + '<span class="cv">' + esc(r.type === 'Bank Card' ? r.acct : r.waddr) + '</span></div>'
+       + '<div class="crow"><span class="ck">Default Value</span><span class="cv">' + r.def + '</span></div>';
+}
+const find = id => rows.find(x => x.id === id);
+function closeAll(){ document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
+function toast(m){ const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+
+function openDeact(id){ target = id; document.getElementById('deactCtx').innerHTML = ctxHtml(find(id)); document.getElementById('mDeact').classList.add('show'); }
+function openAct(id){   target = id; document.getElementById('actCtx').innerHTML   = ctxHtml(find(id)); document.getElementById('mAct').classList.add('show'); }
+function openDel(id){
+  target = id;
+  document.getElementById('delCtx').innerHTML = ctxHtml(find(id));
+  document.getElementById('delChk').checked = false;
+  document.getElementById('delBtn').disabled = true;
+  document.getElementById('mDel').classList.add('show');
+}
+function openErr(id){ target = id; document.getElementById('errCtx').innerHTML = ctxHtml(find(id)); document.getElementById('mErr').classList.add('show'); }
+function openAdd(){ document.getElementById('mAdd').classList.add('show'); }
+
+function doDeact(){ find(target).status = 'INACTIVE'; closeAll(); render(); toast('Binding account deactivated.'); }
+function doAct(){   find(target).status = 'ACTIVE';   closeAll(); render(); toast('Binding account activated.'); }
+function doDel(){
+  const i = rows.findIndex(x => x.id === target);
+  if (i > -1) rows.splice(i, 1);
+  closeAll(); render(); toast('Binding account deleted. The account is now available for registration.');
+}
+
+function applyFilter(){ filter = document.getElementById('stFilter').value; render(); }
+function resetFilter(){ document.getElementById('stFilter').value = 'ALL'; filter = 'ALL'; render(); }
+
+document.getElementById('roleSel').addEventListener('change', e => { role = e.target.value; render(); });
+document.getElementById('noteToggle').addEventListener('change', e => document.body.classList.toggle('shownotes', e.target.checked));
+document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeAll(); }));
+
+render();
+</script>
+</body>
+</html>

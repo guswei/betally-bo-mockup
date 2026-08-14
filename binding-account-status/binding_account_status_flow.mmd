@@ -1,0 +1,17 @@
+flowchart TD
+  A[BO 操作員在 Binding Account 清單選一筆] --> B{該筆 status}
+  B -->|ACTIVE| C{是預設帳號?}
+  B -->|INACTIVE| H[顯示 Activate]
+  C -->|是| D[Deactivate disabled<br/>提示先變更預設]
+  C -->|否| E{有處理中提款單?}
+  E -->|是| F[後端回 409<br/>提示有處理中的單]
+  E -->|否| G[停用成功<br/>status 改 INACTIVE<br/>自然鍵仍被佔用<br/>會員端不再顯示]
+  H --> I[啟用成功<br/>status 改 ACTIVE<br/>會員端恢復顯示<br/>Default Value 不變]
+  G --> H
+  I --> C
+  classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+  classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+  class A,D,F,H step
+  class B,C,E dec
+  class G,I done
