@@ -2,8 +2,7 @@
 
 GCP Agent BO：VIP 升級從每日（隔日）處理改為依可設定的間隔檢查，預設每 60 分鐘。
 
-- [PRD (Textile)](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_PRD.textile)
-- [PRD (Markdown)](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_PRD.md)
+- [PRD](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_PRD.md)（開單用的 Textile 版以 Redmine 為準）
 - [RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_spec.md)
 - [Mermaid source](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_flow.mmd)
 - [Rendered flow](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/diagrams/vip_hourly_upgrade_flow.png)

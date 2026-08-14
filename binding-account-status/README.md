@@ -3,8 +3,7 @@
 GCP Agent BO：`2.1 Player List` → `Player's Info` → `Binding Account` 分頁新增啟用與停用。
 
 - [Interactive mockup](https://guswei.github.io/betally-bo-mockup/binding-account-status/mockup.html)
-- [PRD (Textile)](https://github.com/guswei/betally-bo-mockup/blob/main/binding-account-status/binding_account_status_PRD.textile)
-- [PRD (Markdown)](https://github.com/guswei/betally-bo-mockup/blob/main/binding-account-status/binding_account_status_PRD.md)
+- [PRD](https://github.com/guswei/betally-bo-mockup/blob/main/binding-account-status/binding_account_status_PRD.md)（開單用的 Textile 版以 Redmine 為準）
 - [RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/binding-account-status/binding_account_status_spec.md)
 - [Mermaid source](https://github.com/guswei/betally-bo-mockup/blob/main/binding-account-status/binding_account_status_flow.mmd)
 - [Rendered flow](https://github.com/guswei/betally-bo-mockup/blob/main/binding-account-status/diagrams/binding_account_status_flow.png)
