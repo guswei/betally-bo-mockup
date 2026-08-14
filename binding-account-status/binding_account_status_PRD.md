@@ -1,8 +1,8 @@
 # PRD：Binding Account 啟用／停用
 
 **版本**：v1（2026-08-14）　**類型**：功能變更　**負責**：PM
-**Mockup**：`_workspace/binding_account_status_mockup.html`（本機檔案，開啟後右上可切換「顯示 RD 註記」）
-**相關**：RD Spec `_workspace/binding_account_status_spec.md`
+**Mockup**：https://guswei.github.io/betally-bo-mockup/binding-account-status/mockup.html （右上可切換「顯示 RD 註記」與權限開關）
+**相關**：[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/binding-account-status/binding_account_status_spec.md)
 
 ## 1. 需求背景
 
@@ -28,7 +28,7 @@ GCP Agent BO 的綁定帳號目前只有新增與刪除兩種操作。客服要�
 
 ## 3. 介面設計
 
-以 Mockup 為準：`_workspace/binding_account_status_mockup.html`。重點：
+以 Mockup 為準：https://guswei.github.io/betally-bo-mockup/binding-account-status/mockup.html 。重點：
 
 - `Binding Account` 清單最後一欄新增 `Status`，`ACTIVE` 顯示綠底 `Active`，`INACTIVE` 顯示灰底 `Inactive` 且整列灰階。既有欄位順序不動。
 - `Actions` 欄：`ACTIVE` 的列出現 `Deactivate`，`INACTIVE` 的列出現 `Activate`，兩者互斥。既有編輯與刪除圖示位置不動。

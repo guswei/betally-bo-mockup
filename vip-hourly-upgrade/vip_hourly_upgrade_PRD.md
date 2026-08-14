@@ -2,7 +2,7 @@
 
 **版本**：v1.0（2026-08-13）　**類型**：功能變更　**負責**：PM / RD  
 **Mockup**：N/A —— 本需求沿用既有頁面，只在既有 `System Config` → `VIP` tab 增加一個設定欄位  
-**相關**：`_workspace/vip_hourly_upgrade_spec.md`
+**相關**：[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_spec.md)
 
 ## 1. 需求背景
 

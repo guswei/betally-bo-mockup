@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO
 - 位置：`2.1 Player List` → `Player's Info` → 頁面下方 `Binding Account` 分頁
-- Mockup：`_workspace/binding_account_status_mockup.html`（開啟後右上可切換「顯示 RD 註記」）
+- Mockup：https://guswei.github.io/betally-bo-mockup/binding-account-status/mockup.html （右上可切換「顯示 RD 註記」與權限開關）
 
 ---
 

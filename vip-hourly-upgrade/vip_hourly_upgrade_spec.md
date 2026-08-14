@@ -3,7 +3,7 @@
 - 版本：v1.0
 - 日期：2026-08-13
 - 平台：Agent BO（GCP）
-- 對應需求：`_workspace/vip_hourly_upgrade_PRD.md`
+- 對應需求：[PRD](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_PRD.md)
 
 ## 1. 背景與目標
 
