@@ -66,6 +66,10 @@ Agent BO 與 Admin BO 新增同名唯讀報表，查詢既有 RD event delivery 
 
 Provider enum 固定為 `META`、`ADJUST`、`CLEVERTAP`。Status enum 固定為 `SUCCESS`、`FAILED`。不在 event catalog 的紀錄不由本報表 API 回傳。
 
+篩選鍵為 `provider_event` 欄。選定 Provider 後，`Provider Event` 下拉只列該 Provider 在本表對應的 `provider_event` 值：`META` 為 `AddToCart`、`Purchase`；`ADJUST` 為 `Deposit`；`CLEVERTAP` 為該欄的 7 個值。`user_behavior` 仍是列表與 CSV 的顯示欄位，不作為篩選鍵。
+
+`ADJUST` 的 `provider_event` 取自 RD log。log 內若出現本表未列的名稱，該名稱要補進 event catalog 後才會出現在下拉選項，未補進前該筆紀錄仍會在 `All` 的查詢結果中出現。
+
 ## 5. UI 契約
 
 ### 5.1 Filters
@@ -75,7 +79,7 @@ Provider enum 固定為 `META`、`ADJUST`、`CLEVERTAP`。Status enum 固定為 
 | `Prefix` | Select，Admin only | `All` | 值必須存在於 Admin 可見 Agent 清單。 |
 | `Username` | Text | 空白 | Trim；最大 100 字元；包含查詢。 |
 | `Provider` | Select | `All` | All 或 provider enum。 |
-| `Event` | Select | `All` | 選項依 Provider 取自 event catalog。 |
+| `Provider Event` | Select | `All` | 選項依 Provider 取自 event catalog 的 `provider_event` 欄。 |
 | `Status` | Select | `Success` | `Success`、`Failed`、`All`。 |
 | `Start Time – End Time` | Datetime range | BO 當日 00:00:00–23:59:59 | 必填；start ≤ end；區間 ≤ 31 天。 |
 
@@ -101,7 +105,11 @@ Provider enum 固定為 `META`、`ADJUST`、`CLEVERTAP`。Status enum 固定為 
 
 ### 5.4 Details masking
 
-Details 顯示 `delivery_id`、`attempt_no`、Prefix、Username、Provider、Status、HTTP status、request／response time、error code、error message、request properties 與 provider response。Currency 不回傳到前端。
+Details modal 只呈現兩塊內容：request properties 與 provider response。
+
+`delivery_id`、`attempt_no`、Prefix、Username、Provider、Status、HTTP status、request／response time、error code 與 error message 仍由 detail API 回傳，供 log 比對使用，但不在 modal 顯示。Currency 不回傳到前端。
+
+Masking 規則不因顯示範圍縮減而放寬，request properties 與 provider response 照本節下方規則處理。
 
 Report adapter 對 request properties 做 case-insensitive recursive key filter。Key 命中 `token`、`authorization`、`secret`、`password`、`phone`、`whatsapp`、`telegram` 時，value 固定替換成 `***`。Provider response 只保留 `accepted`、`status`、`event_id`、`code`、`message`；其他 raw response 欄位不回傳。Error message 必須移除 request body、query token 與 header value。
 
@@ -120,7 +128,7 @@ Report adapter 對 request properties 做 case-insensitive recursive key filter�
 | `prefix` | No | Admin only；省略代表所有 Agent。 |
 | `username` | No | String，trim 後 1–100 字元。 |
 | `provider` | No | `META`、`ADJUST`、`CLEVERTAP`；省略代表 All。 |
-| `event` | No | Event catalog 的 `user_behavior`；省略代表 All。 |
+| `provider_event` | No | Event catalog 的 `provider_event`；省略代表 All。 |
 | `status` | No | `SUCCESS`、`FAILED`；省略時預設 `SUCCESS`。UI 的 All 以省略參數表示。 |
 | `start_at` | Yes | ISO 8601。 |
 | `end_at` | Yes | ISO 8601；不得早於 `start_at`，區間不得超過 31 天。 |
@@ -222,7 +230,7 @@ Query parameters 與 list 相同，但不使用 `page`、`page_size`。前端傳
 
 | HTTP | Code | 條件 |
 |---|---|---|
-| 400 | `REPORT_FILTER_INVALID` | Provider、event、status、page 或 page_size 不合法。 |
+| 400 | `REPORT_FILTER_INVALID` | Provider、provider_event、status、page 或 page_size 不合法。 |
 | 400 | `REPORT_DATE_RANGE_INVALID` | 日期缺漏、start > end 或區間超過 31 天。 |
 | 401 | `AUTH_REQUIRED` | 未登入或 session 失效。 |
 | 403 | `REPORT_SCOPE_FORBIDDEN` | Agent 帶 Prefix 或讀取其他 Agent 資料。 |
@@ -315,7 +323,7 @@ Report query 必須使用 RD log 現有的等效索引能力支援 `(agent_id, s
 | `FR-2` | Filter form、validation、pagination、snapshot | `AC-1`、`AC-2`、`AC-11`、`AC-12` |
 | `FR-3` | Session scope、Prefix mapping、403 | `AC-6`、`AC-7` |
 | `FR-4` | List columns、detail API、masking、UI states | `AC-8`、`AC-9`、`AC-14` |
-| `FR-5` | Event catalog filter | `AC-3`、`AC-4`、`AC-5` |
+| `FR-5` | Provider Event filter（event catalog 的 `provider_event` 欄） | `AC-3`、`AC-4`、`AC-5` |
 | `FR-6` | CSV endpoint、export audit | `AC-13`、`AC-15` |
 
 ## 12. 測試與驗收
