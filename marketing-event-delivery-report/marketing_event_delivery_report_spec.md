@@ -78,12 +78,15 @@ Provider enum 固定為 `META`、`ADJUST`、`CLEVERTAP`。Status enum 固定為 
 |---|---|---|---|
 | `Prefix` | Select，Admin only | `All` | 值必須存在於 Admin 可見 Agent 清單。 |
 | `Username` | Text | 空白 | Trim；最大 100 字元；包含查詢。 |
+| `Transaction ID` | Text | 空白 | Trim；最大 64 字元；包含查詢，不分大小寫。只輸入空白視同未填。 |
 | `Provider` | Select | `All` | All 或 provider enum。 |
 | `Provider Event` | Select | `All` | 選項依 Provider 取自 event catalog 的 `provider_event` 欄。 |
 | `Status` | Select | `Success` | `Success`、`Failed`、`All`。 |
 | `Start Time – End Time` | Datetime range | BO 當日 00:00:00–23:59:59 | 必填；start ≤ end；區間 ≤ 31 天。 |
 
 日期輸入依 BO timezone 解讀，送 API 前轉 ISO 8601。畫面顯示格式固定為 `DD/MM/YYYY HH:mm:ss`。
+
+`transaction_id` 為 null 的紀錄（例如 `Sign Up`、`VIP Upgrade`）在 `Transaction ID` 有輸入值時一律不回傳。
 
 ### 5.2 List columns
 
@@ -127,6 +130,7 @@ Report adapter 對 request properties 做 case-insensitive recursive key filter�
 |---|---|---|
 | `prefix` | No | Admin only；省略代表所有 Agent。 |
 | `username` | No | String，trim 後 1–100 字元。 |
+| `transaction_id` | No | String，trim 後 1–64 字元；後端做不分大小寫的包含查詢，並排除 `transaction_id` 為 null 的紀錄。 |
 | `provider` | No | `META`、`ADJUST`、`CLEVERTAP`；省略代表 All。 |
 | `provider_event` | No | Event catalog 的 `provider_event`；省略代表 All。 |
 | `status` | No | `SUCCESS`、`FAILED`；省略時預設 `SUCCESS`。UI 的 All 以省略參數表示。 |
@@ -230,7 +234,7 @@ Query parameters 與 list 相同，但不使用 `page`、`page_size`。前端傳
 
 | HTTP | Code | 條件 |
 |---|---|---|
-| 400 | `REPORT_FILTER_INVALID` | Provider、provider_event、status、page 或 page_size 不合法。 |
+| 400 | `REPORT_FILTER_INVALID` | Provider、provider_event、status、transaction_id、page 或 page_size 不合法。 |
 | 400 | `REPORT_DATE_RANGE_INVALID` | 日期缺漏、start > end 或區間超過 31 天。 |
 | 401 | `AUTH_REQUIRED` | 未登入或 session 失效。 |
 | 403 | `REPORT_SCOPE_FORBIDDEN` | Agent 帶 Prefix 或讀取其他 Agent 資料。 |
@@ -328,7 +332,7 @@ Report query 必須使用 RD log 現有的等效索引能力支援 `(agent_id, s
 
 ## 12. 測試與驗收
 
-- Unit：date range、event catalog、status default、amount serialization、recursive masking、provider response allowlist。
+- Unit：date range、event catalog、status default、amount serialization、recursive masking、provider response allowlist、transaction_id trim 與 null 排除。
 - Repository：Admin all-prefix、Admin single-prefix、Agent ownership、stable sort、snapshot、180-day boundary。
 - API：200、400、401、403、404、500、504 與 error code mapping。
 - UI：Default、Failed、All、loading、empty、error、invalid date、details、CSV、Agent／Admin routes。

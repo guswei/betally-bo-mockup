@@ -23,7 +23,7 @@ Agent BO 與 Admin BO 新增 `Marketing Event Delivery Report`。頁面合併顯
 
 ### FR-2：提供報表篩選與預設條件
 
-頁面提供 `Prefix`（Admin only）、`Username`、`Provider`、`Provider Event`、`Status`、`Start Time – End Time`。`Provider Event` 的選項與比對值取自 event catalog 的 `provider_event` 欄，與列表同名欄位一致。`Status` 預設 `SUCCESS`，日期預設為 BO 當日 00:00:00–23:59:59。單次日期範圍不得超過 31 天，預設每頁 10 筆。
+頁面提供 `Prefix`（Admin only）、`Username`、`Transaction ID`、`Provider`、`Provider Event`、`Status`、`Start Time – End Time`。`Provider Event` 的選項與比對值取自 event catalog 的 `provider_event` 欄，與列表同名欄位一致。`Status` 預設 `SUCCESS`，日期預設為 BO 當日 00:00:00–23:59:59。單次日期範圍不得超過 31 天，預設每頁 10 筆。
 
 ### FR-3：依登入身分限制資料範圍
 
@@ -63,6 +63,7 @@ Mockup 沿用現有 BO 報表的灰底、白色查詢卡、綠色 Search 按鈕�
 |---|---|---|---|
 | `Prefix` | 不顯示 | 顯示 | 預設 `All`；選項來自 Admin 可見 Agent。 |
 | `Username` | 顯示 | 顯示 | 可空白；字串包含查詢。 |
+| `Transaction ID` | 顯示 | 顯示 | 可空白；字串包含查詢，不分大小寫。有輸入值時排除無交易編號的紀錄。 |
 | `Provider` | 顯示 | 顯示 | `All`、`Meta`、`Adjust`、`CleverTap`。 |
 | `Provider Event` | 顯示 | 顯示 | 依 Provider 列出該 Provider 的 `provider_event` 值；Provider 為 All 時只能選 All。 |
 | `Status` | 顯示 | 顯示 | `Success`、`Failed`、`All`；預設 `Success`。 |
@@ -118,6 +119,8 @@ Mockup 沿用現有 BO 報表的灰底、白色查詢卡、綠色 Search 按鈕�
 - `AC-8`（對應 `FR-4`）：列表包含 Prefix、Amount 與 Transaction ID，不包含 Currency；無值欄位顯示 `—`。
 - `AC-9`（對應 `FR-4`）：Details 只顯示 request properties 與 provider response 兩塊；access token、authorization、secret、password、phone、WhatsApp、Telegram 不得明文出現。
 - `AC-16`（對應 `FR-5`）：Provider 選 Meta 後，`Provider Event` 下拉只出現 `AddToCart` 與 `Purchase`；選 `AddToCart` 搜尋後，列表 `Provider Event` 欄只剩 `AddToCart`。
+- `AC-17`（對應 `FR-2`）：輸入完整交易編號搜尋後，列表只剩該筆；輸入部分字串時列出所有交易編號包含該字串的紀錄，大小寫不影響結果。
+- `AC-18`（負向，對應 `FR-2`）：`Transaction ID` 有輸入值時，`Sign Up`、`VIP Upgrade` 這類無交易編號的紀錄**不得**出現在列表與 CSV。
 - `AC-10`（對應 `FR-1`）：同一業務事件 retry 後，列表保留每次 attempt，先前 `FAILED` 不得被後續 `SUCCESS` 覆蓋。
 - `AC-11`（對應 `FR-2`）：開始時間晚於結束時間或區間超過 31 天時，前端顯示錯誤且不送出查詢；後端收到相同無效參數時回傳 400。
 - `AC-12`（對應 `FR-2`）：查詢預設每頁 10 筆，依 `sent_at` 新到舊排列；切換既有 BO 分頁設定後回傳對應頁面。
