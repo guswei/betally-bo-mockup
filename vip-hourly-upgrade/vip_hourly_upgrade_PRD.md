@@ -1,6 +1,6 @@
 # PRD：VIP 等級升級改為每小時檢查
 
-**版本**：v1.0（2026-08-13）　**類型**：功能變更　**負責**：PM / RD  
+**版本**：v1.1（2026-09-22）　**類型**：功能變更　**負責**：PM / RD  
 **Mockup**：N/A —— 本需求沿用既有頁面，只在既有 `System Config` → `VIP` tab 增加一個設定欄位  
 **相關**：[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_spec.md)
 
@@ -16,7 +16,7 @@ Agent BO 目前每天處理一次 VIP 等級升級，玩家達標後要等到隔
 | FR-2 | 只升不降 | 每次 job 以 `新等級 = max(現有等級, 達標等級)` 計算結果。只有達標等級高於現有等級時才更新，不得自動降級，也不得覆蓋 BO 已手動調高的等級。 |
 | FR-3 | 逐級發放升等獎金 | 玩家跨越多個 VIP 等級時，每經過一級發一筆該級獎金。`VIP0 → VIP3` 發放 VIP1、VIP2、VIP3 共三筆；總發放金額不得因 job 執行頻率改變。現行邏輯差異與額外工作量見 ASM-1。 |
 | FR-4 | 升級與獎金冪等 | 冪等鍵使用「玩家 + 目標 VIP 等級」。同一玩家的同一目標等級只允許一筆成功結果；失敗結果須沿用同一冪等紀錄重試。job 重跑或併發執行不得重複升級、發放獎金或建立同一筆升級事件送出工作。 |
-| FR-5 | 執行間隔設定權限 | 只有 Admin / Brand Admin 可維護執行間隔。前端與後端都要拒絕小於 `60` 的值及未授權的修改，並沿用既有 System Config 稽核機制記錄變更前後值與操作者。 |
+| FR-5 | 執行間隔設定權限 | 執行間隔的授權沿用 `System Config` 既有權限，不新增權限節點也不綁定 4-tier 層級。前端與後端都要拒絕小於 `60` 的值及未授權的修改，並沿用既有 System Config 稽核機制記錄變更前後值與操作者。 |
 | FR-6 | CleverTap 升級事件 | 每次 job 將玩家等級更新至本次已完成的最高等級後，沿用既有 CleverTap `VIP Upgrade` 事件送出一筆事件；跨多級不逐級送事件。properties 為 `Previous Level (String)` 與 `New Level (String)`。沒有等級異動時不得建立事件送出工作。 |
 
 範圍：VIP 升級排程、逐級獎金、升級事件，以及 `System Config` → `VIP` tab 的執行間隔設定。OUT：VIP 達標條件、VIP 降級、`Payment Level`、`Allow VIP Bonus`、手動調整 VIP 的既有行為、其他 System Config 設定與 mockup 程式。
@@ -29,7 +29,7 @@ Agent BO 目前每天處理一次 VIP 等級升級，玩家達標後要等到隔
 
 | 欄位 | 型別/精度 | 必填 | 說明 / enum / 邊界 |
 |---|---|---|---|
-| VIP upgrade interval (minutes) | `INT` | 是 | 預設 `60`，下限 `60`。前端與後端都要阻擋小於 `60` 的值；只允許 Admin / Brand Admin 修改。 |
+| VIP upgrade interval (minutes) | `INT` | 是 | 預設 `60`，下限 `60`。前端與後端都要阻擋小於 `60` 的值；修改權限沿用 `System Config` 既有權限。 |
 
 ## 4. 資料模型
 
@@ -39,6 +39,7 @@ Agent BO 目前每天處理一次 VIP 等級升級，玩家達標後要等到隔
 |---|---|---|---|
 | 既有 System Config 儲存體 | VIP upgrade interval | `INT` | `NOT NULL`、default `60`、值不得小於 `60` |
 | 既有 VIP 升級／獎金處理紀錄儲存體 | 玩家 + 目標 VIP 等級 | 既有型別 | 業務唯一約束；同一玩家、同一目標等級只允許一筆紀錄，狀態至少區分 `processing`、`succeeded`、`failed` |
+| 既有 VIP 升級／獎金處理紀錄儲存體 | 最後更新時間 | `DATETIME` | `NOT NULL`。停留 `processing` 超過一個執行間隔者由下次 job 轉 `failed` 重試 |
 
 ## 5. 流程圖
 
@@ -68,28 +69,28 @@ flowchart TD
 
 ## 6. 選單位置
 
-沿用 `System Config` → `VIP` tab，不新增選單項目。Admin / Brand Admin 可檢視與修改執行間隔；其他角色不得修改。
+沿用 `System Config` → `VIP` tab，不新增選單項目。執行間隔的檢視與修改權限與 `System Config` 其他設定欄位相同，不另設層級。
 
 | 選單路徑 | 角色 / 權限 | 說明 |
 |---|---|---|
-| `System Config` → `VIP` | Admin / Brand Admin | 可檢視並修改 VIP upgrade interval |
-| `System Config` → `VIP` | 非 Admin / Brand Admin | 不可修改 VIP upgrade interval；後端仍須拒絕直接送出的修改請求 |
+| `System Config` → `VIP` | 可修改 `System Config` 者 | 可檢視並修改 VIP upgrade interval |
+| `System Config` → `VIP` | 無 `System Config` 修改權限者 | 不可修改 VIP upgrade interval；後端仍須拒絕直接送出的修改請求 |
 
 ## 7. 驗收標準（AC）
 
 | AC-ID | 對應 FR | 驗收條件 |
 |---|---|---|
 | AC-01 | FR-1 | 執行間隔未修改時，job 以 `60` 分鐘為週期，並以 `GMT+07:00` 計算執行時間。 |
-| AC-02 | FR-1, FR-5 | Admin / Brand Admin 將間隔改為大於 `60` 的整數分鐘，或從較大值改回 `60` 後，後續 job 使用新週期。 |
+| AC-02 | FR-1, FR-5 | 具 `System Config` 修改權限的操作者將間隔改為大於 `60` 的整數分鐘，或從較大值改回 `60` 後，後續 job 使用新週期。 |
 | AC-03（負向） | FR-1, FR-5 | 操作者輸入小於 `60` 或非整數值時，前端不得送出；直接呼叫後端時也不得保存，原設定值維持不變。 |
-| AC-04（負向） | FR-5 | 非 Admin / Brand Admin 嘗試修改間隔時，介面不得提供可操作控制項；直接呼叫後端時也不得保存，且原設定值維持不變。 |
+| AC-04（負向） | FR-5 | 無 `System Config` 修改權限者嘗試修改間隔時，介面不得提供可操作控制項；直接呼叫後端時也不得保存，且原設定值維持不變。此判定與該操作者的 4-tier 層級無關。 |
 | AC-05 | FR-2 | 玩家達標等級高於現有等級時，job 把玩家 VIP 更新為達標等級。 |
 | AC-06（負向） | FR-2 | 玩家達標等級等於或低於現有等級時，job 不修改玩家 VIP，BO 手動調高的等級不會被下調。 |
 | AC-07 | FR-3 | 符合既有獎金發放條件的玩家由 `VIP0` 升到 `VIP3` 時，系統各發一筆 VIP1、VIP2、VIP3 的既有獎金，金額精度為 `DECIMAL(18,2)`。 |
 | AC-08（負向） | FR-3, FR-4 | 相同玩家與相同目標 VIP 等級已成功處理時，job 重跑或併發執行不得再次發放該級獎金。 |
 | AC-09 | FR-4 | 玩家跨越多級時，每個目標 VIP 等級各建立一次可追溯的處理結果；完成後玩家等級為本次已完成逐級處理的最高等級。 |
 | AC-10（負向） | FR-4 | 同一玩家同一目標 VIP 等級出現重複或併發請求時，唯一約束只允許一筆紀錄及一筆成功結果；既有結果為失敗時，後續 job 更新同一筆紀錄重試，不新增第二筆。 |
-| AC-11 | FR-5 | Admin / Brand Admin 成功修改間隔後，稽核紀錄可查到操作者、修改時間、修改前值與修改後值。 |
+| AC-11 | FR-5 | 具 `System Config` 修改權限的操作者成功修改間隔後，稽核紀錄可查到操作者、修改時間、修改前值與修改後值。 |
 | AC-12 | FR-6 | 玩家在單次 job 由 `VIP0` 實際更新至 `VIP3` 後，系統建立一筆 CleverTap `VIP Upgrade` 事件送出工作，`Previous Level (String)` 為 `VIP0`，`New Level (String)` 為 `VIP3`；不得另建 VIP1、VIP2 事件。 |
 | AC-13（負向） | FR-4, FR-6 | 玩家等級未異動或相同升級事件送出工作已存在時，不得建立第二筆 CleverTap `VIP Upgrade` 事件送出工作。外部發送失敗沿用既有 CleverTap 重試機制，不得再次發獎。 |
 | AC-14 | FR-3 | `Allow VIP Bonus` 關閉時，玩家仍依達標結果升級，但不得發放任何升等獎金；該開關的既有判斷不變。 |
@@ -103,7 +104,7 @@ flowchart TD
 |---|---|---|
 | NFR-REL | 可靠性 | job 採 fixed-rate 排程；設定儲存成功後重新計算下一次觸發時間，已在執行的 instance 不受影響。前一次尚未結束時跳過重疊觸發。job 重跑、程序重啟或併發執行時，仍須依「玩家 + 目標 VIP 等級」阻擋重複成功處理；單一玩家失敗不得讓已成功玩家回滾或重複發獎。 |
 | NFR-DATA | 金額/資料精度 | VIP 獎金沿用 `DECIMAL(18,2)`；逐級獎金總額等於各經過等級的既有獎金加總，不得使用 float。 |
-| NFR-SEC | 權限與稽核 | 後端必須驗證 Admin / Brand Admin 權限；設定變更沿用既有 System Config 稽核機制，記錄操作者、修改時間、修改前值與修改後值。 |
+| NFR-SEC | 權限與稽核 | 後端必須驗證操作者具備 `System Config` 的修改權限；設定變更沿用既有 System Config 稽核機制，記錄操作者、修改時間、修改前值與修改後值。 |
 | NFR-OBS | 觀測性 | 每次 job 至少記錄開始與結束時間、掃描玩家數、升級玩家數、逐級獎金成功與失敗數、冪等跳過數及 CleverTap 事件成功與失敗數；時間使用 `GMT+07:00`。 |
 
 ## 9. 假設與限制（ASM / CST）
