@@ -69,12 +69,11 @@
   .ic{background:#fff;border:1px solid #c3ccd5;border-radius:5px;width:28px;height:28px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
   .ic.del{border-color:#e8b4ae;color:var(--danger)}
   .ic.del:hover{background:var(--danger);color:#fff}
-  .btn-act{border-radius:5px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap}
-  .btn-deact{background:#fff;border:1px solid var(--warn);color:#9a5b12}
-  .btn-deact:hover:not(:disabled){background:var(--warn);color:#fff}
-  .btn-actv{background:#fff;border:1px solid var(--bo-green);color:var(--bo-green-d)}
-  .btn-actv:hover:not(:disabled){background:var(--bo-green);color:#fff}
-  .btn-act:disabled{background:#f1f3f5;border-color:#dde2e6;color:#b0b8be;cursor:not-allowed}
+  .ic.deact{border-color:#e6c08a;color:var(--warn)}
+  .ic.deact:hover:not(:disabled){background:var(--warn);color:#fff}
+  .ic.actv{border-color:var(--bo-green);color:var(--bo-green-d)}
+  .ic.actv:hover:not(:disabled){background:var(--bo-green);color:#fff}
+  .ic:disabled{background:#f1f3f5;border-color:#dde2e6;color:#b0b8be;cursor:not-allowed}
   .hint{font-size:10.5px;color:var(--bo-sub);margin-top:2px;white-space:normal;max-width:190px;line-height:1.4}
 
   .meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:#6b747c}
@@ -173,7 +172,7 @@
         <button class="btn-add" onclick="openAdd()">&#128441; Add</button>
       </div>
 
-      <div class="rd-note"><b>Status 篩選為新增</b>（既有只有 Binding Account Type 篩選）。加了停用資料之後清單會變長，沒有這個篩選找不到人。<b>此項為 PM 推定，尚未經 user 逐條拍板，請以最終 spec 為準。</b><br>
+      <div class="rd-note"><b>Status 篩選為新增</b>（既有只有 Binding Account Type 篩選）。加了停用資料之後清單會變長，沒有這個篩選找不到人。<br>
       篩選值 <code>ALL</code> / <code>ACTIVE</code> / <code>INACTIVE</code>，預設 <code>ALL</code>（停用資料要看得到，這是本需求的核心訴求）。</div>
 
       <table>
@@ -192,12 +191,14 @@
       顯示：<code>ACTIVE</code> 綠底 <b>Active</b>；<code>INACTIVE</code> 灰底 <b>Inactive</b> 且整列以灰階呈現，讓操作員一眼掃出哪些是停用的。<br>
       <b>不要</b>引入參考截圖上的 <code>Blocked</code> 與 <code>Verify Status</code>——那是別的系統的欄位，本系統沒有。</div>
 
-      <div class="rd-note"><b>Actions 欄</b>：既有 Edit（鉛筆）與 Delete（紅 X）<b>位置與權限都不變</b>，新增 Activate / Deactivate 按鈕。<br>
-      <code>ACTIVE</code> 的列出現 <b>Deactivate</b>；<code>INACTIVE</code> 的列出現 <b>Activate</b>。兩者互斥，不會同時出現。<br>
+      <div class="rd-note"><b>Actions 欄</b>：既有 Edit（鉛筆）與 Delete（紅 X）<b>位置與權限都不變</b>，新增一個 Activate／Deactivate 圖示。<br>
+      <b>用圖示不用文字按鈕</b>（user 2026-09-22 拍板）：既有 Actions 欄是純圖示，塞文字按鈕會撐寬欄位並破壞既有視覺。<code>ACTIVE</code> 的列出現 <b>⏸（Deactivate）</b>；<code>INACTIVE</code> 的列出現 <b>▶（Activate）</b>。兩者互斥，不會同時出現。滑鼠移上去顯示英文 tooltip。<br>
       <b>狀態可逆</b>：<code>ACTIVE</code> ⇄ <code>INACTIVE</code> 雙向可切換，<b>沒有終態</b>。</div>
 
       <div class="rd-note"><b>Deactivate 的兩個擋門——兩者的前端行為刻意不同，依「前端有沒有判斷資料」決定</b><br>
-      ① <b>預設帳號不可停用</b>：<code>Default Value</code> 前端清單本來就有，可以直接判斷 → Deactivate <b>disable ＋ 說明文字</b>，操作員先去 Edit 把預設改給別筆。後端仍要擋，回 <code>409</code> <code>BINDING_ACCOUNT_IS_DEFAULT</code>。<br>
+      ① <b>預設帳號不可停用</b>：<code>Default Value</code> 前端清單本來就有，可以直接判斷 → Deactivate 圖示 <b>disable ＋ 說明文字</b>。後端仍要擋，回 <code>409</code> <code>BINDING_ACCOUNT_IS_DEFAULT</code>。<br>
+      <b>預設是「每個 Binding Account Type 各一個」，不是每位玩家一個</b>（user 2026-09-22 拍板）。所以同一位玩家清單上會同時看到多筆 <code>Default Value = true</code>，各屬不同 Type，這不是髒資料。操作員要先把<b>同一個 Type 裡的另一筆</b>設為預設，才能停用原本那筆。<br>
+      <b>已知後果</b>：某個 Type 底下只有一筆帳號且它是預設時，該筆永遠無法停用——沒有同 Type 的其他帳號可以接手預設。這種情況操作員只剩 Delete 可用。<br>
       ② <b>有處理中提款單不可停用</b>：前端<b>沒有</b>這筆資料，無法預先判斷 → 按鈕<b>可以按</b>，按下後依 API 回應顯示錯誤（點第三列的 Deactivate 看效果）。後端回 <code>409</code> <code>BINDING_ACCOUNT_HAS_PENDING_WITHDRAWAL</code>。<br>
       兩個 <code>409</code> 用<b>不同錯誤鍵</b>，前端才能顯示對應原因。<br>
       這兩種都是<b>業務規則</b>造成的不可操作，一律附原因說明，<b>不用隱藏</b>——操作員要知道為什麼不能按、下一步做什麼。<b>權限不足才用隱藏</b>（見下一則）。<br>
@@ -400,6 +401,8 @@ const rows = [
     acct:'12313131', wname:'-', waddr:'-', def:false, status:'INACTIVE', pending:false },
   { id:'BA-1005', type:'Pulsa', branch:'-', bank:'-', name:'BUN BUNDIYANTO BUN',
     acct:'-', wname:'Telkomsel', waddr:'+6285575757', def:false, status:'INACTIVE', pending:false },
+  { id:'BA-1006', type:'E-Wallet', branch:'-', bank:'-', name:'BUN BUNDIYANTO BUN',
+    acct:'-', wname:'DANA', waddr:'081900112233', def:true,  status:'ACTIVE', pending:false },
 ];
 
 // 權限：由後台權限節點控制，不綁 4-tier 層級（user 2026-08-14 拍板）
@@ -430,15 +433,15 @@ function render(){
       if (r.status === 'ACTIVE'){
         const blockedBy = r.def ? 'default' : (r.pending ? 'pending' : null);
         if (blockedBy === 'default'){
-          act = '<button class="btn-act btn-deact" disabled>Deactivate</button>'
-              + '<div class="hint">Default account cannot be deactivated. Change the default first.</div>';
+          act = '<button class="ic deact" disabled title="Default account of this Binding Account Type cannot be deactivated. Set another account of the same type as default first.">&#9208;</button>'
+              + '<div class="hint">Default of this type</div>';
         } else if (blockedBy === 'pending'){
-          act = '<button class="btn-act btn-deact" onclick="openErr(\'' + r.id + '\')">Deactivate</button>';
+          act = '<button class="ic deact" title="Deactivate" onclick="openErr(\'' + r.id + '\')">&#9208;</button>';
         } else {
-          act = '<button class="btn-act btn-deact" onclick="openDeact(\'' + r.id + '\')">Deactivate</button>';
+          act = '<button class="ic deact" title="Deactivate" onclick="openDeact(\'' + r.id + '\')">&#9208;</button>';
         }
       } else {
-        act = '<button class="btn-act btn-actv" onclick="openAct(\'' + r.id + '\')">Activate</button>';
+        act = '<button class="ic actv" title="Activate" onclick="openAct(\'' + r.id + '\')">&#9654;</button>';
       }
     }
 

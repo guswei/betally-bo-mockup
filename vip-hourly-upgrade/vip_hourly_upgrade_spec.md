@@ -1,9 +1,10 @@
 # VIP 等級升級每小時檢查 RD Spec
 
-- 版本：v1.0
-- 日期：2026-08-13
+- 版本：v1.1
+- 日期：2026-09-22
 - 平台：Agent BO（GCP）
 - 對應需求：[PRD](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_PRD.md)
+- 流程圖：https://guswei.github.io/betally-bo-mockup/vip-hourly-upgrade/diagrams/vip_hourly_upgrade_flow.png （第 11 節有內嵌圖與 Mermaid 原始碼）
 
 ## 1. 背景與目標
 
@@ -161,3 +162,35 @@ OUT：
 - `Allow VIP Bonus` 關閉時的既有行為不變。
 - BO 手動調高 VIP 後，job 不會下調玩家等級。
 - Marketing Event Delivery Report 仍能呈現 CleverTap `VIP Upgrade` 事件。
+
+---
+
+## 11. 流程圖
+
+job 讀取執行間隔後，依 `GMT+07:00` 啟動檢查；逐一計算玩家達標等級，只處理高於現有等級的結果。跨級時依序處理每個目標等級；冪等紀錄為 `succeeded` 時跳過該級，為 `failed` 時鎖定同一筆紀錄重試。完成後更新玩家等級並建立既有 CleverTap `VIP Upgrade` 事件送出工作。
+
+![VIP 每小時升級 job 流程](https://guswei.github.io/betally-bo-mockup/vip-hourly-upgrade/diagrams/vip_hourly_upgrade_flow.png)
+
+Mermaid 原始碼：
+
+```
+flowchart TD
+  A[依 GMT+07:00 啟動 job] --> B[計算玩家達標等級]
+  B --> C[新等級 = max 現有等級與達標等級]
+  C --> D{新等級高於現有等級？}
+  D -->|否| Z[不更新玩家等級]
+  D -->|是| E[取得下一個目標 VIP 等級]
+  E --> F{冪等紀錄狀態}
+  F -->|succeeded| G[跳過該級]
+  F -->|failed| H[鎖定同一筆紀錄後重試]
+  F -->|不存在| I[建立 processing 紀錄]
+  H --> J{該級處理成功？}
+  I --> J
+  J -->|否| K[標記 failed<br/>玩家等級停在最高已完成等級]
+  J -->|是| L[標記 succeeded]
+  G --> M{還有下一個目標等級？}
+  L --> M
+  M -->|是| E
+  M -->|否| N[更新玩家至最高已完成等級]
+  N --> O[建立 CleverTap VIP Upgrade 事件送出工作]
+```

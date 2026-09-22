@@ -1,0 +1,20 @@
+flowchart TD
+  A[操作者在 OTP Report 點某列的眼睛圖示] --> B{有 OTP 明碼檢視權限?}
+  B -->|否| C[前端不顯示眼睛圖示<br/>直接呼叫 API 回 403 FORBIDDEN]
+  B -->|是| D{Verify Proc 是 FORGET_PASSWORD?}
+  D -->|否| E[不顯示眼睛圖示<br/>後端回 409 OTP_PROCESS_NOT_ELIGIBLE]
+  D -->|是| F{已過期或已使用?}
+  F -->|否 仍有效| G[眼睛圖示 disabled 並說明原因<br/>後端回 409 OTP_STILL_VALID]
+  F -->|是| H[POST /otp-report/id/reveal]
+  H --> I[後端重驗權限與解遮罩資格]
+  I --> J[寫入審計<br/>操作者/時間/OTP id/玩家<br/>審計本身不存明碼]
+  J --> K[只回傳該列明碼<br/>列表 API 與 Export CSV 維持遮罩]
+  K --> L[畫面只解開該列<br/>翻頁或重新查詢後回到遮罩]
+  classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+  classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
+  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+  class A,H,I,J step
+  class B,D,F dec
+  class C,E,G stop
+  class K,L done

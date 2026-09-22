@@ -3,6 +3,7 @@
 - 對象系統：GCP Agent BO
 - 位置：`2.1 Player List` → `Player's Info` → 頁面下方 `Binding Account` 分頁
 - Mockup：https://guswei.github.io/betally-bo-mockup/binding-account-status/mockup.html （右上可切換「顯示 RD 註記」與權限開關）
+- 流程圖：https://guswei.github.io/betally-bo-mockup/binding-account-status/diagrams/binding_account_status_flow.png （第 11 節有內嵌圖與 Mermaid 原始碼）
 
 ---
 
@@ -79,14 +80,16 @@ Rollback 方向：移除唯一索引與 `status` 欄位即可回到原狀。已�
 
 ### 3.3 Actions 欄
 
-既有的編輯與刪除圖示，位置與權限都不動。新增：
+既有的編輯與刪除圖示，位置與權限都不動。新增一個圖示：
 
-| 列的 `status` | 出現的按鈕 |
-|---|---|
-| `ACTIVE` | `Deactivate` |
-| `INACTIVE` | `Activate` |
+| 列的 `status` | 出現的圖示 | tooltip |
+|---|---|---|
+| `ACTIVE` | `⏸` | `Deactivate` |
+| `INACTIVE` | `▶` | `Activate` |
 
-兩個按鈕互斥，同一列不會同時出現。
+兩個圖示互斥，同一列不會同時出現。
+
+採圖示而非文字按鈕：既有 Actions 欄是純圖示（編輯、刪除），加入文字按鈕會撐寬該欄並破壞既有視覺。操作名稱以 tooltip 呈現。
 
 ---
 
@@ -100,8 +103,14 @@ Rollback 方向：移除唯一索引與 `status` 欄位即可回到原狀。已�
 
 | 條件 | 前端 | 後端 |
 |---|---|---|
-| 該筆為預設帳號（`Default Value = true`） | 按鈕 `disabled`，附說明文字引導先變更預設 | 回 `409` |
+| 該筆為預設帳號（`Default Value = true`） | 圖示 `disabled`，附說明文字引導先變更預設 | 回 `409` |
 | 該綁定帳號有處理中的提款單 | 依 API 回應顯示原因 | 回 `409` |
+
+**預設帳號是每個 `Binding Account Type` 各一個，不是每位玩家一個。** 同一位玩家的清單上會同時出現多筆 `Default Value = true`，各屬不同的 `Binding Account Type`。
+
+因此「先變更預設」指的是把**同一個 `Binding Account Type` 底下的另一筆**設為預設。跨 `Binding Account Type` 的預設互不影響。
+
+某個 `Binding Account Type` 底下只有一筆帳號且該筆為預設時，該筆無法停用，因為沒有同型態的其他帳號可以接手預設。
 
 兩個 `409` 使用不同的錯誤鍵：預設帳號為 `BINDING_ACCOUNT_IS_DEFAULT`，有處理中提款單為 `BINDING_ACCOUNT_HAS_PENDING_WITHDRAWAL`。前端依錯誤鍵顯示對應原因。
 
@@ -125,7 +134,7 @@ Rollback 方向：移除唯一索引與 `status` 欄位即可回到原狀。已�
 
 啟用後該筆恢復顯示於會員端，玩家可照常使用。
 
-`Default Value` 不因啟用而改變。預設帳號無法被停用，所以停用中的帳號一定不是預設帳號，啟用回來也不自動設為預設。
+`Default Value` 不因啟用而改變。預設帳號無法被停用，所以停用中的帳號一定不是其所屬 `Binding Account Type` 的預設帳號，啟用回來也不自動設為預設。
 
 `ACTIVE` 與 `INACTIVE` 雙向可切換，沒有終態。
 
@@ -242,3 +251,33 @@ Rollback 方向：移除唯一索引與 `status` 欄位即可回到原狀。已�
 ## 10. 金額精度
 
 本次不新增金額欄位。既有提款金額欄位維持 `DECIMAL(18,2)`，本次不變更其精度，也不得改用浮點數。
+
+---
+
+## 11. 流程圖
+
+綁定帳號的狀態轉換，以及停用時的兩個阻擋條件。
+
+![綁定帳號狀態轉換與停用阻擋](https://guswei.github.io/betally-bo-mockup/binding-account-status/diagrams/binding_account_status_flow.png)
+
+Mermaid 原始碼：
+
+```
+flowchart TD
+  A[BO 操作員在 Binding Account 清單選一筆] --> B{該筆 status}
+  B -->|ACTIVE| C{是預設帳號?}
+  B -->|INACTIVE| H[顯示 Activate]
+  C -->|是| D[Deactivate disabled<br/>提示先變更預設]
+  C -->|否| E{有處理中提款單?}
+  E -->|是| F[後端回 409<br/>提示有處理中的單]
+  E -->|否| G[停用成功<br/>status 改 INACTIVE<br/>自然鍵仍被佔用<br/>會員端不再顯示]
+  H --> I[啟用成功<br/>status 改 ACTIVE<br/>會員端恢復顯示<br/>Default Value 不變]
+  G --> H
+  I --> C
+  classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+  classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+  class A,D,F,H step
+  class B,C,E dec
+  class G,I done
+```

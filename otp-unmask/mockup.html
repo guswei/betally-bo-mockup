@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTP Verify Code Unmask — Mockup (GCP Agent BO)</title>
+<style>
+  :root{
+    --bo-bg:#eef1f4; --bo-card:#fff; --bo-green:#2e9e5b; --bo-green-d:#247a47;
+    --bo-head:#cfe8d8; --bo-line:#e3e7eb; --bo-text:#2b3036; --bo-sub:#7b848d;
+    --new:#0f73d6; --warn:#d9822b; --danger:#c0392b;
+    --rd:#fff8e1; --rd-bd:#e6c84d; --rd-tx:#6b5300;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang TC","Microsoft JhengHei",sans-serif;background:#dfe3e8;color:var(--bo-text)}
+  .wrap{max-width:1500px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:0 0 4px}
+  .lead{color:#55606b;font-size:13px;margin:0 0 14px;line-height:1.6}
+  .tabs{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:13px;background:#fff;border:1px solid #c3ccd5;border-radius:8px;padding:6px 12px;cursor:pointer}
+  .toggle input{accent-color:var(--bo-green)}
+  .rolebox{display:flex;align-items:center;gap:8px;font-size:13px;background:#fff;border:1px solid #c3ccd5;border-radius:8px;padding:6px 12px}
+  .rolebox select{border:1px solid #cbd3da;border-radius:5px;padding:3px 6px;font-size:12px;font-family:inherit}
+
+  /* RD note system (繁中 開發註記) */
+  .rd-note{display:none;background:var(--rd);border:1px solid var(--rd-bd);border-left:4px solid var(--rd-bd);
+    color:var(--rd-tx);font-size:12px;line-height:1.6;border-radius:6px;padding:8px 10px;margin:6px 0}
+  body.shownotes .rd-note{display:block}
+  .rd-note b{color:#7a5d00}
+  .rd-note code{background:#fff3c4;padding:0 4px;border-radius:3px;font-size:11px}
+  .pill-new{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--new);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .demo-tag{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#6b46c1;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+
+  /* ===== BO theme ===== */
+  .bo{background:var(--bo-bg);border-radius:10px;padding:16px;border:1px solid #d4dae0}
+  .crumb{font-size:12px;color:var(--bo-sub);margin-bottom:10px}
+  .crumb b{color:var(--bo-text)}
+  .pagehead{display:flex;align-items:center;background:#fff;border:1px solid var(--bo-line);border-bottom:none;border-radius:8px 8px 0 0;padding:14px 16px}
+  .pagehead h2{margin:0;font-size:17px;color:#23613d}
+  .btn-csv{background:#fff;border:1px solid #c3ccd5;border-radius:6px;padding:7px 14px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .panel{background:#fff;border:1px solid var(--bo-line);border-radius:0 0 8px 8px;padding:16px}
+  .filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .field{min-width:190px;flex:1}
+  .field label{display:block;font-size:11px;color:var(--bo-sub);margin-bottom:4px;font-weight:600}
+  .field select,.field input{width:100%;padding:9px 10px;border:1px solid #cbd3da;border-radius:6px;font-size:13px;background:#fff;font-family:inherit}
+  .searchbar{display:flex;justify-content:center;gap:10px;margin-top:16px}
+  .btn-search{background:var(--bo-green);color:#fff;border:none;border-radius:6px;padding:9px 34px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-search:hover{background:var(--bo-green-d)}
+  .btn-icon{background:#fff;border:1px solid #c3ccd5;border-radius:6px;padding:9px 14px;font-size:13px;cursor:pointer}
+
+  table{width:100%;border-collapse:collapse;background:#fff;margin-top:14px;border:1px solid var(--bo-line);border-radius:8px;overflow:hidden}
+  thead th{background:var(--bo-head);text-align:left;font-size:11.5px;padding:10px 10px;color:#23613d;white-space:nowrap}
+  tbody td{padding:9px 10px;font-size:12.5px;border-top:1px solid #eef1f3;vertical-align:middle;white-space:nowrap}
+  tbody tr:nth-child(even){background:#f6faf7}
+  .col-new{background:#bfe0cb}
+  .dash{color:#b3bcc4}
+  .ulink{color:#0f73d6;text-decoration:none}
+  .ulink:hover{text-decoration:underline}
+
+  /* Verify Code cell */
+  .codecell{display:flex;align-items:center;gap:8px}
+  .masked{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:2px;color:#6d757d}
+  .plain{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:2px;font-weight:700;color:#14532d;background:#dcfce7;border:1px solid #86c7a0;border-radius:4px;padding:1px 7px}
+  .eye{background:#fff;border:1px solid #c3ccd5;border-radius:5px;width:26px;height:24px;line-height:1;cursor:pointer;font-size:13px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+  .eye:hover:not(:disabled){background:#eef7f1;border-color:var(--bo-green)}
+  .eye:disabled{opacity:.4;cursor:not-allowed}
+  .hint{font-size:10.5px;color:var(--warn);margin-top:3px;white-space:normal;max-width:230px;line-height:1.45}
+
+  .badge{display:inline-block;font-size:10.5px;font-weight:700;border-radius:4px;padding:2px 7px}
+  .b-get{background:#e7edf3;color:#4a5761}
+  .b-ver{background:#dcfce7;color:#14532d}
+  .b-exp{background:#fdecea;color:#912018}
+
+  .foot{display:flex;align-items:center;gap:14px;margin-top:12px;font-size:12px;color:var(--bo-sub);flex-wrap:wrap}
+  .foot .spacer{flex:1}
+  .btn-cols{background:#fff;border:1px solid #c3ccd5;border-radius:6px;padding:7px 12px;font-size:12px;cursor:pointer}
+
+  /* toast */
+  #toast{position:fixed;right:20px;bottom:20px;background:#23613d;color:#fff;font-size:12.5px;padding:10px 16px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s;max-width:340px;line-height:1.55}
+  #toast.on{opacity:1}
+</style>
+</head>
+<body class="shownotes">
+<div class="wrap">
+  <h1>OTP Report — Verify Code 解遮罩</h1>
+  <p class="lead">GCP Agent BO。本 mockup 只呈現 <code>Verify Code</code> 欄的解遮罩行為，其餘欄位與篩選沿用現況、不變更。</p>
+
+  <div class="tabs">
+    <label class="toggle"><input type="checkbox" id="noteSw" checked onchange="document.body.classList.toggle('shownotes',this.checked)"> 顯示 RD 註記</label>
+    <div class="rolebox">
+      <span>OTP 明碼檢視權限<span class="demo-tag">DEMO</span></span>
+      <select id="permSel" onchange="render()">
+        <option value="granted" selected>有此權限</option>
+        <option value="denied">無此權限</option>
+      </select>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <div class="rd-note">
+    <b>本次變更範圍</b>：只有 <code>Verify Code</code> 欄新增逐列解遮罩。<code>Mobile or Email</code> 欄現況即為明文，<b>不在本次範圍</b>，不要順手改。<br>
+    <b>只做 <code>FORGET_PASSWORD</code></b>：其他 <code>Verify Proc</code> 的列不得出現眼睛圖示，後端也不受理。<br>
+    <b>只開放已失效的碼</b>：<code>now &gt; expiry</code>（已過期）或 <code>verify_time</code> 有值（已使用），才准解。仍有效的碼前端 disable、後端回 <code>409</code>。
+  </div>
+
+  <div class="bo">
+    <div class="crumb">Agent BO ／ <b>OTP Report</b></div>
+
+    <div class="pagehead">
+      <h2>OTP Report</h2>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn-csv" onclick="exportCsv()">⤓ Export CSV</button>
+    </div>
+
+    <div class="panel">
+      <div class="rd-note">
+        <b>Export CSV 維持全遮罩</b>：不論操作者有無權限，CSV 的 <code>Verify Code</code> 一律輸出 <code>XXXXXX</code>。畫面一次看幾筆、CSV 一次帶走幾千筆，風險不同級（使用者 2026-09-22 拍板）。
+      </div>
+
+      <div class="filter-row">
+        <div class="field"><label>Verify Data</label><input id="f_data" placeholder="Verify Data"></div>
+        <div class="field"><label>Username</label><input id="f_user" placeholder="Username"></div>
+        <div class="field" style="min-width:280px"><label>Start Time - End Time</label><input id="f_time" placeholder="Start Time - End Time"></div>
+        <div class="field" style="min-width:140px"><label>Type</label>
+          <select id="f_type"><option>All</option><option>MAIL</option><option>PHONE</option></select></div>
+        <div class="field" style="min-width:140px"><label>Status</label>
+          <select id="f_status"><option>All</option><option>GET_CODE</option><option>VERIFIED</option><option>EXPIRED</option></select></div>
+      </div>
+      <div class="filter-row" style="margin-top:12px">
+        <div class="field" style="min-width:220px;flex:0 0 240px"><label>Verify Process</label>
+          <select id="f_proc" onchange="render()">
+            <option value="FORGET_PASSWORD" selected>Forget Password</option>
+            <option value="ALL">All</option>
+            <option value="REGISTER">Register</option>
+            <option value="WITHDRAWAL">Withdrawal</option>
+          </select></div>
+        <div style="flex:1"></div>
+      </div>
+
+      <div class="rd-note">
+        <b>「已使用」以 <code>verify_time</code> 有值為準</b>，不看 <code>verify_status</code>。<code>verify_time</code> 有值代表玩家已完成驗證，該碼不可能再被使用，判定與 <code>verify_status</code> 的 enum 值域無關。<br>
+        <code>Status</code> 下拉的選項沿用既有值域，本次不變更。此處的 <code>VERIFIED</code>／<code>EXPIRED</code> 為 demo 合成值。
+      </div>
+
+      <div class="searchbar">
+        <button class="btn-search" onclick="doSearch()">Search</button>
+        <button class="btn-icon" onclick="doReset()">↻</button>
+      </div>
+
+      <table>
+        <thead><tr>
+          <th>Created Date</th><th>Expiry</th><th>Username</th><th>Verify Type</th>
+          <th>Display Name</th><th>Verify Proc</th><th>Mobile or Email</th>
+          <th class="col-new">Verify Code</th><th>Verify Time</th><th>Verify Status</th>
+        </tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+
+      <div class="rd-note">
+        <b>本頁已解遮罩次數<span class="demo-tag">DEMO</span></b>：<span id="auditcnt">0</span> 筆。這個計數只是示範審計會被寫入，實際紀錄存後端。<br>
+        <b>審計</b>：每一次成功解遮罩寫一筆紀錄（操作者、時間、OTP 記錄 <code>id</code>、玩家 username）。同一列重複解＝重複寫，<b>不去重</b>——反覆查閱本身就是要被看見的訊號。重新遮罩（再點一次眼睛）不寫紀錄。<br>
+        <b>審計紀錄本身不得存明碼。</b>
+      </div>
+
+      <div class="foot">
+        <button class="btn-cols">⚙ Columns Settings</button>
+        <div class="spacer"></div>
+        <span>Page <input value="1" style="width:46px;padding:4px;border:1px solid #cbd3da;border-radius:4px;text-align:center"></span>
+        <span>Items per page <select style="padding:4px;border:1px solid #cbd3da;border-radius:4px"><option>10</option><option>25</option></select></span>
+        <span id="cnt"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rd-note" style="margin-top:14px">
+    <b>後端紅線（前端擋不算數）</b>
+    <ul style="margin:6px 0 0;padding-left:18px">
+      <li>列表 API 的回應<b>不得</b>包含明碼，不論操作者權限。否則開發者工具就能繞過遮罩。</li>
+      <li>解遮罩走獨立 endpoint <code>POST /otp-report/{id}/reveal</code>，回單筆明碼。用 POST 不用 GET：要寫審計，且不該被快取或讓 id 出現在存取 log 的 URL。</li>
+      <li>後端一律重驗：權限 → <code>403</code>；OTP 仍有效 → <code>409 OTP_STILL_VALID</code>；非 <code>FORGET_PASSWORD</code> → <code>409 OTP_PROCESS_NOT_ELIGIBLE</code>；不存在 → <code>404</code>。</li>
+    </ul>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ===== demo data (合成資料，非真實 OTP) =====
+const now = Date.now();
+const fmt = t => { const d=new Date(t); const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); };
+
+const rows = [
+  {id:'OTP001', created:'2026-02-19 17:04:56', expiry:Date.parse('2026-02-19T17:06:56'), user:'IDRtest88',
+   vtype:'MAIL',  dname:'',          proc:'FORGET_PASSWORD', contact:'idrtest88@gmail.com', code:'481923', vtime:'', status:'GET_CODE'},
+  {id:'OTP002', created:'2026-02-19 16:39:56', expiry:Date.parse('2026-02-19T16:41:56'), user:'IDRtest88',
+   vtype:'PHONE', dname:'SMS OTP 2', proc:'FORGET_PASSWORD', contact:'+62855757575', code:'305774', vtime:'', status:'GET_CODE'},
+  {id:'OTP003', created:fmt(now), expiry:now+120000, user:'IDRplayer21',
+   vtype:'PHONE', dname:'SMS OTP 2', proc:'FORGET_PASSWORD', contact:'+6281234567890', code:'662108', vtime:'', status:'GET_CODE'},
+  {id:'OTP004', created:fmt(now), expiry:now+120000, user:'IDRwin7',
+   vtype:'MAIL',  dname:'',          proc:'FORGET_PASSWORD', contact:'idrwin7@gmail.com', code:'914250', vtime:fmt(now+30000), status:'VERIFIED'},
+  {id:'OTP005', created:'2026-02-19 14:10:00', expiry:Date.parse('2026-02-19T14:12:00'), user:'IDRnew01',
+   vtype:'PHONE', dname:'SMS OTP 1', proc:'REGISTER',        contact:'+628119900123', code:'220418', vtime:'', status:'GET_CODE'},
+  {id:'OTP006', created:'2026-02-19 14:03:11', expiry:Date.parse('2026-02-19T14:05:11'), user:'IDRtest88',
+   vtype:'PHONE', dname:'SMS OTP 2', proc:'WITHDRAWAL',      contact:'+62855757575', code:'771602', vtime:'2026-02-19 14:04:02', status:'VERIFIED'},
+];
+
+// ===== 規則 =====
+// 權限：由後台權限節點控制，不綁 4-tier 層級（沿用綁定帳號啟停用的決議）
+const canReveal = p => p === 'granted';
+// 已使用：以 verify_time 有值為準，不依賴 verify_status 的 enum 值域
+const isExpired = r => Date.now() > r.expiry;
+const isUsed    = r => !!r.vtime;
+// 只有 FORGET_PASSWORD 且已失效（過期或已使用）才可解遮罩
+const eligible  = r => r.proc === 'FORGET_PASSWORD' && (isExpired(r) || isUsed(r));
+
+let revealed = {};   // id -> true
+let auditLog = [];   // demo 用，實際寫後端
+
+function badge(s){
+  const c = s==='VERIFIED' ? 'b-ver' : (s==='EXPIRED' ? 'b-exp' : 'b-get');
+  return '<span class="badge '+c+'">'+s+'</span>';
+}
+
+function codeCell(r){
+  const perm = document.getElementById('permSel').value;
+  const shown = revealed[r.id];
+  const val = shown
+    ? '<span class="plain" data-code="'+r.id+'">'+r.code+'</span>'
+    : '<span class="masked" data-mask="'+r.id+'">XXXXXX</span>';
+
+  // 檢查順序固定為 權限 → Verify Proc → 有效性，與 spec 第 2 節一致
+  // 權限不足：隱藏，不是 disable（BO 既有慣例）
+  if (!canReveal(perm)) return '<div class="codecell">'+val+'</div>';
+  // 非 FORGET_PASSWORD：不出現眼睛圖示（範圍外）
+  if (r.proc !== 'FORGET_PASSWORD') return '<div class="codecell">'+val+'</div>';
+
+  if (!eligible(r)){
+    const left = Math.max(0, Math.ceil((r.expiry - Date.now())/1000));
+    return '<div class="codecell">'+val+
+      '<button class="eye" id="eye-'+r.id+'" disabled title="Code is still valid">👁</button></div>'+
+      '<div class="hint">Still valid for '+left+'s. The code can be revealed after it expires or is used.</div>';
+  }
+  return '<div class="codecell">'+val+
+    '<button class="eye" id="eye-'+r.id+'" onclick="toggle(\''+r.id+'\')" title="'+(shown?'Hide code':'Reveal code')+'">'+(shown?'🙈':'👁')+'</button></div>';
+}
+
+function render(){
+  const proc = document.getElementById('f_proc').value;
+  const list = rows.filter(r => proc==='ALL' ? true : r.proc===proc);
+  document.getElementById('tb').innerHTML = list.map(r =>
+    '<tr data-id="'+r.id+'">'+
+    '<td>'+r.created+'</td>'+
+    '<td>'+fmt(r.expiry)+'</td>'+
+    '<td><a class="ulink" href="#">'+r.user+'</a></td>'+
+    '<td>'+r.vtype+'</td>'+
+    '<td>'+(r.dname||'<span class="dash">—</span>')+'</td>'+
+    '<td>'+r.proc+'</td>'+
+    '<td>'+r.contact+'</td>'+
+    '<td class="col-code">'+codeCell(r)+'</td>'+
+    '<td>'+(r.vtime||'<span class="dash">—</span>')+'</td>'+
+    '<td>'+badge(r.status)+'</td>'+
+    '</tr>').join('');
+  document.getElementById('cnt').textContent = '1 - '+list.length+' of '+list.length;
+}
+
+function toggle(id){
+  const r = rows.find(x=>x.id===id);
+  if (!r) return;
+  // 後端會重驗一次；前端這層只是先擋
+  if (!canReveal(document.getElementById('permSel').value)){ toast('403 FORBIDDEN'); return; }
+  if (r.proc !== 'FORGET_PASSWORD'){ toast('409 OTP_PROCESS_NOT_ELIGIBLE'); return; }
+  if (!eligible(r)){ toast('409 OTP_STILL_VALID'); return; }
+
+  if (revealed[id]){
+    delete revealed[id];           // 重新遮罩不寫審計，不更新計數
+  } else {
+    revealed[id] = true;
+    auditLog.push({at:fmt(Date.now()), otp:id, user:r.user});
+    toast('Code revealed. This action has been logged.');
+    renderAudit();
+  }
+  render();
+}
+
+function doSearch(){ revealed = {}; render(); toast('Search complete. Revealed codes are masked again.'); }
+function doReset(){
+  ['f_data','f_user','f_time'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('f_type').value='All';
+  document.getElementById('f_status').value='All';
+  document.getElementById('f_proc').value='FORGET_PASSWORD';
+  revealed = {}; render();
+}
+function exportCsv(){ toast('CSV exported. Verify Code is always masked.'); }
+
+let tid=null;
+function toast(m){
+  const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on');
+  clearTimeout(tid); tid=setTimeout(()=>t.classList.remove('on'),3200);
+}
+
+function renderAudit(){ document.getElementById('auditcnt').textContent = auditLog.length; }
+render(); renderAudit();
+// 倒數：OTP003 過期後眼睛圖示自動變為可用，示範「有效→失效」的分界
+setInterval(()=>{ if (rows.some(r=>r.proc==='FORGET_PASSWORD' && !isUsed(r) && Math.abs(Date.now()-r.expiry)<600000)) render(); }, 1000);
+</script>
+</body>
+</html>
