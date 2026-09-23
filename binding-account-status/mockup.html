@@ -199,6 +199,7 @@
       ① <b>預設帳號不可停用</b>：<code>Default Value</code> 前端清單本來就有，可以直接判斷 → Deactivate 圖示 <b>disable ＋ 說明文字</b>。後端仍要擋，回 <code>409</code> <code>BINDING_ACCOUNT_IS_DEFAULT</code>。<br>
       <b>預設是「每個 Binding Account Type 各一個」，不是每位玩家一個</b>（user 2026-09-22 拍板）。所以同一位玩家清單上會同時看到多筆 <code>Default Value = true</code>，各屬不同 Type，這不是髒資料。操作員要先把<b>同一個 Type 裡的另一筆</b>設為預設，才能停用原本那筆。<br>
       <b>已知後果</b>：某個 Type 底下只有一筆帳號且它是預設時，該筆永遠無法停用——沒有同 Type 的其他帳號可以接手預設。這種情況操作員只剩 Delete 可用。<br>
+      <b>預設帳號可以刪除，不要順手擋掉</b>（user 2026-09-23 拍板）：<code>Default Value = true</code> <b>只擋停用、不擋刪除</b>，Delete 圖示照常顯示可點。這條特別寫出來，是因為上面整段都在講「預設帳號不可停用」，很容易被讀成「預設帳號一律受保護」。BO 可設定玩家能否自行刪除綁定帳號，玩家不能自行刪時由 BO 代刪；BO 這側再擋，該帳號就變成兩邊都刪不掉。<br>
       ② <b>有處理中提款單不可停用</b>：前端<b>沒有</b>這筆資料，無法預先判斷 → 按鈕<b>可以按</b>，按下後依 API 回應顯示錯誤（點第三列的 Deactivate 看效果）。後端回 <code>409</code> <code>BINDING_ACCOUNT_HAS_PENDING_WITHDRAWAL</code>。<br>
       兩個 <code>409</code> 用<b>不同錯誤鍵</b>，前端才能顯示對應原因。<br>
       這兩種都是<b>業務規則</b>造成的不可操作，一律附原因說明，<b>不用隱藏</b>——操作員要知道為什麼不能按、下一步做什麼。<b>權限不足才用隱藏</b>（見下一則）。<br>
