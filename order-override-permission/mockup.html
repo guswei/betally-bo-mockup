@@ -104,7 +104,7 @@
       <select id="cfgLock" onchange="renderAll()"><option value="yes" selected>Yes</option><option value="no">No</option></select>
     </div>
   </div>
-  <div class="rd-note">上方兩個 DEMO 控制項是 <b>dev-only</b>，用來示範畫面差異，正式上線必須移除。<code>Deposit order lock before approval</code> 是既有 System Config 開關，本案不改動它，只示範它對存款權限的影響。</div>
+  <div class="rd-note">上方兩個 DEMO 控制項是 <b>dev-only</b>，用來示範畫面差異，正式上線必須移除。本 mockup <b>未建模</b> <code>Updated By</code>、<code>Updated Time</code>、<code>Checked Date</code>、<code>Processed Time</code> 四個欄位，畫面上看不到它們的變化。各動作對這四個欄位的寫入與清除，寫在下方各列表的註記裡。<code>Deposit order lock before approval</code> 是既有 System Config 開關，本案不改動它，只示範它對存款權限的影響。</div>
 
   <div class="tabs">
     <button class="tab active" data-t="role" onclick="showTab('role')">11.2 Role Setting</button>
@@ -162,14 +162,15 @@
         ・綠勾（Approve）→ <code>Deposit › Approve</code>：<b>不必先 Unlock</b>，直接核准<br>
         ・紅叉（Reject）→ <code>Deposit › Reject</code>：不必先 Unlock，直接駁回<br>
         三者皆需同時具備 <code>APPROVED</code>。沒有權限的按鈕<b>隱藏</b>，不是 disable（BO 既有慣例）。<br>
-        <b>自己鎖的單</b>走原本流程，不需要 override，只看 <code>APPROVED</code>。
+        <b>自己鎖的單</b>走原本流程，不需要 override，只看 <code>APPROVED</code>。<br>
+        <b>釋放後可由本人接手</b>（user 2026-09-23 拍板）：只有 Unlock、沒有 Approve 的人，Unlock 別人的單後可以自己鎖、再依一般流程核准。子節點限制的是「別人還鎖著時直接動手」，<b>沒勾 Approve 不等於不能核准這筆單</b>。
       </div>
       <div class="rd-note" id="depNoteOff" hidden>
         <b>目前 <code>Deposit order lock before approval</code> 為 No</b>：存款不鎖單，沒有 <code>LOCK</code> 狀態，也沒有「別人鎖住的單」。Deposit 的三個子節點在這個設定下<b>沒有作用</b>，勾不勾結果都一樣（#524 原有規則）。
       </div>
       <div class="rd-note">
         <b>Force Approve 不動</b>（user 2026-09-23 拍板）：既有 <code>Force Approve</code> 維持現行行為，與 override Approve 並存。<br>
-        <b>不新增紀錄欄位</b>：override 操作沿用既有的 <code>Updated By</code>／<code>Updated Time</code> 記錄操作者與時間。
+        <b>不新增紀錄欄位</b>：Approve／Reject 寫入既有的 <code>Updated By</code>／<code>Updated Time</code>，記錄實際執行者與時間。<b>Unlock 只清除 <code>Locked By And Time</code>，不寫入任何紀錄</b>，事後查不到是誰釋放的。
       </div>
     </div>
 
@@ -183,19 +184,23 @@
       <p class="legend">淡紅底＝被別人認領或鎖住的單，只有 override 權限能動。</p>
       <div class="rd-note">
         <b>Risk Verification 欄</b>（別人認領中的 <code>CHECKING</code> 單）：<br>
-        ・紅鎖（Uncheck）→ <code>Withdraw › Risk Verification › Uncheck</code>：釋放對方的認領，單退回 <code>PENDING</code>。<br>
+        ・紅鎖（Uncheck）→ <code>Withdraw › Risk Verification › Uncheck</code>：釋放對方的認領，單退回 <code>PENDING</code>，清除 <code>Checked By</code> 與 <code>Checked Date</code>。<br>
         　<b>Uncheck 只作用於 <code>CHECKING</code>，不作用於 <code>CHECKED</code></b>（user 2026-09-23 拍板）。兩個狀態名很像：<code>CHECKING</code>＝有人正在審，<code>CHECKED</code>＝已審完通過。Uncheck 是搶回處理權，<b>不是推翻別人已完成的風控結論</b>。<br>
         ・雙勾（Approve）→ <code>… › Risk Verification › Approve</code>：直接通過，單變 <code>CHECKED</code><br>
         ・紅叉（Reject）→ <code>… › Risk Verification › Reject</code><br>
-        三者皆需同時具備 <code>CHECK</code>。
+        三者皆需同時具備 <code>CHECK</code>。<br>
+        <b>Approve／Reject 後</b>：<code>Checked By</code> 寫入實際執行者（覆寫原認領人），<code>Checked Date</code> 寫入執行時間。
       </div>
       <div class="rd-note">
         <b>Finance Approval 欄</b>（別人鎖住的 <code>CHECKED</code> 單）：<br>
-        ・紅鎖（Unlock）→ <code>Withdraw › Finance Approval › Unlock</code>：釋放對方的鎖，狀態維持 <code>CHECKED</code>，只清除 <code>Processed By</code><br>
+        ・紅鎖（Unlock）→ <code>Withdraw › Finance Approval › Unlock</code>：釋放對方的鎖，狀態維持 <code>CHECKED</code>，清除 <code>Processed By</code> 與 <code>Processed Time</code><br>
         ・綠勾（Approve）→ <code>… › Finance Approval › Approve</code>：跳出選出款通道對話框，送出後變 <code>PROCESSING</code>。<b>這是把錢送出去的那一步，九個節點中風險最高。</b><br>
         ・紅叉（Reject）→ <code>… › Finance Approval › Reject</code><br>
         三者皆需同時具備 <code>APPROVED</code>。<br>
-        <b>兩階段的 Approve／Reject 是不同的權限鍵</b>，不可共用。
+        <b>Approve／Reject 後</b>：<code>Processed By</code> 寫入實際執行者（覆寫原鎖單人），<code>Processed Time</code> 寫入執行時間。<br>
+        <b>兩階段的 Approve／Reject 是不同的權限鍵</b>，不可共用。<br>
+        <b>Approve／Reject 後，By 欄位寫入實際執行者，不保留原鎖單人</b>：override 核准後 <code>Processed By</code> 變成自己，不是原本鎖單的人。否則最後一列那種「同一人做兩關」會顯示成兩個不同的人，稽核撈不出來。<br>
+        <b>Unlock／Uncheck 不留紀錄</b>：清除鎖單人或認領人後，訂單上看不出是誰釋放的。
       </div>
       <div class="rd-note">
         <b>override 可繞過職責分離</b>（user 2026-09-23 拍板，維持 #524「無視 system config 設定」）：最後一列 <code>Checked By</code> 是自己，Finance 被 <code>OLEID_admin</code> 鎖住。持有 <code>Finance Approval › Approve</code> 時，即使職責分離開關為 No，也能對這筆做 Finance Approve——等於同一人做兩關。這是刻意保留的既有行為，不是漏洞。比對 <code>Checked By</code> 與 <code>Processed By</code> 可事後撈出同一人做兩關的出款，兩欄皆為既有。<br>
@@ -382,9 +387,9 @@ function renderWd(){
 function depDo(i, act, override){
   const r = dep[i];
   if (act==='claim'){ r.st='LOCK'; r.by=ME; r.at='2026-09-23 14:30:00'; toast('Locked.'); }
-  else if (act==='unlock'){ r.st='PENDING'; r.by=null; toast('Unlocked. Order returned to PENDING.'); }
-  else if (act==='approve'){ r.st='APPROVED'; r.by=null; toast('Approved.'); }
-  else if (act==='reject'){ r.st='REJECTED'; r.by=null; toast('Rejected.'); }
+  else if (act==='unlock'){ r.st='PENDING'; r.by=null; r.at=null; toast('Unlocked. Order returned to PENDING.'); }
+  else if (act==='approve'){ r.st='APPROVED'; r.by=null; r.at=null; toast('Approved.'); }
+  else if (act==='reject'){ r.st='REJECTED'; r.by=null; r.at=null; toast('Rejected.'); }
   renderAll();
 }
 function wdDo(i, act, override){
@@ -392,7 +397,8 @@ function wdDo(i, act, override){
   if (act==='claim'){ r.st='CHECKING'; r.checkedBy=ME; toast('Checking.'); }
   else if (act==='uncheck'){ r.st='PENDING'; r.checkedBy=null; toast('Unchecked. Order returned to PENDING.'); }
   else if (act==='riskApprove'){ r.st='CHECKED'; if(override) r.checkedBy=ME; toast('Risk verification passed.'); }
-  else if (act==='riskReject' || act==='finReject'){ r.st='REJECTED'; toast('Rejected.'); }
+  else if (act==='riskReject'){ r.st='REJECTED'; r.checkedBy=ME; toast('Rejected.'); }
+  else if (act==='finReject'){ r.st='REJECTED'; r.procBy=ME; toast('Rejected.'); }
   else if (act==='finLock'){ r.procBy=ME; toast('Locked.'); }
   else if (act==='finUnlock'){ r.procBy=null; toast('Unlocked. Order stays CHECKED.'); }
   else if (act==='finApprove'){ openChannel(i, override); return; }
@@ -409,7 +415,7 @@ function openChannel(i, override){
     '<button class="btn pri" id="chSubmit" onclick="submitChannel('+i+','+override+')">Submit</button></div></div></div>';
 }
 function submitChannel(i, override){
-  const r = wd[i]; r.st='PROCESSING'; r.procBy = r.procBy || ME;
+  const r = wd[i]; r.st='PROCESSING'; r.procBy = ME;   // 寫入實際執行者，不保留原鎖單人
   r.channel = document.getElementById('chSel').value;
   closeModal(); toast('Sent to '+r.channel+'.'); renderAll();
 }

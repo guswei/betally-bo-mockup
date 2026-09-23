@@ -1,16 +1,17 @@
-# PRD：訂單覆寫權限樹
+# [Agent BO] 存取款訂單覆寫權限樹更新 #732
 
 **版本**：v1.0（2026-09-23）　**類型**：功能變更　**負責**：PM
 **Mockup**：https://guswei.github.io/betally-bo-mockup/order-override-permission/mockup.html
-**相關**：延續 ticket #524；[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/order-override-permission/order_override_permission_spec.md)
+**需求來源**：https://hub.tri-7.com/crm/type/162/details/732/
+**相關**：延續 ticket #524：https://redmine.sitclouds.com/issues/24450；[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/order-override-permission/order_override_permission_spec.md)
 
 ## 1. 需求背景
 
-ticket #524 上線了權限 `ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON`，讓操作者能處理別人鎖住或認領中的存提款單。它是單一開關，一勾就同時得到 Unlock、Approve、Reject 三種能力，營運無法只給其中一部分。
+ticket #524 上線了權限 `ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON`，讓操作者能處理別人鎖住或認領中的存提款單。它是單一開關，一勾就同時得到 Unlock、Approve、Reject 三種能力，營運無法只給其中一部分
 
-客戶要求拆開授權，例如讓某個角色能駁回別人鎖住的單，但不能核准。
+客戶要求拆開授權，例如讓某個角色能駁回別人鎖住的單，但不能核准
 
-本案把這個權限拆成九個子節點，並讓兩個列表頁上的按鈕依子節點分別顯示。#524 的既有規則全部保留，包含存款受鎖單開關約束、取款不受職責分離開關約束。
+本案把這個權限拆成九個子節點，並讓兩個列表頁上的按鈕依子節點分別顯示。#524 的既有規則全部保留，包含存款受鎖單開關約束、取款不受職責分離開關約束
 
 ## 2. 核心功能變更
 
@@ -22,17 +23,18 @@ ticket #524 上線了權限 `ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON`，�
 | FR-4 | 生效條件 | 子節點須搭配該階段的基礎權限；存款受鎖單開關約束；取款不受職責分離開關約束；自己的單不需子節點 |
 | FR-5 | 後端逐節點驗權 | 既有 Unlock、Approve、Reject API 依子節點與基礎權限逐一驗權 |
 | FR-6 | 既有角色 migration | 上線時依 #524 原開關值轉換，各角色行為不變 |
+| FR-7 | 操作後的既有欄位寫入與清除 | 不新增欄位。Approve 與 Reject 寫入實際執行者與執行時間，覆寫原鎖單人或認領人；Unlock 與 Uncheck 清除鎖單人或認領人及其時間 |
 
-範圍：`11.2 Role Setting` 的 Payment Management 權限樹、`3.1 Deposit List` 與 `3.2 Withdraw List` 的操作按鈕、既有操作 API 的驗權。OUT：`Force Approve` 的行為、兩個 System Config 開關、既有基礎權限節點、訂單狀態與操作 API 的新增、獨立的 Reject 基礎權限、設定頁上子節點與基礎權限的連動、新的紀錄欄位。
+範圍：`11.2 Role Setting` 的 Payment Management 權限樹、`3.1 Deposit List` 與 `3.2 Withdraw List` 的操作按鈕、既有操作 API 的驗權。OUT：`Force Approve` 的行為、兩個 System Config 開關、既有基礎權限節點、訂單狀態與操作 API 的新增、獨立的 Reject 基礎權限、設定頁上子節點與基礎權限的連動、新的紀錄欄位
 
 ## 3. 介面設計
 
 以 Mockup 為準：https://guswei.github.io/betally-bo-mockup/order-override-permission/mockup.html
 
-- Role Setting：`ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON` 底下展開子節點。部分勾選時父層顯示中間態，外觀與未勾、勾選皆不同。
-- Deposit List：別人鎖住的 `LOCK` 單，`Actions` 欄的紅鎖、綠勾、紅叉依 Deposit 三個子節點分別顯示。
-- Withdraw List：別人認領中的 `CHECKING` 單，`Risk Verification` 欄的紅鎖、雙勾、紅叉依 Risk 三個子節點顯示；別人鎖住的 `CHECKED` 單，`Finance Approval` 欄的紅鎖、綠勾、紅叉依 Finance 三個子節點顯示。
-- 權限不足時按鈕隱藏，不使用 disabled。
+- Role Setting：`ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON` 底下展開子節點。部分勾選時父層顯示中間態，外觀與未勾、勾選皆不同
+- Deposit List：別人鎖住的 `LOCK` 單，`Actions` 欄的紅鎖、綠勾、紅叉依 Deposit 三個子節點分別顯示
+- Withdraw List：別人認領中的 `CHECKING` 單，`Risk Verification` 欄的紅鎖、雙勾、紅叉依 Risk 三個子節點顯示；別人鎖住的 `CHECKED` 單，`Finance Approval` 欄的紅鎖、綠勾、紅叉依 Finance 三個子節點顯示
+- 權限不足時按鈕隱藏，不使用 disabled
 
 **BO 欄位表**：
 
@@ -43,42 +45,23 @@ ticket #524 上線了權限 `ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON`，�
 
 ## 4. 資料模型
 
-九個子節點存於既有角色權限資料，型別為布林值，與既有權限節點的儲存方式相同。父層與兩個子群組的狀態由子節點推算，不另外儲存。
+九個子節點存於既有角色權限資料，型別為布林值，與既有權限節點的儲存方式相同。父層與兩個子群組的狀態由子節點推算，不另外儲存
 
 | Table | 欄位 | 型別 | 約束 |
 |---|---|---|---|
 | 既有角色權限資料 | 九個子節點 | `BOOLEAN` | `NOT NULL`，預設 `false` |
 
-Migration：依各角色 #524 原開關值轉換。原本開的，該列表底下子節點全部開；原本關的全部關。存款與取款各自處理。
+Migration：依各角色 #524 原開關值轉換。原本開的，該列表底下子節點全部開；原本關的全部關。存款與取款各自處理
 
 ## 5. 流程圖
 
-操作者按下 override 按鈕時的判斷順序。
+操作者按下 override 按鈕時的判斷順序
 
 ![訂單覆寫權限判斷流程](https://guswei.github.io/betally-bo-mockup/order-override-permission/diagrams/order_override_permission_flow.png)
 
-```mermaid
-flowchart TD
-  A[操作者對某筆單按下<br/>Unlock / Uncheck / Approve / Reject] --> B{這筆單被別人鎖住<br/>或認領中?}
-  B -->|否| N[走原本流程<br/>只看基礎權限]
-  B -->|是| E{角色有這顆按鈕<br/>對應的子節點?}
-  E -->|否| F[按鈕隱藏<br/>直接呼叫 API 回 403]
-  E -->|是| G{角色有該階段的基礎權限?<br/>Deposit 與 Finance：APPROVED<br/>Risk：CHECK}
-  G -->|否| F
-  G -->|是| H[直接執行<br/>不需先 Unlock 或 Uncheck]
-  classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
-  classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
-  classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
-  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
-  class A,N step
-  class B,E,G dec
-  class F stop
-  class H done
-```
-
 ## 6. 選單位置
 
-沿用現有，無新增選單項。權限不綁定 4-tier 層級，由角色權限設定控制。
+沿用現有，無新增選單項。權限不綁定 4-tier 層級，由角色權限設定控制
 
 | 選單路徑 | 角色 / 權限 | 說明 |
 |---|---|---|
@@ -98,17 +81,20 @@ flowchart TD
 | AC-06 | FR-2 | 中間態的外觀與未勾、勾選三者皆可區分。 |
 | AC-07 | FR-3 | 角色有 `Deposit › Approve` 與 `APPROVED` 時，別人鎖住的存款單出現綠勾；點擊後直接變 `APPROVED`，不需先 Unlock。 |
 | AC-08（負向） | FR-3 | 角色沒有 `Deposit › Approve` 時，別人鎖住的存款單**不得**出現綠勾；紅鎖與紅叉仍依各自子節點顯示。 |
-| AC-09 | FR-3 | 對別人認領中的 `CHECKING` 取款單執行 Uncheck，單退回 `PENDING` 並清除 `Checked By`。 |
+| AC-09 | FR-3、FR-7 | 對別人認領中的 `CHECKING` 取款單執行 Uncheck，單退回 `PENDING` 並清除 `Checked By` 與 `Checked Date`。 |
 | AC-10（負向） | FR-3 | `CHECKED` 的取款單**不得**出現 Uncheck；直接呼叫 Uncheck API 回 `409` 且**不得**變更狀態。 |
 | AC-11 | FR-3 | 對別人鎖住的 `CHECKED` 取款單執行 Finance Approve，出現選出款通道對話框，送出後變 `PROCESSING`。 |
-| AC-12 | FR-3 | 對別人鎖住的 `CHECKED` 取款單執行 Finance Unlock，狀態維持 `CHECKED`，只清除 `Processed By`。 |
+| AC-12 | FR-3、FR-7 | 對別人鎖住的 `CHECKED` 取款單執行 Finance Unlock，狀態維持 `CHECKED`，清除 `Processed By` 與 `Processed Time`。 |
 | AC-13（負向） | FR-4 | 角色勾了子節點但缺該階段的基礎權限時，對應按鈕**不得**出現；直接呼叫 API 回 `403` 且**不得**變更資料。 |
 | AC-14 | FR-4 | 存款鎖單開關為 No 時，沒有 `LOCK` 狀態的存款單，Deposit 三個子節點勾與不勾的畫面與行為相同。 |
 | AC-15 | FR-4 | 取款六個子節點在職責分離開關為 Yes 或 No 時皆照常生效。 |
 | AC-16 | FR-4 | 自己鎖住或認領的單不需要子節點，依基礎權限即可操作。 |
-| AC-17（負向） | FR-5 | 有 `Risk Verification › Approve` 而沒有 `Finance Approval › Approve` 的操作者，呼叫 Finance Approve API 回 `403` 且**不得**變更資料。 |
+| AC-17（負向） | FR-5 | 對**別人鎖住**的 Finance 單，有 `Risk Verification › Approve` 而沒有 `Finance Approval › Approve` 的操作者，呼叫 Finance Approve API 回 `403` 且**不得**變更資料。 |
 | AC-18（負向） | FR-5 | 操作者建立的單，即使持有任何子節點，也**不得**由該操作者審核。 |
 | AC-19 | FR-6 | 上線時，#524 開關原本為開的角色，該列表底下子節點全部為開；原本為關的全部為關；各角色實際行為與上線前相同。 |
+| AC-20（負向） | FR-7 | 以 override 對別人鎖住或認領的單執行 Approve 或 Reject 後，該階段的操作者與時間欄位寫入實際執行者與執行時間，**不得**保留原鎖單人或認領人：Deposit 為 `Updated By`／`Updated Time`，Risk 為 `Checked By`／`Checked Date`，Finance 為 `Processed By`／`Processed Time`。 |
+| AC-21 | FR-4 | 只有某階段的 Unlock 或 Uncheck 與該階段基礎權限、沒有同階段 Approve 的操作者，釋放別人鎖住或認領的單後，可自行認領並依一般流程核准。Deposit、Risk Verification、Finance Approval 三個階段皆同。 |
+| AC-22（負向） | FR-7 | 對別人鎖住的存款單執行 Unlock 後，`Locked By And Time` 的鎖單人與鎖單時間皆須清空，**不得**保留原值，也不得改寫為其他值。 |
 
 ## 8. 非功能需求（NFR）
 
@@ -128,4 +114,5 @@ flowchart TD
 | CST-2 | 兩個 System Config 開關本身不改動。 |
 | CST-3 | 不新增獨立的 Reject 基礎權限，Reject 跟隨所屬階段的基礎權限。 |
 | CST-4 | 取款子節點不受職責分離開關約束，持有者可對自己做過 Risk Verification 的單執行 Finance Approve。此為 #524 已上線的行為，本案刻意維持。 |
-| CST-5 | 不新增紀錄欄位。override 操作沿用既有欄位：Deposit 的 `Updated By`／`Updated Time`，Withdraw 的 `Checked By`／`Checked Date` 與 `Processed By`／`Processed Time`。 |
+| CST-5 | 不新增紀錄欄位。既有的 By 與 Time 欄位記錄最終做出決定的人，不保存完整操作歷程：Approve 與 Reject 寫入實際執行者；Unlock 與 Uncheck 清除欄位，不在訂單上留下紀錄。 |
+| CST-6 | 子節點只限制對別人仍鎖住或認領中的單直接操作。釋放後的單依一般流程處理，釋放者本人也可接手，所以沒有勾 Approve 不等於不能核准這筆單。 |

@@ -103,6 +103,10 @@ ticket #524 已上線的權限 `ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON`�
 
 自己鎖住或認領中的單走原本流程，不需要任何子節點，只看基礎權限。
 
+**釋放後可由釋放者本人接手。** 持有 Unlock 或 Uncheck 的操作者釋放別人的單之後，單回到未鎖定狀態。此時任何具備基礎權限的操作者都能依一般流程認領，再核准或駁回，釋放者本人也包含在內。
+
+所以子節點限制的是「在別人仍鎖住或認領時直接動手」，不是「這筆單最終能做什麼」。沒有勾 `Approve` 的角色，仍可以先 Unlock、再自行鎖單，完成核准。
+
 ---
 
 ## 5. 列表頁按鈕
@@ -158,14 +162,16 @@ Finance Approve 沿用既有的 `Select Payment Channel` 對話框，必須選�
 | Deposit | Unlock | `LOCK` | `PENDING`，清除 `Locked By And Time` |
 | Deposit | Approve | `LOCK` | `APPROVED` |
 | Deposit | Reject | `LOCK` | `REJECTED` |
-| Withdraw | Risk Uncheck | `CHECKING` | `PENDING`，清除 `Checked By` |
+| Withdraw | Risk Uncheck | `CHECKING` | `PENDING`，清除 `Checked By` 與 `Checked Date` |
 | Withdraw | Risk Approve | `CHECKING` | `CHECKED` |
 | Withdraw | Risk Reject | `CHECKING` | `REJECTED` |
-| Withdraw | Finance Unlock | `CHECKED`（有鎖單人） | `CHECKED`，清除 `Processed By` |
+| Withdraw | Finance Unlock | `CHECKED`（有鎖單人） | `CHECKED`，清除 `Processed By` 與 `Processed Time` |
 | Withdraw | Finance Approve | `CHECKED`（有鎖單人） | `PROCESSING` |
 | Withdraw | Finance Reject | `CHECKED`（有鎖單人） | `REJECTED` |
 
 Finance Unlock 後狀態維持 `CHECKED`，只清除鎖單人。Finance 階段的鎖不是狀態，是另外記錄的鎖單人。
+
+各動作對操作者欄位的影響見第 8 節。
 
 ---
 
@@ -179,23 +185,30 @@ Finance Unlock 後狀態維持 `CHECKED`，只清除鎖單人。Finance 階段�
 | 有子節點但缺基礎權限 | `403` |
 | Risk Uncheck 的對象不是 `CHECKING` | `409` |
 
-前端隱藏按鈕只是顯示層，不是防線。每個子節點都要在後端獨立驗證。有 `Risk Verification › Approve` 而沒有 `Finance Approval › Approve` 的操作者，呼叫 Finance Approve API 必須回 `403`。
+前端隱藏按鈕只是顯示層，不是防線。每個子節點都要在後端獨立驗證。例如：對**別人鎖住**的 Finance 單，有 `Risk Verification › Approve` 而沒有 `Finance Approval › Approve` 的操作者，呼叫 Finance Approve API 必須回 `403`。對象是自己鎖住的單時不適用本節，依第 4.3 節只看基礎權限。
 
 ---
 
 ## 8. 紀錄
 
-本案不新增紀錄欄位。以 override 執行的操作，沿用既有欄位記錄操作者與時間：
+本案不新增紀錄欄位。訂單上既有的操作者與時間欄位，記錄的是**最終做出決定的人**，不是完整的操作歷程。
 
-| 列表 | 階段 | 既有欄位 |
-|---|---|---|
-| Deposit List | — | `Updated By`、`Updated Time` |
-| Withdraw List | Risk Verification | `Checked By`、`Checked Date` |
-| Withdraw List | Finance Approval | `Processed By`、`Processed Time` |
+| 動作 | 欄位結果 |
+|---|---|
+| Deposit Approve／Reject | `Updated By`、`Updated Time` 寫入執行者與執行時間 |
+| Risk Approve／Reject | `Checked By`、`Checked Date` 寫入執行者與執行時間，覆寫原認領人 |
+| Finance Approve／Reject | `Processed By`、`Processed Time` 寫入執行者與執行時間，覆寫原鎖單人 |
+| Deposit Unlock | 清除 `Locked By And Time` |
+| Risk Uncheck | 清除 `Checked By`、`Checked Date` |
+| Finance Unlock | 清除 `Processed By`、`Processed Time` |
+
+**Approve 與 Reject 必須寫入實際執行者，不可保留原本的鎖單人或認領人。** 否則 override 之後，欄位顯示的是當初鎖單的人，而不是實際做決定的人。
+
+**Unlock 與 Uncheck 不在訂單上留下紀錄。** 兩者清除鎖單人或認領人之後，無法從訂單得知是誰釋放的、原本是誰在處理。本案不為這兩個動作新增紀錄。
 
 `Force Approve` 維持現行行為，與 override Approve 並存。
 
-比對同一筆取款的 `Checked By` 與 `Processed By`，可以撈出第 4.2 節所述「同一人做兩關」的出款。
+比對同一筆取款的 `Checked By` 與 `Processed By`，可以撈出第 4.2 節所述「同一人做兩關」的出款。這依賴上表「寫入實際執行者」的規則；若保留原鎖單人，同一人做兩關會顯示成兩個不同的人。
 
 ---
 
