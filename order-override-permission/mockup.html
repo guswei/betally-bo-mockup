@@ -162,11 +162,12 @@
         ・綠勾（Approve）→ <code>Deposit › Approve</code>：<b>不必先 Unlock</b>，直接核准<br>
         ・紅叉（Reject）→ <code>Deposit › Reject</code>：不必先 Unlock，直接駁回<br>
         三者皆需同時具備 <code>APPROVED</code>。沒有權限的按鈕<b>隱藏</b>，不是 disable（BO 既有慣例）。<br>
-        <b>自己鎖的單</b>走原本流程，不需要 override，只看 <code>APPROVED</code>。<br>
+        <b>自己鎖的單</b>走原本流程，不需要 override，只看 <code>APPROVED</code>。<b>要先鎖單才會出現 Approve／Reject</b>：<code>PENDING</code> 的單只有鎖頭，點了變 <code>LOCK</code> 之後才出現綠勾與紅叉（現況行為，user 2026-09-23 錄影確認）。<br>
         <b>釋放後可由本人接手</b>（user 2026-09-23 拍板）：只有 Unlock、沒有 Approve 的人，Unlock 別人的單後可以自己鎖、再依一般流程核准。子節點限制的是「別人還鎖著時直接動手」，<b>沒勾 Approve 不等於不能核准這筆單</b>。
       </div>
       <div class="rd-note" id="depNoteOff" hidden>
-        <b>目前 <code>Deposit order lock before approval</code> 為 No</b>：存款不鎖單，沒有 <code>LOCK</code> 狀態，也沒有「別人鎖住的單」。Deposit 的三個子節點在這個設定下<b>沒有作用</b>，勾不勾結果都一樣（#524 原有規則）。
+        <b>目前 <code>Deposit order lock before approval</code> 為 No</b>：存款不鎖單，沒有 <code>LOCK</code> 狀態，也沒有「別人鎖住的單」。Deposit 的三個子節點在這個設定下<b>沒有作用</b>，勾不勾結果都一樣（#524 原有規則）。<br>
+        此設定下存款的一般核准方式維持現況，本案不改動，mockup 也不呈現這部分，所以列表上看不到任何操作按鈕。
       </div>
       <div class="rd-note">
         <b>Force Approve 不動</b>（user 2026-09-23 拍板）：既有 <code>Force Approve</code> 維持現行行為，與 override Approve 並存。<br>
@@ -310,8 +311,8 @@ function depActions(r, i){
   const lockOn = document.getElementById('cfgLock').value === 'yes';
   const A = P.base.depApproved;
   if (!lockOn){
-    // 不鎖單：只有一般核准／駁回，與 override 無關
-    return A ? btn('ok','Approve','✓',"depDo("+i+",'approve',false)") + btn('no','Reject','✕',"depDo("+i+",'reject',false)") : '';
+    // 不鎖單時沒有「別人鎖住的單」，本案的按鈕都不出現。此設定下的一般核准畫面不在本案範圍，不在 mockup 呈現
+    return '';
   }
   if (r.st === 'PENDING') return A ? btn('claim','Lock',OPEN_SVG,"depDo("+i+",'claim',false)") : '';
   if (r.st !== 'LOCK') return '';
