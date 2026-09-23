@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Override Permission — Mockup (GCP Agent BO)</title>
+<style>
+  :root{
+    --bo-bg:#eef1f4; --bo-green:#2e9e5b; --bo-green-d:#247a47;
+    --bo-head:#cfe8d8; --bo-line:#e3e7eb; --bo-text:#2b3036; --bo-sub:#7b848d;
+    --pink:#e8537a; --warn:#d9822b; --danger:#d63a3a;
+    --rd:#fff8e1; --rd-bd:#e6c84d; --rd-tx:#6b5300; --new:#0f73d6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang TC","Microsoft JhengHei",sans-serif;background:#dfe3e8;color:var(--bo-text)}
+  .wrap{max-width:1500px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:0 0 4px}
+  .lead{color:#55606b;font-size:13px;margin:0 0 14px;line-height:1.6}
+  .bar{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+  .toggle,.demo{display:flex;align-items:center;gap:8px;font-size:13px;background:#fff;border:1px solid #c3ccd5;border-radius:8px;padding:6px 12px}
+  .toggle{cursor:pointer}
+  .demo select{border:1px solid #cbd3da;border-radius:5px;padding:3px 6px;font-size:12px;font-family:inherit}
+  .demo-tag{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#6b46c1;border-radius:4px;padding:1px 6px;margin-left:4px}
+  .pill-new{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--new);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+
+  .rd-note{display:none;background:var(--rd);border:1px solid var(--rd-bd);border-left:4px solid var(--rd-bd);
+    color:var(--rd-tx);font-size:12px;line-height:1.65;border-radius:6px;padding:8px 10px;margin:8px 0}
+  body.shownotes .rd-note{display:block}
+  .rd-note b{color:#7a5d00}
+  .rd-note code{background:#fff3c4;padding:0 4px;border-radius:3px;font-size:11px}
+
+  .tabs{display:flex;gap:0;background:#e8f2ea;border-radius:8px 8px 0 0;overflow:hidden;border:1px solid #d4dae0;border-bottom:none}
+  .tab{padding:11px 22px;font-size:13px;font-weight:600;color:#7b8a80;cursor:pointer;border:none;background:transparent;font-family:inherit}
+  .tab.active{background:#fff;color:var(--bo-green-d);border-bottom:2px solid var(--bo-green)}
+  .panel{background:#fff;border:1px solid #d4dae0;border-radius:0 0 8px 8px;padding:18px}
+  .screen[hidden]{display:none}
+
+  /* ── Role Setting ── */
+  .sec-title{font-size:15px;font-weight:600;margin:0 0 10px}
+  .grp{border-top:1px solid var(--bo-line);padding:12px 0}
+  .grp:nth-child(even){background:#f4faf6}
+  .grp-name{font-size:14px;font-weight:600;margin:0 0 10px 12px}
+  .perms{display:flex;flex-wrap:wrap;gap:12px 26px;padding-left:28px}
+  .cb{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;cursor:pointer;user-select:none}
+  .box{width:16px;height:16px;border:1.5px solid #b7c0c8;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:#fff;flex:none}
+  .box.on{background:var(--pink);border-color:var(--pink)}
+  .box.on::after{content:"";width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px)}
+  .box.mixed{background:var(--pink);border-color:var(--pink)}
+  .box.mixed::after{content:"";width:8px;height:2px;background:#fff}
+  .tree{margin:10px 0 2px 28px;padding:10px 12px;border:1px dashed #9fd0b0;border-radius:6px;background:#fbfefc;display:inline-block}
+  .lvl1{margin-left:24px;margin-top:8px;display:flex;gap:22px;flex-wrap:wrap}
+  .lvl2{margin-left:24px;margin-top:6px;display:flex;gap:22px;flex-wrap:wrap}
+  .subgrp{margin-top:10px;margin-left:24px}
+
+  /* ── Lists ── */
+  .card-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .card-head h2{margin:0;font-size:16px}
+  table{width:100%;border-collapse:collapse;border:1px solid var(--bo-line)}
+  thead th{background:var(--bo-head);text-align:left;font-size:11.5px;padding:9px 10px;color:#23613d;white-space:nowrap}
+  tbody td{padding:8px 10px;font-size:12.5px;border-top:1px solid #eef1f3;vertical-align:middle;white-space:nowrap}
+  tbody tr{background:#fff}
+  tbody tr.target{background:#fff2f5}
+  .acts{display:flex;gap:6px;align-items:center;min-height:28px}
+  .ic{width:28px;height:28px;border-radius:50%;border:1.5px solid;background:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;font-size:13px;font-weight:700;line-height:1}
+  .ic svg{width:15px;height:15px}
+  .ic.claim{color:var(--bo-green);border-color:#a9d9bb}
+  .ic.unlock{color:var(--danger);border-color:#f0b4b4}
+  .ic.ok{color:var(--bo-green);border-color:#a9d9bb}
+  .ic.no{color:var(--danger);border-color:#f0b4b4}
+  .ic:hover{filter:brightness(.92)}
+  .by{font-size:12px}
+  .by.other{color:#b0154a;font-weight:600}
+  .by.me{color:#1e5aa8;font-weight:600}
+  .st{font-size:11px;font-weight:700;border-radius:4px;padding:2px 7px;background:#e7edf3;color:#4a5761}
+  .st.lock,.st.checking{background:#fde7ee;color:#9c1d47}
+  .st.checked{background:#e3f0ff;color:#1e5aa8}
+  .st.approved,.st.processing{background:#dcfce7;color:#14532d}
+  .st.rejected{background:#fdecea;color:#912018}
+  .dash{color:#b3bcc4}
+  .legend{font-size:11.5px;color:var(--bo-sub);margin:8px 0 0}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:50}
+  .modal{background:#fff;border-radius:8px;width:420px;max-width:92vw;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .modal h3{margin:0;padding:12px 16px;background:#cfe8d8;color:#23613d;font-size:15px;text-align:center}
+  .modal .body{padding:18px 20px;font-size:13px;line-height:1.7}
+  .modal label{display:block;font-size:12px;color:var(--bo-sub);margin:10px 0 4px}
+  .modal select,.modal input{width:100%;padding:8px;border:1px solid #cbd3da;border-radius:5px;font-family:inherit}
+  .modal .foot{display:flex;justify-content:center;gap:10px;padding:0 20px 18px}
+  .btn{border-radius:6px;padding:8px 22px;font-size:13px;cursor:pointer;font-family:inherit;border:1px solid #c3ccd5;background:#fff}
+  .btn.pri{background:var(--bo-green);color:#fff;border-color:var(--bo-green)}
+  #toast{position:fixed;right:20px;bottom:20px;background:#23613d;color:#fff;font-size:12.5px;padding:10px 16px;border-radius:8px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:360px}
+  #toast.on{opacity:1}
+</style>
+</head>
+<body class="shownotes">
+<div class="wrap">
+  <h1>Order Override Permission — 權限樹拆分</h1>
+  <p class="lead">GCP Agent BO。延續 ticket #524：把 <code>ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON</code> 拆成九個可個別授權的子節點。<b>三個分頁共用同一組權限</b>——在 Role Setting 勾選，切到兩個列表頁就能看到按鈕怎麼跟著變。</p>
+
+  <div class="bar">
+    <label class="toggle"><input type="checkbox" checked onchange="document.body.classList.toggle('shownotes',this.checked)"> 顯示 RD 註記</label>
+    <div class="demo">目前登入者<span class="demo-tag">DEMO</span> <b>OLEID_kenchio</b></div>
+    <div class="demo">Deposit order lock before approval<span class="demo-tag">DEMO</span>
+      <select id="cfgLock" onchange="renderAll()"><option value="yes" selected>Yes</option><option value="no">No</option></select>
+    </div>
+  </div>
+  <div class="rd-note">上方兩個 DEMO 控制項是 <b>dev-only</b>，用來示範畫面差異，正式上線必須移除。<code>Deposit order lock before approval</code> 是既有 System Config 開關，本案不改動它，只示範它對存款權限的影響。</div>
+
+  <div class="tabs">
+    <button class="tab active" data-t="role" onclick="showTab('role')">11.2 Role Setting</button>
+    <button class="tab" data-t="dep" onclick="showTab('dep')">3.1 Deposit List</button>
+    <button class="tab" data-t="wd" onclick="showTab('wd')">3.2 Withdraw List</button>
+  </div>
+
+  <div class="panel">
+    <!-- ═══ Role Setting ═══ -->
+    <div class="screen" id="s-role">
+      <p class="sec-title">Payment Management</p>
+
+      <div class="grp">
+        <p class="grp-name">Deposit List</p>
+        <div class="perms" id="depBase"></div>
+        <div class="tree" id="depTree"></div>
+      </div>
+
+      <div class="grp">
+        <p class="grp-name">Withdraw List</p>
+        <div class="perms" id="wdBase"></div>
+        <div class="tree" id="wdTree"></div>
+      </div>
+
+      <div class="rd-note">
+        <b>勾選連動規則</b>（前端處理，後端只存九個葉節點的布林值）：<br>
+        ・父層被勾 → 底下全部開。父層在中間態時點擊 → 底下全部開。父層已勾時點擊 → 底下全部關。<br>
+        ・底下全勾 → 父層自動顯示為勾；底下部分勾 → 父層顯示<b>中間態</b>（橫線）；底下全不勾 → 父層不勾。<br>
+        ・Withdraw 有三層：主 checkbox → Risk Verification／Finance Approval → 各三項。規則逐層套用。可以出現「Risk 全勾、Finance 部分勾」的組合，此時主 checkbox 為中間態。<br>
+        <b>中間態是必要的，不是裝飾</b>（user 2026-09-23 拍板）：部分開啟若與完全沒開長得一樣，稽核者看到主 checkbox 沒勾會以為這個角色不能動別人的單，底下卻可能開著 <code>Finance Approval → Approve</code>。
+      </div>
+      <div class="rd-note">
+        <b>九個節點都要搭配基礎權限才生效</b>（user 2026-09-23 拍板）：<br>
+        ・Deposit 三項 → 需同時有 <code>APPROVED</code><br>
+        ・Withdraw Risk Verification 三項 → 需同時有 <code>CHECK</code><br>
+        ・Withdraw Finance Approval 三項 → 需同時有 <code>APPROVED</code><br>
+        設定頁<b>不做</b>兩者的連動或鎖定——可以只勾子節點不勾基礎權限，存得進去，但執行時不生效（列表頁不顯示按鈕、後端回 <code>403</code>）。取消上方 <code>APPROVED</code> 或 <code>CHECK</code> 再切到列表頁可看到效果。
+      </div>
+      <div class="rd-note">
+        <b>既有角色 migration</b>：#524 已上線，每個角色身上已有主 checkbox 的開關。上線時主 checkbox 原本開的角色，底下子節點<b>全部開</b>；原本關的<b>全部關</b>。讓每個角色上線當下的行為完全不變。
+      </div>
+    </div>
+
+    <!-- ═══ Deposit List ═══ -->
+    <div class="screen" id="s-dep" hidden>
+      <div class="card-head"><h2>Pending Requests</h2></div>
+      <table>
+        <thead><tr><th>Actions</th><th>Status</th><th>Locked By And Time</th><th>Deposit Request No</th><th>Amount</th></tr></thead>
+        <tbody id="depBody"></tbody>
+      </table>
+      <p class="legend">淡紅底＝被別人鎖住的單，只有 override 權限能動。</p>
+      <div class="rd-note" id="depNoteLock">
+        <b>被別人鎖住的單</b>（<code>LOCK</code>、鎖單人不是自己）上的三顆按鈕，各自由一個子節點控制：<br>
+        ・紅鎖（Unlock）→ <code>Deposit › Unlock</code>：釋放對方的鎖，單退回 <code>PENDING</code><br>
+        ・綠勾（Approve）→ <code>Deposit › Approve</code>：<b>不必先 Unlock</b>，直接核准<br>
+        ・紅叉（Reject）→ <code>Deposit › Reject</code>：不必先 Unlock，直接駁回<br>
+        三者皆需同時具備 <code>APPROVED</code>。沒有權限的按鈕<b>隱藏</b>，不是 disable（BO 既有慣例）。<br>
+        <b>自己鎖的單</b>走原本流程，不需要 override，只看 <code>APPROVED</code>。
+      </div>
+      <div class="rd-note" id="depNoteOff" hidden>
+        <b>目前 <code>Deposit order lock before approval</code> 為 No</b>：存款不鎖單，沒有 <code>LOCK</code> 狀態，也沒有「別人鎖住的單」。Deposit 的三個子節點在這個設定下<b>沒有作用</b>，勾不勾結果都一樣（#524 原有規則）。
+      </div>
+      <div class="rd-note">
+        <b>Force Approve 不動</b>（user 2026-09-23 拍板）：既有 <code>Force Approve</code> 維持現行行為，與 override Approve 並存。<br>
+        <b>不新增紀錄欄位</b>：override 操作沿用既有的 <code>Updated By</code>／<code>Updated Time</code> 記錄操作者與時間。
+      </div>
+    </div>
+
+    <!-- ═══ Withdraw List ═══ -->
+    <div class="screen" id="s-wd" hidden>
+      <div class="card-head"><h2>Pending Requests</h2></div>
+      <table>
+        <thead><tr><th>Risk Verification</th><th>Finance Approval</th><th>Status</th><th>Checked By</th><th>Processed By</th><th>Withdrawal No</th><th>Amount</th></tr></thead>
+        <tbody id="wdBody"></tbody>
+      </table>
+      <p class="legend">淡紅底＝被別人認領或鎖住的單，只有 override 權限能動。</p>
+      <div class="rd-note">
+        <b>Risk Verification 欄</b>（別人認領中的 <code>CHECKING</code> 單）：<br>
+        ・紅鎖（Uncheck）→ <code>Withdraw › Risk Verification › Uncheck</code>：釋放對方的認領，單退回 <code>PENDING</code>。<br>
+        　<b>Uncheck 只作用於 <code>CHECKING</code>，不作用於 <code>CHECKED</code></b>（user 2026-09-23 拍板）。兩個狀態名很像：<code>CHECKING</code>＝有人正在審，<code>CHECKED</code>＝已審完通過。Uncheck 是搶回處理權，<b>不是推翻別人已完成的風控結論</b>。<br>
+        ・雙勾（Approve）→ <code>… › Risk Verification › Approve</code>：直接通過，單變 <code>CHECKED</code><br>
+        ・紅叉（Reject）→ <code>… › Risk Verification › Reject</code><br>
+        三者皆需同時具備 <code>CHECK</code>。
+      </div>
+      <div class="rd-note">
+        <b>Finance Approval 欄</b>（別人鎖住的 <code>CHECKED</code> 單）：<br>
+        ・紅鎖（Unlock）→ <code>Withdraw › Finance Approval › Unlock</code>：釋放對方的鎖，狀態維持 <code>CHECKED</code>，只清除 <code>Processed By</code><br>
+        ・綠勾（Approve）→ <code>… › Finance Approval › Approve</code>：跳出選出款通道對話框，送出後變 <code>PROCESSING</code>。<b>這是把錢送出去的那一步，九個節點中風險最高。</b><br>
+        ・紅叉（Reject）→ <code>… › Finance Approval › Reject</code><br>
+        三者皆需同時具備 <code>APPROVED</code>。<br>
+        <b>兩階段的 Approve／Reject 是不同的權限鍵</b>，不可共用。
+      </div>
+      <div class="rd-note">
+        <b>override 可繞過職責分離</b>（user 2026-09-23 拍板，維持 #524「無視 system config 設定」）：最後一列 <code>Checked By</code> 是自己，Finance 被 <code>OLEID_admin</code> 鎖住。持有 <code>Finance Approval › Approve</code> 時，即使職責分離開關為 No，也能對這筆做 Finance Approve——等於同一人做兩關。這是刻意保留的既有行為，不是漏洞。比對 <code>Checked By</code> 與 <code>Processed By</code> 可事後撈出同一人做兩關的出款，兩欄皆為既有。<br>
+        <b>但自審防護照樣擋</b>：自己建立的單（例如自己開的 Manual Withdraw）不能自己審。職責分離與自審防護是兩件事。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script>
+const ME = 'OLEID_kenchio';
+const LOCK_SVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const OPEN_SVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.7"/></svg>';
+
+// ── 權限狀態（九個葉節點＋三個基礎權限）──
+const P = {
+  base: { depApproved:true, wdCheck:true, wdApproved:true },
+  dep:  { unlock:true, approve:true, reject:true },
+  risk: { uncheck:true, approve:true, reject:true },
+  fin:  { unlock:true, approve:true, reject:true },
+};
+
+// ── DEMO 合成資料 ──
+let dep = [
+  {no:'DDR202609230000009', amt:'500',  st:'PENDING', by:null},
+  {no:'DDR202609230000003', amt:'1,200',st:'LOCK',    by:'OLEID_admin',     at:'2026-09-23 12:36:32'},
+  {no:'DDR202609220000001', amt:'300',  st:'LOCK',    by:'OLEID_sqatest01', at:'2026-09-22 13:54:11'},
+  {no:'DDR202609210000004', amt:'800',  st:'LOCK',    by:ME,                at:'2026-09-23 12:50:02'},
+];
+let wd = [
+  {no:'UW202609230000011', amt:'200', st:'PENDING',  checkedBy:null,        procBy:null},
+  {no:'UW202609230000012', amt:'450', st:'CHECKING', checkedBy:'OLEID_ken', procBy:null},
+  {no:'UW202609230000013', amt:'150', st:'CHECKING', checkedBy:ME,          procBy:null},
+  {no:'UW202609230000014', amt:'900', st:'CHECKED',  checkedBy:'AUTO_RISK', procBy:null},
+  {no:'UW202609230000015', amt:'700', st:'CHECKED',  checkedBy:'AUTO_RISK', procBy:'OLEID_admin'},
+  {no:'UW202609230000016', amt:'350', st:'CHECKED',  checkedBy:ME,          procBy:'OLEID_admin'},
+];
+
+// ── tri-state helpers ──
+const vals = o => Object.values(o);
+const stateOf = arr => arr.every(Boolean) ? 'on' : (arr.some(Boolean) ? 'mixed' : 'off');
+function setAll(o, v){ Object.keys(o).forEach(k => o[k] = v); }
+
+function box(state){ return '<span class="box '+(state==='on'?'on':state==='mixed'?'mixed':'')+'"></span>'; }
+function cb(id, label, state, onclick, isNew){
+  return '<label class="cb" id="'+id+'" data-state="'+state+'" onclick="'+onclick+'">'+box(state)+label+(isNew?'<span class="pill-new">NEW</span>':'')+'</label>';
+}
+
+function renderRole(){
+  const B = P.base;
+  document.getElementById('depBase').innerHTML =
+    cb('b-depApproved','APPROVED', B.depApproved?'on':'off', "toggleBase('depApproved')") +
+    ['EXPORT','Force Approve','VIEW','Manual Deposit','Manual Deposit Approved'].map(x=>cb('', x,'on','')).join('');
+  document.getElementById('wdBase').innerHTML =
+    cb('b-wdApproved','APPROVED', B.wdApproved?'on':'off', "toggleBase('wdApproved')") +
+    cb('b-wdCheck','CHECK', B.wdCheck?'on':'off', "toggleBase('wdCheck')") +
+    ['EXPORT','FORCE APPROVE','VIEW','MANUAL WITHDRAW'].map(x=>cb('', x,'on','')).join('');
+
+  const dS = stateOf(vals(P.dep));
+  document.getElementById('depTree').innerHTML =
+    cb('t-dep','ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON', dS, "clickParent('dep')") +
+    '<div class="lvl1">' +
+      cb('t-dep-unlock','Unlock', P.dep.unlock?'on':'off', "clickLeaf('dep','unlock')", true) +
+      cb('t-dep-approve','Approve', P.dep.approve?'on':'off', "clickLeaf('dep','approve')", true) +
+      cb('t-dep-reject','Reject', P.dep.reject?'on':'off', "clickLeaf('dep','reject')", true) +
+    '</div>';
+
+  const rS = stateOf(vals(P.risk)), fS = stateOf(vals(P.fin));
+  const wS = stateOf([...vals(P.risk), ...vals(P.fin)]);
+  document.getElementById('wdTree').innerHTML =
+    cb('t-wd','ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON', wS, "clickParent('wd')") +
+    '<div class="subgrp">' + cb('t-risk','Risk Verification', rS, "clickParent('risk')", true) +
+      '<div class="lvl2">' +
+        cb('t-risk-uncheck','Uncheck', P.risk.uncheck?'on':'off', "clickLeaf('risk','uncheck')", true) +
+        cb('t-risk-approve','Approve', P.risk.approve?'on':'off', "clickLeaf('risk','approve')", true) +
+        cb('t-risk-reject','Reject', P.risk.reject?'on':'off', "clickLeaf('risk','reject')", true) +
+      '</div></div>' +
+    '<div class="subgrp">' + cb('t-fin','Finance Approval', fS, "clickParent('fin')", true) +
+      '<div class="lvl2">' +
+        cb('t-fin-unlock','Unlock', P.fin.unlock?'on':'off', "clickLeaf('fin','unlock')", true) +
+        cb('t-fin-approve','Approve', P.fin.approve?'on':'off', "clickLeaf('fin','approve')", true) +
+        cb('t-fin-reject','Reject', P.fin.reject?'on':'off', "clickLeaf('fin','reject')", true) +
+      '</div></div>';
+}
+
+// 父層：已全勾 → 全關；其餘（未勾或中間態）→ 全開
+function clickParent(which){
+  event.preventDefault();
+  if (which === 'wd'){
+    const on = stateOf([...vals(P.risk), ...vals(P.fin)]) === 'on';
+    setAll(P.risk, !on); setAll(P.fin, !on);
+  } else {
+    const o = P[which]; setAll(o, stateOf(vals(o)) !== 'on');
+  }
+  renderAll();
+}
+function clickLeaf(g, k){ event.preventDefault(); P[g][k] = !P[g][k]; renderAll(); }
+function toggleBase(k){ event.preventDefault(); P.base[k] = !P.base[k]; renderAll(); }
+
+// ── 按鈕 ──
+const btn = (cls, title, html, fn) => '<button class="ic '+cls+'" title="'+title+'" onclick="'+fn+'">'+html+'</button>';
+
+function depActions(r, i){
+  const lockOn = document.getElementById('cfgLock').value === 'yes';
+  const A = P.base.depApproved;
+  if (!lockOn){
+    // 不鎖單：只有一般核准／駁回，與 override 無關
+    return A ? btn('ok','Approve','✓',"depDo("+i+",'approve',false)") + btn('no','Reject','✕',"depDo("+i+",'reject',false)") : '';
+  }
+  if (r.st === 'PENDING') return A ? btn('claim','Lock',OPEN_SVG,"depDo("+i+",'claim',false)") : '';
+  if (r.st !== 'LOCK') return '';
+  if (r.by === ME){
+    // 自己鎖的單：一般流程，只看 APPROVED
+    return A ? btn('unlock','Unlock',LOCK_SVG,"depDo("+i+",'unlock',false)") + btn('ok','Approve','✓',"depDo("+i+",'approve',false)") + btn('no','Reject','✕',"depDo("+i+",'reject',false)") : '';
+  }
+  // 別人鎖的單：每顆按鈕各自看子節點，且要同時有 APPROVED
+  if (!A) return '';
+  let h = '';
+  if (P.dep.unlock)  h += btn('unlock','Unlock',LOCK_SVG,"depDo("+i+",'unlock',true)");
+  if (P.dep.approve) h += btn('ok','Approve','✓',"depDo("+i+",'approve',true)");
+  if (P.dep.reject)  h += btn('no','Reject','✕',"depDo("+i+",'reject',true)");
+  return h;
+}
+
+function renderDep(){
+  const lockOn = document.getElementById('cfgLock').value === 'yes';
+  document.getElementById('depNoteLock').hidden = !lockOn;
+  document.getElementById('depNoteOff').hidden = lockOn;
+  document.getElementById('depBody').innerHTML = dep.map((r,i) => {
+    const st = lockOn ? r.st : (r.st === 'LOCK' ? 'PENDING' : r.st);
+    const by = lockOn ? r.by : null;
+    const other = lockOn && r.st === 'LOCK' && r.by !== ME;
+    const view = Object.assign({}, r, {st, by});
+    return '<tr data-no="'+r.no+'" class="'+(other?'target':'')+'">' +
+      '<td><div class="acts">'+depActions(view,i)+'</div></td>' +
+      '<td><span class="st '+st.toLowerCase()+'">'+st+'</span></td>' +
+      '<td>'+(by ? '<span class="by '+(by===ME?'me':'other')+'">'+by+'</span><br><span style="font-size:11px;color:#8a939b">'+r.at+'</span>' : '<span class="dash">—</span>')+'</td>' +
+      '<td>'+r.no+'</td><td>'+r.amt+'</td></tr>';
+  }).join('');
+}
+
+function wdRisk(r, i){
+  const C = P.base.wdCheck;
+  if (!C) return '';
+  if (r.st === 'PENDING') return btn('claim','Check',OPEN_SVG,"wdDo("+i+",'claim')") + btn('no','Reject','✕',"wdDo("+i+",'riskReject',false)");
+  if (r.st !== 'CHECKING') return '';
+  if (r.checkedBy === ME)
+    return btn('unlock','Uncheck',LOCK_SVG,"wdDo("+i+",'uncheck',false)") + btn('ok','Approve','✓✓',"wdDo("+i+",'riskApprove',false)") + btn('no','Reject','✕',"wdDo("+i+",'riskReject',false)");
+  let h = '';
+  if (P.risk.uncheck) h += btn('unlock','Uncheck',LOCK_SVG,"wdDo("+i+",'uncheck',true)");
+  if (P.risk.approve) h += btn('ok','Approve','✓✓',"wdDo("+i+",'riskApprove',true)");
+  if (P.risk.reject)  h += btn('no','Reject','✕',"wdDo("+i+",'riskReject',true)");
+  return h;
+}
+function wdFin(r, i){
+  const A = P.base.wdApproved;
+  if (!A || r.st !== 'CHECKED') return '';
+  if (!r.procBy) return btn('claim','Lock',OPEN_SVG,"wdDo("+i+",'finLock')") + btn('no','Reject','✕',"wdDo("+i+",'finReject',false)");
+  if (r.procBy === ME)
+    return btn('unlock','Unlock',LOCK_SVG,"wdDo("+i+",'finUnlock',false)") + btn('ok','Approve','✓',"wdDo("+i+",'finApprove',false)") + btn('no','Reject','✕',"wdDo("+i+",'finReject',false)");
+  let h = '';
+  if (P.fin.unlock)  h += btn('unlock','Unlock',LOCK_SVG,"wdDo("+i+",'finUnlock',true)");
+  if (P.fin.approve) h += btn('ok','Approve','✓',"wdDo("+i+",'finApprove',true)");
+  if (P.fin.reject)  h += btn('no','Reject','✕',"wdDo("+i+",'finReject',true)");
+  return h;
+}
+const byTag = n => n ? '<span class="by '+(n===ME?'me':'other')+'">'+n+'</span>' : '<span class="dash">—</span>';
+function renderWd(){
+  document.getElementById('wdBody').innerHTML = wd.map((r,i) => {
+    const other = (r.st==='CHECKING' && r.checkedBy!==ME) || (r.st==='CHECKED' && r.procBy && r.procBy!==ME);
+    return '<tr data-no="'+r.no+'" class="'+(other?'target':'')+'">' +
+      '<td><div class="acts">'+wdRisk(r,i)+'</div></td>' +
+      '<td><div class="acts">'+wdFin(r,i)+'</div></td>' +
+      '<td><span class="st '+r.st.toLowerCase()+'">'+r.st+'</span></td>' +
+      '<td>'+byTag(r.checkedBy)+'</td><td>'+byTag(r.procBy)+'</td>' +
+      '<td>'+r.no+'</td><td>'+r.amt+'</td></tr>';
+  }).join('');
+}
+
+// ── 動作 ──
+function depDo(i, act, override){
+  const r = dep[i];
+  if (act==='claim'){ r.st='LOCK'; r.by=ME; r.at='2026-09-23 14:30:00'; toast('Locked.'); }
+  else if (act==='unlock'){ r.st='PENDING'; r.by=null; toast('Unlocked. Order returned to PENDING.'); }
+  else if (act==='approve'){ r.st='APPROVED'; r.by=null; toast('Approved.'); }
+  else if (act==='reject'){ r.st='REJECTED'; r.by=null; toast('Rejected.'); }
+  renderAll();
+}
+function wdDo(i, act, override){
+  const r = wd[i];
+  if (act==='claim'){ r.st='CHECKING'; r.checkedBy=ME; toast('Checking.'); }
+  else if (act==='uncheck'){ r.st='PENDING'; r.checkedBy=null; toast('Unchecked. Order returned to PENDING.'); }
+  else if (act==='riskApprove'){ r.st='CHECKED'; if(override) r.checkedBy=ME; toast('Risk verification passed.'); }
+  else if (act==='riskReject' || act==='finReject'){ r.st='REJECTED'; toast('Rejected.'); }
+  else if (act==='finLock'){ r.procBy=ME; toast('Locked.'); }
+  else if (act==='finUnlock'){ r.procBy=null; toast('Unlocked. Order stays CHECKED.'); }
+  else if (act==='finApprove'){ openChannel(i, override); return; }
+  renderAll();
+}
+function openChannel(i, override){
+  const r = wd[i];
+  document.getElementById('modalRoot').innerHTML =
+    '<div class="modal-bg" id="mbg"><div class="modal"><h3>Select Payment Channel</h3><div class="body">' +
+    '<label>Withdraw No</label><input value="'+r.no+'" disabled>' +
+    '<label>Payment Channel *</label><select id="chSel"><option>BANK-OFFLINE</option><option>Spay3 BANK WITHDRAW</option></select>' +
+    '<label>Tx ID</label><input id="txId">' +
+    '</div><div class="foot"><button class="btn" onclick="closeModal()">Cancel</button>' +
+    '<button class="btn pri" id="chSubmit" onclick="submitChannel('+i+','+override+')">Submit</button></div></div></div>';
+}
+function submitChannel(i, override){
+  const r = wd[i]; r.st='PROCESSING'; r.procBy = r.procBy || ME;
+  r.channel = document.getElementById('chSel').value;
+  closeModal(); toast('Sent to '+r.channel+'.'); renderAll();
+}
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+
+let tid=null;
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tid); tid=setTimeout(()=>t.classList.remove('on'),2600); }
+
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.t===t));
+  ['role','dep','wd'].forEach(x=>document.getElementById('s-'+x).hidden = x!==t);
+}
+function renderAll(){ renderRole(); renderDep(); renderWd(); }
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+flowchart TD
+  A[操作者對某筆單按下<br/>Unlock / Uncheck / Approve / Reject] --> B{這筆單被別人鎖住<br/>或認領中?}
+  B -->|否| N[走原本流程<br/>只看基礎權限]
+  B -->|是| E{角色有這顆按鈕<br/>對應的子節點?}
+  E -->|否| F[按鈕隱藏<br/>直接呼叫 API 回 403]
+  E -->|是| G{角色有該階段的基礎權限?<br/>Deposit 與 Finance：APPROVED<br/>Risk：CHECK}
+  G -->|否| F
+  G -->|是| H[直接執行<br/>不需先 Unlock 或 Uncheck]
+  classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+  classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
+  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+  class A,N step
+  class B,E,G dec
+  class F stop
+  class H done
