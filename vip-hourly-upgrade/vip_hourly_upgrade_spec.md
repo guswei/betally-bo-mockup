@@ -1,7 +1,7 @@
 # VIP 等級升級每小時檢查 RD Spec
 
-- 版本：v1.1
-- 日期：2026-09-22
+- 版本：v1.2
+- 日期：2026-09-23
 - 平台：Agent BO（GCP）
 - 對應需求：[PRD](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_PRD.md)
 - 流程圖：https://guswei.github.io/betally-bo-mockup/vip-hourly-upgrade/diagrams/vip_hourly_upgrade_flow.png （第 11 節有內嵌圖與 Mermaid 原始碼）

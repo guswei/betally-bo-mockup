@@ -1,6 +1,6 @@
 # PRD：VIP 等級升級改為每小時檢查
 
-**版本**：v1.1（2026-09-22）　**類型**：功能變更　**負責**：PM / RD  
+**版本**：v1.2（2026-09-23）　**類型**：功能變更　**負責**：PM / RD  
 **Mockup**：N/A —— 本需求沿用既有頁面，只在既有 `System Config` → `VIP` tab 增加一個設定欄位  
 **相關**：[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/vip-hourly-upgrade/vip_hourly_upgrade_spec.md)
 
