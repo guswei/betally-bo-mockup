@@ -192,23 +192,23 @@
       <b>不要</b>引入參考截圖上的 <code>Blocked</code> 與 <code>Verify Status</code>——那是別的系統的欄位，本系統沒有。</div>
 
       <div class="rd-note"><b>Actions 欄</b>：既有 Edit（鉛筆）與 Delete（紅 X）<b>位置與權限都不變</b>，新增一個 Activate／Deactivate 圖示。<br>
-      <b>用圖示不用文字按鈕</b>（user 2026-09-22 拍板）：既有 Actions 欄是純圖示，塞文字按鈕會撐寬欄位並破壞既有視覺。<code>ACTIVE</code> 的列出現 <b>⏸（Deactivate）</b>；<code>INACTIVE</code> 的列出現 <b>▶（Activate）</b>。兩者互斥，不會同時出現。滑鼠移上去顯示英文 tooltip。<br>
+      <b>用圖示不用文字按鈕</b>：既有 Actions 欄是純圖示，塞文字按鈕會撐寬欄位並破壞既有視覺。<code>ACTIVE</code> 的列出現 <b>⏸（Deactivate）</b>；<code>INACTIVE</code> 的列出現 <b>▶（Activate）</b>。兩者互斥，不會同時出現。滑鼠移上去顯示英文 tooltip。<br>
       <b>狀態可逆</b>：<code>ACTIVE</code> ⇄ <code>INACTIVE</code> 雙向可切換，<b>沒有終態</b>。</div>
 
       <div class="rd-note"><b>Deactivate 的兩個擋門——兩者的前端行為刻意不同，依「前端有沒有判斷資料」決定</b><br>
       ① <b>預設帳號不可停用</b>：<code>Default Value</code> 前端清單本來就有，可以直接判斷 → Deactivate 圖示 <b>disable ＋ 說明文字</b>。後端仍要擋，回 <code>409</code> <code>BINDING_ACCOUNT_IS_DEFAULT</code>。<br>
-      <b>預設是「每個 Binding Account Type 各一個」，不是每位玩家一個</b>（user 2026-09-22 拍板）。所以同一位玩家清單上會同時看到多筆 <code>Default Value = true</code>，各屬不同 Type，這不是髒資料。操作員要先把<b>同一個 Type 裡的另一筆</b>設為預設，才能停用原本那筆。<br>
+      <b>預設是「每個 Binding Account Type 各一個」，不是每位玩家一個</b>。所以同一位玩家清單上會同時看到多筆 <code>Default Value = true</code>，各屬不同 Type，這不是髒資料。操作員要先把<b>同一個 Type 裡的另一筆</b>設為預設，才能停用原本那筆。<br>
       <b>已知後果</b>：某個 Type 底下只有一筆帳號且它是預設時，該筆永遠無法停用——沒有同 Type 的其他帳號可以接手預設。這種情況操作員只剩 Delete 可用。<br>
-      <b>預設帳號可以刪除，不要順手擋掉</b>（user 2026-09-23 拍板）：<code>Default Value = true</code> <b>只擋停用、不擋刪除</b>，Delete 圖示照常顯示可點。這條特別寫出來，是因為上面整段都在講「預設帳號不可停用」，很容易被讀成「預設帳號一律受保護」。BO 可設定玩家能否自行刪除綁定帳號，玩家不能自行刪時由 BO 代刪；BO 這側再擋，該帳號就變成兩邊都刪不掉。<br>      <b>刪除不遞補</b>（user 2026-09-23 拍板）：刪掉預設帳號後，該 Type 就<b>沒有</b>預設帳號，<b>不要</b>自動把同 Type 的另一筆改成預設。帳號被刪光就維持一筆都沒有，等使用者自己新增。<br>
+      <b>預設帳號可以刪除，不要順手擋掉</b>：<code>Default Value = true</code> <b>只擋停用、不擋刪除</b>，Delete 圖示照常顯示可點。這條特別寫出來，是因為上面整段都在講「預設帳號不可停用」，很容易被讀成「預設帳號一律受保護」。BO 可設定玩家能否自行刪除綁定帳號，玩家不能自行刪時由 BO 代刪；BO 這側再擋，該帳號就變成兩邊都刪不掉。<br>      <b>刪除不遞補</b>：刪掉預設帳號後，該 Type 就<b>沒有</b>預設帳號，<b>不要</b>自動把同 Type 的另一筆改成預設。帳號被刪光就維持一筆都沒有，等使用者自己新增。<br>
       ② <b>有處理中提款單不可停用</b>：前端<b>沒有</b>這筆資料，無法預先判斷 → 按鈕<b>可以按</b>，按下後依 API 回應顯示錯誤（點第三列的 Deactivate 看效果）。後端回 <code>409</code> <code>BINDING_ACCOUNT_HAS_PENDING_WITHDRAWAL</code>。<br>
       兩個 <code>409</code> 用<b>不同錯誤鍵</b>，前端才能顯示對應原因。<br>
       這兩種都是<b>業務規則</b>造成的不可操作，一律附原因說明，<b>不用隱藏</b>——操作員要知道為什麼不能按、下一步做什麼。<b>權限不足才用隱藏</b>（見下一則）。<br>
       <b>併發保護</b>：後端檢查「有無處理中提款單」與寫入 <code>INACTIVE</code> 要在同一交易內並對該筆取鎖，否則會出現檢查通過後、寫入前剛好有人建立提款單的競態。</div>
 
-      <div class="rd-note"><b>權限：由後台權限節點控制，不綁 4-tier 層級</b>（user 2026-08-14 拍板）。<br>
+      <div class="rd-note"><b>權限：由後台權限節點控制，不綁 4-tier 層級</b>。<br>
       被授予「綁定帳號狀態管理」權限的操作者就能執行，<b>與他是 Admin 還是 Sub Agent Admin 無關</b>。因此要新增一個對應的權限節點掛進既有權限設定畫面（節點名稱與位置由 RD 依既有結構決定）。<br>
-      <b>權限不足時按鈕直接隱藏</b>，不是 disable——本 BO 既有慣例（user 2026-08-13 確認）。切上方權限開關到「無此權限」可看到效果：Activate / Deactivate 消失，Edit / Delete 仍在。<br>
-      Delete 的權限<b>維持現狀不動</b>（user 拍板），不因本需求收緊，所以它不受這個新權限節點影響。<br>
+      <b>權限不足時按鈕直接隱藏</b>，不是 disable——本 BO 既有慣例。切上方權限開關到「無此權限」可看到效果：Activate / Deactivate 消失，Edit / Delete 仍在。<br>
+      Delete 的權限<b>維持現狀不動</b>，不因本需求收緊，所以它不受這個新權限節點影響。<br>
       前端隱藏只是顯示層，<b>後端一律要驗權並回 <code>403</code></b>，不可只靠前端。</div>
     </div>
   </div>
@@ -237,7 +237,7 @@
 
       <h4>3. Delete 的邊界（刻意保留的逃生門，非疏漏）</h4>
       <ul>
-        <li>Delete <b>保留、權限不動</b>（user 2026-08-13 拍板）。刪除會<b>真的清掉資料並釋放唯一鍵</b>，該帳號之後可被其他玩家註冊。</li>
+        <li>Delete <b>保留、權限不動</b>。刪除會<b>真的清掉資料並釋放唯一鍵</b>，該帳號之後可被其他玩家註冊。</li>
         <li>因此 Delete 是繞過「停用後帳號被佔住」的合法路徑。user 已知悉，選擇<b>以二次確認的文案提示處理，不以權限封鎖</b>。</li>
         <li>二次確認的文案必須明講「刪除後此帳號可被其他玩家註冊」與「若只是暫停使用請改用 Deactivate」，否則操作員會照舊習慣按 Delete，這個需求等於白做。</li>
       </ul>
@@ -272,7 +272,7 @@
       <ul>
         <li>不引入 <code>Verify Status</code>、不引入 <code>Blocked</code>（皆為參考截圖上其他系統的欄位）。</li>
         <li>不動玩家層級 <code>Block</code>、不動提款流程與退款邏輯、不動 Edit 對話框既有欄位。</li>
-        <li><b>不回補</b>既有已刪除的綁定帳號（user 2026-08-14 拍板）。那些帳號的自然鍵維持可用，其他玩家可以註冊。</li>
+        <li><b>不回補</b>既有已刪除的綁定帳號。那些帳號的自然鍵維持可用，其他玩家可以註冊。</li>
       </ul>
 
       <h4>8. 本 mockup 的合成資料</h4>
@@ -333,7 +333,7 @@
       <p>If you only want to suspend this account temporarily, use <b>Deactivate</b> instead. A deactivated account stays in the list, is hidden from the player frontend, and cannot be registered by anyone else.</p>
       <label class="confirm-row"><input type="checkbox" id="delChk" onchange="document.getElementById('delBtn').disabled=!this.checked">
         <span>I understand this account will be permanently deleted and can be registered by another player.</span></label>
-      <div class="rd-note"><b>這個二次確認是本需求新增的</b>（user 2026-08-13 拍板）。Delete 本身的<b>權限與行為都不變</b>，只加確認層。<br>
+      <div class="rd-note"><b>這個二次確認是本需求新增的</b>。Delete 本身的<b>權限與行為都不變</b>，只加確認層。<br>
       文案的兩個重點缺一不可：①<b>刪除後帳號會被釋放</b>（這是操作員最不知道的後果）②<b>引導改用 Deactivate</b>。<br>
       勾選框未勾時 Delete 按鈕 <code>disabled</code>。這是防誤觸，不是權限控制。</div>
     </div>
@@ -406,7 +406,7 @@ const rows = [
     acct:'-', wname:'DANA', waddr:'081900112233', def:true,  status:'ACTIVE', pending:false },
 ];
 
-// 權限：由後台權限節點控制，不綁 4-tier 層級（user 2026-08-14 拍板）
+// 權限：由後台權限節點控制，不綁 4-tier 層級
 const canToggle = p => p === 'granted';
 let role = 'granted', filter = 'ALL', target = null;
 

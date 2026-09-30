@@ -134,10 +134,10 @@
         ・父層被勾 → 底下全部開。父層在中間態時點擊 → 底下全部開。父層已勾時點擊 → 底下全部關。<br>
         ・底下全勾 → 父層自動顯示為勾；底下部分勾 → 父層顯示<b>中間態</b>（橫線）；底下全不勾 → 父層不勾。<br>
         ・Withdraw 有三層：主 checkbox → Risk Verification／Finance Approval → 各三項。規則逐層套用。可以出現「Risk 全勾、Finance 部分勾」的組合，此時主 checkbox 為中間態。<br>
-        <b>中間態是必要的，不是裝飾</b>（user 2026-09-23 拍板）：部分開啟若與完全沒開長得一樣，稽核者看到主 checkbox 沒勾會以為這個角色不能動別人的單，底下卻可能開著 <code>Finance Approval → Approve</code>。
+        <b>中間態是必要的，不是裝飾</b>：部分開啟若與完全沒開長得一樣，稽核者看到主 checkbox 沒勾會以為這個角色不能動別人的單，底下卻可能開著 <code>Finance Approval → Approve</code>。
       </div>
       <div class="rd-note">
-        <b>九個節點都要搭配基礎權限才生效</b>（user 2026-09-23 拍板）：<br>
+        <b>九個節點都要搭配基礎權限才生效</b>：<br>
         ・Deposit 三項 → 需同時有 <code>APPROVED</code><br>
         ・Withdraw Risk Verification 三項 → 需同時有 <code>CHECK</code><br>
         ・Withdraw Finance Approval 三項 → 需同時有 <code>APPROVED</code><br>
@@ -162,15 +162,15 @@
         ・綠勾（Approve）→ <code>Deposit › Approve</code>：<b>不必先 Unlock</b>，直接核准<br>
         ・紅叉（Reject）→ <code>Deposit › Reject</code>：不必先 Unlock，直接駁回<br>
         三者皆需同時具備 <code>APPROVED</code>。沒有權限的按鈕<b>隱藏</b>，不是 disable（BO 既有慣例）。<br>
-        <b>自己鎖的單</b>走原本流程，不需要 override，只看 <code>APPROVED</code>。<b>要先鎖單才會出現 Approve／Reject</b>：<code>PENDING</code> 的單只有鎖頭，點了變 <code>LOCK</code> 之後才出現綠勾與紅叉（現況行為，user 2026-09-23 錄影確認）。<br>
-        <b>釋放後可由本人接手</b>（user 2026-09-23 拍板）：只有 Unlock、沒有 Approve 的人，Unlock 別人的單後可以自己鎖、再依一般流程核准。子節點限制的是「別人還鎖著時直接動手」，<b>沒勾 Approve 不等於不能核准這筆單</b>。
+        <b>自己鎖的單</b>走原本流程，不需要 override，只看 <code>APPROVED</code>。<b>要先鎖單才會出現 Approve／Reject</b>：<code>PENDING</code> 的單只有鎖頭，點了變 <code>LOCK</code> 之後才出現綠勾與紅叉（現況行為）。<br>
+        <b>釋放後可由本人接手</b>：只有 Unlock、沒有 Approve 的人，Unlock 別人的單後可以自己鎖、再依一般流程核准。子節點限制的是「別人還鎖著時直接動手」，<b>沒勾 Approve 不等於不能核准這筆單</b>。
       </div>
       <div class="rd-note" id="depNoteOff" hidden>
         <b>目前 <code>Deposit order lock before approval</code> 為 No</b>：存款不鎖單，沒有 <code>LOCK</code> 狀態，也沒有「別人鎖住的單」。Deposit 的三個子節點在這個設定下<b>沒有作用</b>，勾不勾結果都一樣（#524 原有規則）。<br>
         此設定下存款的一般核准方式維持現況，本案不改動，mockup 也不呈現這部分，所以列表上看不到任何操作按鈕。
       </div>
       <div class="rd-note">
-        <b>Force Approve 不動</b>（user 2026-09-23 拍板）：既有 <code>Force Approve</code> 維持現行行為，與 override Approve 並存。<br>
+        <b>Force Approve 不動</b>：既有 <code>Force Approve</code> 維持現行行為，與 override Approve 並存。<br>
         <b>不新增紀錄欄位</b>：Approve／Reject 寫入既有的 <code>Updated By</code>／<code>Updated Time</code>，記錄實際執行者與時間。<b>Unlock 只清除 <code>Locked By And Time</code>，不寫入任何紀錄</b>，事後查不到是誰釋放的。
       </div>
     </div>
@@ -186,7 +186,7 @@
       <div class="rd-note">
         <b>Risk Verification 欄</b>（別人認領中的 <code>CHECKING</code> 單）：<br>
         ・紅鎖（Uncheck）→ <code>Withdraw › Risk Verification › Uncheck</code>：釋放對方的認領，單退回 <code>PENDING</code>，清除 <code>Checked By</code> 與 <code>Checked Date</code>。<br>
-        　<b>Uncheck 只作用於 <code>CHECKING</code>，不作用於 <code>CHECKED</code></b>（user 2026-09-23 拍板）。兩個狀態名很像：<code>CHECKING</code>＝有人正在審，<code>CHECKED</code>＝已審完通過。Uncheck 是搶回處理權，<b>不是推翻別人已完成的風控結論</b>。<br>
+        　<b>Uncheck 只作用於 <code>CHECKING</code>，不作用於 <code>CHECKED</code></b>。兩個狀態名很像：<code>CHECKING</code>＝有人正在審，<code>CHECKED</code>＝已審完通過。Uncheck 是搶回處理權，<b>不是推翻別人已完成的風控結論</b>。<br>
         ・雙勾（Approve）→ <code>… › Risk Verification › Approve</code>：直接通過，單變 <code>CHECKED</code><br>
         ・紅叉（Reject）→ <code>… › Risk Verification › Reject</code><br>
         三者皆需同時具備 <code>CHECK</code>。<br>
@@ -204,7 +204,7 @@
         <b>Unlock／Uncheck 不留紀錄</b>：清除鎖單人或認領人後，訂單上看不出是誰釋放的。
       </div>
       <div class="rd-note">
-        <b>override 可繞過職責分離</b>（user 2026-09-23 拍板，維持 #524「無視 system config 設定」）：最後一列 <code>Checked By</code> 是自己，Finance 被 <code>OLEID_admin</code> 鎖住。持有 <code>Finance Approval › Approve</code> 時，即使職責分離開關為 No，也能對這筆做 Finance Approve——等於同一人做兩關。這是刻意保留的既有行為，不是漏洞。比對 <code>Checked By</code> 與 <code>Processed By</code> 可事後撈出同一人做兩關的出款，兩欄皆為既有。<br>
+        <b>override 可繞過職責分離</b>（維持 #524「無視 system config 設定」）：最後一列 <code>Checked By</code> 是自己，Finance 被 <code>OLEID_admin</code> 鎖住。持有 <code>Finance Approval › Approve</code> 時，即使職責分離開關為 No，也能對這筆做 Finance Approve——等於同一人做兩關。這是刻意保留的既有行為，不是漏洞。比對 <code>Checked By</code> 與 <code>Processed By</code> 可事後撈出同一人做兩關的出款，兩欄皆為既有。<br>
         <b>但自審防護照樣擋</b>：自己建立的單（例如自己開的 Manual Withdraw）不能自己審。職責分離與自審防護是兩件事。
       </div>
     </div>
