@@ -1,0 +1,16 @@
+flowchart TD
+    A[財務按 Finance Approval 的 Approve] --> B[選 Payment Channel]
+    B --> C{通道是 BANK-OFFLINE?}
+    C -- 否 --> S[Submit]
+    C -- 是 --> D{Payment Account 選項}
+    D -- Not specified --> S
+    D -- Specify account --> E[展開帳號清單<br/>只列 Allow Withdraw=Yes + 門檻通過 + 餘額足夠的帳號]
+    E --> F[搜尋 / 篩選 / 排序後選一個帳號]
+    F --> S
+    S --> V{後端依送出當下的資料判定<br/>4-tier 資料範圍 / 自審防護沿用既有}
+    V -- 拒絕 --> X[回錯誤碼<br/>對話框保持開啟, 清空已選帳號並重新載入清單]
+    X --> B
+    V -- 通過, 沒有帳號 --> T1[既有的核准<br/>不寫出款帳號, 不產生交易紀錄]
+    V -- 通過, 有帳號 --> T2[核准 + 寫入出款帳號 + WITHDRAW 交易紀錄<br/>餘額減少 + 今日出款累計增加<br/>全部同時生效, Idempotency-Key 防重送]
+    T1 --> Z[完成]
+    T2 --> Z

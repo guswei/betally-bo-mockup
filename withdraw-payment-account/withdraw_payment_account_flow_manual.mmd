@@ -1,0 +1,13 @@
+flowchart TD
+    A[3.11 按 Internal Transfer / External Transfer / Adjust Balance] --> G{Agent 開關 Enable<br/>且有對應權限節點?}
+    G -- 否 --> N[按鈕不顯示; 後端回 403]
+    G -- 是 --> F[填表單並 Submit]
+    F --> K{類型}
+    K -- Internal Transfer / External Transfer --> C1{轉出帳號:<br/>Allow Withdraw = Yes<br/>餘額足夠 DECIMAL 18,2<br/>每日門檻通過}
+    K -- Adjust Balance --> C2{Decrease 不得大於餘額<br/>Set balance to 不得等於目前餘額}
+    C1 -- 不通過 --> X[回錯誤碼, 表單保持開啟]
+    C2 -- 不通過 --> X
+    C1 -- 通過 --> R1[產生交易紀錄<br/>餘額與今日累計變動<br/>全部同時生效]
+    C2 -- 通過 --> R2[產生 ADJUST IN 或 ADJUST OUT<br/>餘額變動, 不計入今日累計]
+    R1 --> Z[完成, 立即生效, 不可修改或取消<br/>交易紀錄即審計鏈]
+    R2 --> Z

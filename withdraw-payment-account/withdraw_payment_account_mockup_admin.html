@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin BO — Agent List - Edit › Role Setting (Payment Account Transactions)</title>
+<style>
+  :root{--side:#1f2330;--green:#3c9a12;--line:#e3e6e3;--mute:#8a8f98;--note:#fff8dc;--noteb:#e6c200}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;color:#1c1f24;background:#eeeeee}
+  .app{display:flex;min-height:100vh}
+  .side{width:250px;background:var(--side);color:#e8eaee;flex:none;padding:14px 0}
+  .logo{font-weight:800;font-size:17px;color:#7bd13a;padding:6px 22px 18px;letter-spacing:.5px}
+  .side .grp{padding:11px 22px;font-size:13px;display:flex;justify-content:space-between}
+  .side .sub{padding:11px 20px;font-size:13px;color:#b9bec8;margin:0 6px;border-radius:6px}
+  .side .sub.on{background:var(--green);color:#fff}
+  main{flex:1;min-width:0;padding:0 18px 40px}
+  .top{display:flex;align-items:center;gap:14px;height:64px;font-weight:700;font-size:16px}
+  .top .sp{flex:1}.top .adm{font-weight:600;font-size:14px}
+  .ttl{display:flex;align-items:center;gap:16px;margin:8px 0 18px}
+  .ttl .back{width:44px;height:32px;border:1px solid #cfd3cf;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center}
+  .ttl h1{font-size:21px;margin:0;font-weight:600}
+  .tabs{display:flex;gap:0;background:#dde5d8;border-radius:6px 6px 0 0;overflow:hidden;padding-left:26px;white-space:nowrap}
+  .tabs span{padding:11px 22px;font-size:13px;letter-spacing:1px;color:#9aa596}
+  .tabs span.on{background:#fff;color:var(--green);font-weight:700;border-radius:8px 8px 0 0}
+  .panel{background:#fff;padding:6px 12px 10px;border-radius:0 0 6px 6px}
+  .row{display:grid;grid-template-columns:430px 1fr 1fr;align-items:center;padding:24px 0;font-size:15px}
+  .row.new{background:#f1f9ec;margin:0 -12px;padding:24px 12px;border-left:3px solid var(--green)}
+  .row label{margin-right:16px;cursor:pointer;font-size:13px}
+  .row input[type=radio]{accent-color:#e91e63;width:17px;height:17px;vertical-align:-3px;margin-right:8px}
+  .save{background:#3c8a10;color:#fff;border:0;border-radius:6px;padding:9px 16px;font-weight:700;letter-spacing:1px;font-size:13px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.3);vertical-align:middle}
+  .pill-new{display:inline-block;background:#e53935;color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:1px 6px;margin-left:8px;vertical-align:2px}
+  .rd-note{background:var(--note);border-left:4px solid var(--noteb);padding:12px 16px;margin:16px 0;font-size:13px;line-height:1.75;border-radius:0 4px 4px 0}
+  .rd-note code{background:#f3e9b0;padding:0 4px;border-radius:3px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  body.hide-notes .rd-note{display:none}
+  .sw{position:fixed;right:18px;top:74px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 12px;font-size:13px}
+  .prev{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+  .prev .box{background:#fff;border:1px solid #e4d79a;border-radius:6px;padding:12px 14px}
+  .prev h4{margin:0 0 8px;font-size:13px}
+  .menu div{padding:5px 10px;font-size:13px;border-radius:4px;color:#444}
+  .menu div.hl{background:#e7f5dd;color:#256b06;font-weight:600}
+  .node{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0}
+  .node input{width:15px;height:15px}
+  .gone{color:#b33;font-size:13px}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#263238;color:#fff;padding:9px 18px;border-radius:6px;font-size:13px;opacity:0;transition:.2s;pointer-events:none}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">BETALLY</div>
+    <div class="grp"><span>Agent-Setting</span><span>⌄</span></div>
+    <div class="sub on">Agent List</div>
+    <div class="sub">Brand List</div>
+    <div class="sub">Commission Percentage Default Setting</div>
+    <div class="sub">System Message</div>
+    <div class="grp"><span>Payment Setting</span><span>⌄</span></div>
+    <div class="grp"><span>Site-Setting</span><span>⌄</span></div>
+    <div class="grp"><span>Template Setting</span><span>⌄</span></div>
+    <div class="grp"><span>Agent Report</span><span>⌄</span></div>
+    <div class="grp"><span>System Report</span><span>⌄</span></div>
+    <div class="grp"><span>System Setting</span><span>⌄</span></div>
+  </aside>
+  <main>
+    <div class="top"><span>17:21, 2 Oct, 2026., Fri</span><span>|</span><span>GMT+08:00</span><span class="sp"></span><span class="adm">Admin</span></div>
+    <label class="sw"><input type="checkbox" id="noteSw" checked> 顯示 RD 註記</label>
+    <div class="ttl"><div class="back">‹</div><h1>Agent List - Edit</h1></div>
+
+    <div class="rd-note">
+      <b>DEMO：</b>這一頁是 Admin BO 的 <code>Agent-Setting › Agent List › Edit › Role Setting</code> 分頁。<code>Free Spin</code>、<code>Free Spin Report</code> 兩列是既有的，本次不改動，mockup 不提供操作。本次只新增第三列 <code>Payment Account Transactions</code>。其他分頁與左側選單只畫外觀，不提供操作。
+    </div>
+
+    <div class="tabs"><span>SMS OTP</span><span>Payment Channel</span><span>System Config</span><span>Withdraw Channel</span><span>Game Vendor Channel</span><span>Free Spin</span><span>Member Site Style</span><span>Agent Accounts</span><span class="on">Role Setting</span><span>Frontend Script</span></div>
+    <div class="panel">
+      <div class="row"><div>Free Spin</div><div><label><input type="radio" name="fs" disabled> Enable</label><label><input type="radio" name="fs" checked disabled> Deny</label></div><div>updated :</div></div>
+      <div class="row"><div>Free Spin Report</div><div><label><input type="radio" name="fsr" disabled> Enable</label><label><input type="radio" name="fsr" checked disabled> Deny</label></div><div>updated :</div></div>
+      <div class="row new"><div>Payment Account Transactions<span class="pill-new">NEW</span></div><div><label><input type="radio" name="pat" value="enable"> Enable</label><label><input type="radio" name="pat" value="deny" checked> Deny</label><button class="save" id="patSave" style="display:none">SAVE</button></div><div id="patUpd">updated :</div></div>
+    </div>
+
+    <div class="rd-note">
+      <b>新增一列</b>：<code>Payment Account Transactions</code>，排在 <code>Free Spin Report</code> 之後。選項 <code>Enable</code>／<code>Deny</code>，型別是布林值，每個 Agent 各自一個設定。版面、儲存方式、右側 <code>updated :</code> 的顯示內容與格式、變更紀錄，都與既有的兩列相同。儲存方式（現況行為）：選項改變後，該列的選項右邊出現 <code>SAVE</code> 按鈕，按了才儲存；沒按 <code>SAVE</code> 就離開，設定不變。DEMO：選回原本已儲存的值時 <code>SAVE</code> 按鈕消失、儲存後顯示 <code>Saved</code> 提示、<code>updated :</code> 後面接操作人與時間，這三點是示意，實際照既有兩列的行為。<br>
+      <b>預設值</b>：<code>Deny</code>。功能上線時所有既有的 Agent 都是 <code>Deny</code>；之後新建的 Agent 也是 <code>Deny</code>。<br>
+      <b>控制的對象</b>：這個 Agent 的 Agent BO 能不能使用 <code>3.11 Payment Account Transactions</code>。<br>
+      ・<code>Enable</code>：Agent BO 的 <code>11.2 Role Setting</code> 在 <code>Payment Management</code> 底下出現 <code>3.11 Payment Account Transactions</code> 與它的五個權限節點（<code>View</code>、<code>Export</code>、<code>Internal Transfer</code>、<code>External Transfer</code>、<code>Adjust Balance</code>）。五個節點預設都不勾，由 Agent 自己開給角色；有勾 <code>View</code> 的角色才看得到選單。<br>
+      ・<code>Deny</code>：Agent BO 的 <code>11.2 Role Setting</code> 不顯示 <code>3.11</code> 與它的節點；所有帳號（含最高權限帳號）的選單都不顯示 <code>3.11</code>；<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕；直接輸入網址時依既有的無權限處理。<br>
+      <b>前端＋後端都要擋</b>：<code>Deny</code> 的 Agent 呼叫 <code>3.11</code> 的任何介面（交易紀錄查詢、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）一律回 <code>403</code>，不可只靠隱藏選單。<br>
+      <b>由 Enable 改成 Deny</b>：按 <code>SAVE</code> 後立即生效，已登入的使用者下一次操作就被擋下。角色原本勾選的五個節點保留不清除，但不生效；之後改回 <code>Enable</code>，原本的勾選恢復生效。帳號的餘額與交易紀錄都保留。<br>
+      <b>Deny 期間的資料</b>：玩家存款核准、指定帳號的出款核准仍照常產生交易紀錄並變動餘額（Agent BO 開發 Spec 第 4 節），只是這個 Agent 看不到 <code>3.11</code>。<br>
+      <b>誰能操作</b>：能在 Admin BO 編輯 <code>Agent List</code> 的人，沿用這一頁既有的權限，不新增 Admin BO 的權限節點。<br>
+      <b>範圍</b>：這個開關只控制 <code>3.11</code>。<code>3.2</code> 核准對話框的 <code>Payment Account</code> 選項、<code>3.7</code> 的新欄位（出款設定、餘額、代碼與分組）不受它控制，所有 Agent 上線後都看得到。<code>Deny</code> 不改變核准時指定帳號清單的條件：照樣依帳號目前的出款設定、餘額與每日門檻判定，不看餘額是怎麼來的。<br>
+      <b>介面欄位</b>：這一頁既有的讀取與儲存增加一個布林欄位（<code>true</code>＝<code>Enable</code>，<code>false</code>＝<code>Deny</code>），讀取時回傳已儲存的值與 <code>updated :</code> 要顯示的資料；Agent BO 判斷 <code>403</code> 與要不要顯示節點，讀的是同一個設定。
+    </div>
+
+    <div class="rd-note">
+      <b>DEMO：切換上面的選項並按 <code>SAVE</code>，看這個 Agent 的 Agent BO 會變成什麼樣子</b>（下面兩個方塊是示意，不是 Admin BO 的畫面）
+      <div class="prev">
+        <div class="box"><h4>Agent BO 左側選單（有 <code>3.11 › View</code> 的角色）</h4><div class="menu" id="pvMenu"></div></div>
+        <div class="box"><h4>Agent BO <code>11.2 Role Setting</code> › <code>Payment Management</code></h4><div id="pvRole"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var STATE={enabled:false,updatedBy:'',updatedAt:''};
+  window.__state=STATE;
+  function pad(n){return(n<10?'0':'')+n}
+  function render(){
+    $('patUpd').textContent='updated : '+(STATE.updatedBy?STATE.updatedBy+' '+STATE.updatedAt:'');
+    var items=['3.9 Transactions Record','3.10 Manual Balance Adjustment'];
+    $('pvMenu').innerHTML=items.map(function(x){return '<div>'+x+'</div>'}).join('')+(STATE.enabled?'<div class="hl">3.11 Payment Account Transactions</div>':'<div class="gone">（不顯示 3.11）</div>');
+    $('pvRole').innerHTML=STATE.enabled?'<div class="node"><b>3.11 Payment Account Transactions</b></div>'+['View','Export','Internal Transfer','External Transfer','Adjust Balance'].map(function(n){return '<label class="node"><input type="checkbox" disabled> '+n+'</label>'}).join(''):'<div class="gone">（不顯示 3.11 與它的五個節點）</div>';
+  }
+  function picked(){return document.querySelector('input[name=pat]:checked').value==='enable'}
+  // 現況行為：選項改變後，該列出現 SAVE 按鈕；按了才儲存
+  Array.prototype.forEach.call(document.querySelectorAll('input[name=pat]'),function(r){r.addEventListener('change',function(){$('patSave').style.display=picked()!==STATE.enabled?'':'none'})});
+  $('patSave').addEventListener('click',function(){
+    STATE.enabled=picked();
+    var d=new Date(2026,9,2,17,24,0);   // DEMO：固定的示範時間
+    STATE.updatedBy='Admin';STATE.updatedAt=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+    $('patSave').style.display='none';render();var t=$('toast');t.textContent='Saved';t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1800);
+  });
+  $('noteSw').addEventListener('change',function(){document.body.classList.toggle('hide-notes',!this.checked)});
+  render();
+})();
+</script>
+</body>
+</html>
