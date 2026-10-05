@@ -11,3 +11,11 @@ flowchart TD
     C2 -- 通過 --> R2[產生 ADJUST IN 或 ADJUST OUT<br/>餘額變動, 不計入今日累計]
     R1 --> Z[完成, 立即生效, 不可修改或取消<br/>交易紀錄即審計鏈]
     R2 --> Z
+    classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class A,F,R1,R2 step
+    class G,K,C1,C2 dec
+    class N,X stop
+    class Z done

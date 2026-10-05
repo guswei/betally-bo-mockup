@@ -14,3 +14,11 @@ flowchart TD
     V -- 通過, 有帳號 --> T2[核准 + 寫入出款帳號 + WITHDRAW 交易紀錄<br/>餘額減少 + 今日出款累計增加<br/>全部同時生效, Idempotency-Key 防重送]
     T1 --> Z[完成]
     T2 --> Z
+    classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class A,B,E,F,S,T1,T2 step
+    class C,D,V dec
+    class X stop
+    class Z done

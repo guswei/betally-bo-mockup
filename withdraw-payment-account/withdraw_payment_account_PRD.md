@@ -2,7 +2,7 @@
 
 **版本**：v1（2026-10-05）　**類型**：新功能＋功能變更　**負責**：PM
 **Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)。兩份都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`
-**相關**：RD Spec `withdraw_payment_account_spec.md` v0.21（欄位、錯誤碼、介面欄位的完整定義）；流程圖附件 `withdraw_payment_account_flow_approve.png`、`withdraw_payment_account_flow_manual.png`
+**相關**：RD Spec `withdraw_payment_account_spec.md` v0.21（欄位、錯誤碼、介面欄位的完整定義）
 
 ## 1. 需求背景
 客戶在 `BANK-OFFLINE` 通道底下有兩百多個公司銀行帳號，同時用來收玩家存款與付玩家出款。現在財務在 `3.2 Withdraw List` 核准出款時只能選通道，不能指定由哪個帳號付款；系統也不知道每個帳號裡還有多少錢。客戶目前用 Excel 逐筆記錄每個帳號的存款、出款、內部調撥、銀行手續費、利息、未認領的入帳與借貸，每天人工對帳。
@@ -90,9 +90,9 @@
 Migration 方向：既有帳號 `allow_deposit = true`、`allow_withdraw = false`、`allow_withdraw_over_threshold = false`、`balance = 0`、代碼與分組為空；既有出款單的出款帳號欄位為空；所有 Agent 的開關為 `false`。不回補歷史交易。
 
 ## 5. 流程圖
-核准出款（指定帳號），附件 `withdraw_payment_account_flow_approve.png`：
+核准出款（指定帳號）：
 
-![核准出款流程圖](withdraw_payment_account_flow_approve.png)
+![核准出款流程圖](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/diagrams/withdraw_payment_account_flow_approve.png)
 
 ```mermaid
 flowchart TD
@@ -111,11 +111,19 @@ flowchart TD
     V -- 通過, 有帳號 --> T2[核准 + 寫入出款帳號 + WITHDRAW 交易紀錄<br/>餘額減少 + 今日出款累計增加<br/>全部同時生效, Idempotency-Key 防重送]
     T1 --> Z[完成]
     T2 --> Z
+    classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class A,B,E,F,S,T1,T2 step
+    class C,D,V dec
+    class X stop
+    class Z done
 ```
 
-手動單，附件 `withdraw_payment_account_flow_manual.png`：
+手動單：
 
-![手動單流程圖](withdraw_payment_account_flow_manual.png)
+![手動單流程圖](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/diagrams/withdraw_payment_account_flow_manual.png)
 
 ```mermaid
 flowchart TD
@@ -131,6 +139,14 @@ flowchart TD
     C2 -- 通過 --> R2[產生 ADJUST IN 或 ADJUST OUT<br/>餘額變動, 不計入今日累計]
     R1 --> Z[完成, 立即生效, 不可修改或取消<br/>交易紀錄即審計鏈]
     R2 --> Z
+    classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class A,F,R1,R2 step
+    class G,K,C1,C2 dec
+    class N,X stop
+    class Z done
 ```
 
 ## 6. 選單位置
