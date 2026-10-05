@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.21（2026-10-05）
+- 版本：v0.22（2026-10-05）
 
 ---
 
@@ -615,7 +615,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 - 調整不計入今日存款累計或今日出款累計，不受每日門檻與 `Allow Withdraw` 限制。
 - `Category` 的用途：`Opening Balance` 用於第一次登記帳號的實際金額；`Unrecorded Withdrawal` 用於補扣沒有指定帳號的出款；`External In` 用於從外部補錢進帳號；`Bank Fee` 用於銀行手續費；`Unclaimed Deposit` 用於未認領的入帳（見下一點）；`Interest` 用於銀行利息；`Loan` 用於借貸（`Increase` 是借入或收回借出的錢，`Decrease` 是借出或歸還借入的錢）；`Correction` 用於更正。
 
-- 未認領的入帳：銀行帳戶已經收到錢、但還找不到對應存款單時，財務建一筆 `Increase`、類別 `Unclaimed Deposit`，讓餘額與銀行一致。之後找到存款單並核准時，系統照 4.1 產生 `DEPOSIT` 並增加餘額；財務再建一筆 `Decrease`、類別 `Unclaimed Deposit`、金額相同的調整，把先前記入的那一筆沖掉。系統不自動沖銷，也不把兩筆調整與存款單關聯；對應關係由財務寫在 `Remark`。存款單核准之後、財務沖銷之前，這筆錢在餘額裡算了兩次，系統不另外限制這段期間的轉出；財務要在存款單核准後立刻沖銷。沖銷時餘額不足會依 12.4 被拒絕，等餘額足夠後再建。一張存款單的錢分成多筆、進了不同帳號時，也用這個類別處理多出來的入帳。
+- 未認領的入帳：銀行已經入帳、但還找不到對應存款單時，財務建一筆 `Increase`、類別 `Unclaimed Deposit`，讓餘額與銀行一致。之後找到存款單並核准時，系統照 4.1 產生 `DEPOSIT` 並增加餘額；財務再建一筆 `Decrease`、類別 `Unclaimed Deposit`、金額相同的調整，把先前記入的那一筆沖掉。系統不自動沖銷，也不把兩筆調整與存款單關聯；對應關係由財務寫在 `Remark`。存款單核准之後、財務沖銷之前，這筆錢在餘額裡算了兩次，系統不另外限制這段期間的轉出；財務要在存款單核准後立刻沖銷。沖銷時餘額不足會依 12.4 被拒絕，等餘額足夠後再建。一張存款單的錢分成多筆、進了不同帳號時，也用這個類別處理多出來的入帳。
 
 ### 12.4 錯誤碼
 

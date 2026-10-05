@@ -4,6 +4,7 @@ GCP Agent BO：財務核准出款時可以指定由哪個 `BANK-OFFLINE` 帳號�
 
 - [Mockup：Agent BO](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)（左側選單切換 3.2／3.7／3.11，上方可切換權限節點與 RD 註記）
 - [Mockup：Admin BO](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)（Agent List › Edit › Role Setting）
+- [操作示範影片](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_demo.mp4)（約 2 分鐘，字幕＋旁白，走過主要操作）
 - [PRD](https://github.com/guswei/betally-bo-mockup/blob/main/withdraw-payment-account/withdraw_payment_account_PRD.md)（開單用的 Textile 版以 Redmine 為準）
 - [RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/withdraw-payment-account/withdraw_payment_account_spec.md)
 - Mermaid source：[核准出款](https://github.com/guswei/betally-bo-mockup/blob/main/withdraw-payment-account/withdraw_payment_account_flow_approve.mmd)、[手動單](https://github.com/guswei/betally-bo-mockup/blob/main/withdraw-payment-account/withdraw_payment_account_flow_manual.mmd)

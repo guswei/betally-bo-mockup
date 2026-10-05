@@ -1,8 +1,8 @@
 # PRD：Payment Account 管理（出款指定帳號、帳號餘額與手動單）
 
 **版本**：v1（2026-10-05）　**類型**：新功能＋功能變更　**負責**：PM
-**Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)。兩份都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`
-**相關**：RD Spec `withdraw_payment_account_spec.md` v0.21（欄位、錯誤碼、介面欄位的完整定義）
+**Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)、[操作示範影片（約 2 分鐘）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_demo.mp4)。兩份 mockup 都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`
+**相關**：RD Spec `withdraw_payment_account_spec.md` v0.22（欄位、錯誤碼、介面欄位的完整定義）
 
 ## 1. 需求背景
 客戶在 `BANK-OFFLINE` 通道底下有兩百多個公司銀行帳號，同時用來收玩家存款與付玩家出款。現在財務在 `3.2 Withdraw List` 核准出款時只能選通道，不能指定由哪個帳號付款；系統也不知道每個帳號裡還有多少錢。客戶目前用 Excel 逐筆記錄每個帳號的存款、出款、內部調撥、銀行手續費、利息、未認領的入帳與借貸，每天人工對帳。
