@@ -3,6 +3,7 @@
 GCP Agent BO：把 ticket #524 的 `ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON` 拆成九個可個別授權的子節點，存提款列表頁的按鈕依子節點分別顯示。
 
 - [Mockup](https://guswei.github.io/betally-bo-mockup/order-override-permission/mockup.html)（三個分頁共用同一組權限）
+- [操作示範影片](https://guswei.github.io/betally-bo-mockup/order-override-permission/order_override_permission_demo.mp4)（1 分 40 秒）
 - [PRD](https://github.com/guswei/betally-bo-mockup/blob/main/order-override-permission/order_override_permission_PRD.md)（開單用的 Textile 版以 Redmine 為準）
 - [RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/order-override-permission/order_override_permission_spec.md)
 - [Mermaid source](https://github.com/guswei/betally-bo-mockup/blob/main/order-override-permission/order_override_permission_flow.mmd)

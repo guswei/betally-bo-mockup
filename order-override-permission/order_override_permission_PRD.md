@@ -1,7 +1,7 @@
 # [Agent BO] 存取款訂單覆寫權限樹更新 #732
 
 **版本**：v1.0（2026-09-23）　**類型**：功能變更　**負責**：PM
-**Mockup**：https://guswei.github.io/betally-bo-mockup/order-override-permission/mockup.html
+**Mockup**：https://guswei.github.io/betally-bo-mockup/order-override-permission/mockup.html 、[操作示範影片（1 分 40 秒）](https://guswei.github.io/betally-bo-mockup/order-override-permission/order_override_permission_demo.mp4)
 **需求來源**：https://hub.tri-7.com/crm/type/162/details/732/
 **相關**：延續 ticket #524：https://redmine.sitclouds.com/issues/24450；[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/order-override-permission/order_override_permission_spec.md)
 
