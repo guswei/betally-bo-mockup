@@ -92,6 +92,13 @@
   .hint{font-size:12.5px;color:var(--amber);padding:0 2px 8px;display:none} .hint.on{display:block}
   .err{font-size:12.5px;color:var(--red);padding:0 2px 8px;display:none} .err.on{display:block}
   .foot{display:flex;justify-content:center;gap:14px;padding:12px 18px 18px}
+  .tgl{position:relative;display:inline-block;width:26px;height:14px;vertical-align:middle;margin-right:6px;cursor:pointer}
+  .tgl input{opacity:0;width:0;height:0;position:absolute}
+  .tgl span{position:absolute;inset:0;background:#b9c1b6;border-radius:8px;transition:background .15s}
+  .tgl span::after{content:"";position:absolute;width:10px;height:10px;left:2px;top:2px;background:#fff;border-radius:50%;transition:left .15s}
+  .tgl input:checked+span{background:#3c8f1d}
+  .tgl input:checked+span::after{left:14px}
+  select.rs{min-width:120px;padding:4px 6px}
   .toast{position:fixed;right:22px;bottom:22px;background:#263238;color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;display:none;z-index:40}
   .toast.on{display:block}
   /* RD 註記 */
@@ -226,6 +233,7 @@
             <b>即時狀態</b><span class="pill-new">NEW</span>：<code>BANK-OFFLINE</code> 帳號的 <code>Threshold</code> 與 <code>Withdraw Threshold</code> 兩欄在數字下方加一條進度條（其他通道的帳號不加，<code>Threshold</code> 欄維持現況），顯示今日累計佔門檻的比例，呈現方式與 <code>3.2</code> 核准對話框的帳號清單相同：未達 80% 綠色、80% 以上橘色、已達門檻紅色。既有的 <code>Threshold</code> 欄只加進度條，數字與格式不變。<br>
             <b>Withdraw Threshold</b>：格式 <code>今日出款累計 / 門檻</code>，與既有的 <code>Threshold</code> 欄相同。<code>Allow Withdraw = false</code> 時，<code>Withdraw Threshold</code> 與 <code>Allow Withdraw Over Threshold</code> 顯示 <code>-</code>。<br>
             <b>Transactions 按鈕</b><span class="pill-new">NEW</span>：<code>Actions</code> 欄在既有的編輯、刪除按鈕之後，<code>BANK-OFFLINE</code> 帳號多一個 <code>Transactions</code> 按鈕，點了跳到 <code>3.11</code> 並以這個帳號篩選。需要 <code>3.11 › View</code> 權限，沒有權限時不顯示；其他通道的帳號也不顯示。<br>
+            <b>Status 與 Reconcile Server</b>：照現況呈現，本需求不改動這兩欄的行為。<code>Status</code> 是開關，旁邊顯示 <code>ACTIVE</code> 或 <code>INACTIVE</code>，在列表上直接切換，不必進編輯頁。<code>Reconcile Server</code> 是下拉選單，在列表上直接選；現況只有 <code>BANK-OFFLINE</code> 的帳號有這個下拉選單，其他通道的帳號顯示 <code>-</code>。<b>DEMO：</b>下拉選單的選項是示範值。<br>
             <b>停用與刪除</b>：沿用既有功能，不檢查餘額，也不檢查有沒有交易紀錄。停用的帳號不能用於核准出款、內部轉帳與轉到外部，可以調整餘額。已刪除的帳號不出現在任何帳號清單、下拉選單與篩選候選，不能用於核准出款與手動單；已有的交易紀錄保留，仍列在 <code>3.11</code>，可以用銀行、戶名、帳號號碼、單號等條件查到，這些列的 <code>Account Name</code> 不是連結。<br>
             <b>DEMO：</b>與本需求無關的既有欄位填的是固定的示範值；刪除按鈕不提供操作。<br>
             <code>Threshold</code> 的今日累計包含玩家存款與 <code>INTERNAL IN</code>；<code>Withdraw Threshold</code> 的今日累計包含玩家出款、<code>INTERNAL OUT</code> 與 <code>EXTERNAL OUT</code>。兩個累計互不影響；調整餘額不計入任何累計。
@@ -544,6 +552,7 @@ for(var i=0;i<214;i++){
 }
 for(var j=0;j<3;j++)ACCOUNTS.push({id:5300+j,channelId:4,sort:j,group:'',code:'',bank:'',name:pick(FN)+' '+pick(LN),no:digits(12),wallet:'',status:'ACTIVE',
   allowDeposit:true,depThreshold:100000,depToday:Math.round(R()*600)*100,allowDepOver:false,allowWithdraw:false,wdThreshold:null,wdToday:0,allowOver:false});
+var RECON=['','Spay2'];   // DEMO：Reconcile Server 下拉的示範選項
 var NEXT_ACC_ID=5400,SEQ=100,CLOCK=0;
 function snap(a){return{id:a.id,bank:a.bank,name:a.name,no:a.no,wallet:a.wallet}}
 function tm(h,m,s){function z(x){return(x<10?'0':'')+x}return z(h)+':'+z(m)+':'+z(s)}
@@ -685,7 +694,7 @@ function render37(){
   $('t37').tBodies[0].innerHTML=rows.map(function(a){
     return '<tr><td><button class="icon-btn ok" title="Edit" data-edit="'+a.id+'">&#9998;</button><button class="icon-btn no" title="Delete" disabled>&#10006;</button>'+(isBO(a)&&PERM.view?'<button class="icon-btn" title="Transactions" data-tx="'+a.id+'">&#128203;</button>':'')+'</td>'+
       '<td>'+a.sort+'</td><td>'+esc(chById(a.channelId).name)+'</td><td>'+esc(a.bank)+'</td><td></td><td>'+esc(a.name)+'</td><td>'+a.no+'</td><td>'+esc(a.wallet)+'</td>'+
-      '<td><span class="tag '+(a.status==='ACTIVE'?'g':'n')+'">'+a.status+'</span></td><td>-</td><td>0%</td><td></td>'+
+      '<td><label class="tgl"><input type="checkbox" data-st="'+a.id+'"'+(a.status==='ACTIVE'?' checked':'')+'><span></span></label>'+a.status+'</td><td>'+(isBO(a)?'<select class="rs" data-rs="'+a.id+'">'+RECON.map(function(x){return '<option'+(x===(a.reconcile||'')?' selected':'')+'>'+x+'</option>'}).join('')+'</select>':'-')+'</td><td>0%</td><td></td>'+
       '<td class="num">100</td><td class="num">1,000,000</td><td>USE_CHANNEL_SETTINGS</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0</td><td class="num">10</td><td class="num">1000000</td><td>ALL</td>'+
       '<td>'+money(a.depToday)+' / '+money(a.depThreshold)+(isBO(a)?bar(a.depToday,a.depThreshold):'')+'</td><td class="num">'+money(a.depToday)+'</td>'+
       '<td>OLETH_admin</td><td>2026-08-13 17:31:51</td><td>OLETH_admin</td><td>2026-08-13 17:31:51</td><td></td><td>'+a.allowDepOver+'</td>'+
@@ -965,6 +974,9 @@ $('l32Next').addEventListener('click',function(){L32.page++;render32()});
 // 3.7
 $('f37Search').addEventListener('click',function(){S37.code=$('f37Code').value;S37.grp=$('f37Grp').value;S37.bank=$('f37Bank').value;S37.name=$('f37Name').value;S37.no=$('f37No').value;S37.ch=$('f37Ch').value;S37.page=1;render37()});
 $('f37Reset').addEventListener('click',function(){['f37Code','f37Bank','f37Name','f37No'].forEach(function(i){$(i).value=''});$('f37Grp').value='';S37.grp='';S37.code=S37.bank=S37.name=S37.no=S37.ch='';S37.page=1;render37()});
+$('t37').addEventListener('change',function(e){var t=e.target,a;
+  if(t.dataset.st){a=accById(+t.dataset.st);a.status=t.checked?'ACTIVE':'INACTIVE';render37()}   // 列表上直接切換，不經過編輯頁
+  else if(t.dataset.rs){a=accById(+t.dataset.rs);a.reconcile=t.value}});
 $('p37Prev').addEventListener('click',function(){S37.page--;render37()});
 $('p37Next').addEventListener('click',function(){S37.page++;render37()});
 $('b37Add').addEventListener('click',function(){open37(null)});
