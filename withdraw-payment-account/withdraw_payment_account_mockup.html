@@ -99,6 +99,16 @@
   .tgl input:checked+span{background:#3c8f1d}
   .tgl input:checked+span::after{left:14px}
   select.rs{min-width:120px;padding:4px 6px}
+  .rp-sec{font-size:15px;font-weight:600;margin:0 0 6px}
+  .rp-all{padding:4px 0 8px;font-size:14px}
+  .rp-grp{padding:10px 0 12px 80px}
+  .rp-grp:nth-child(odd){background:#eef4e6}
+  .rp-name{font-size:14.5px;margin-bottom:10px}
+  .rp-ic{border:0;background:none;font-size:15px;cursor:pointer;padding:0 5px;color:#c62828}
+  .rp-ic.ok{color:#2e7d32} .rp-ic:disabled{cursor:default;opacity:.55}
+  .rp-nodes{display:flex;flex-wrap:wrap;gap:8px 30px}
+  .rp-nodes label{display:inline-flex;align-items:center;gap:7px;font-size:12.5px}
+  .rp-nodes input{accent-color:#e8537a;width:14px;height:14px}
   .toast{position:fixed;right:22px;bottom:22px;background:#263238;color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;display:none;z-index:40}
   .toast.on{display:block}
   /* RD 註記 */
@@ -136,6 +146,8 @@
     <div class="sub">3.9 Transactions Record</div>
     <div class="sub">3.10 Manual Balance Adjustment</div>
     <div class="sub newnav" data-nav="311">3.11 Payment Account Transactions</div>
+    <div class="item">11. System Setting</div>
+    <div class="sub" data-nav="112">11.2 Role Setting</div>
   </aside>
 
   <main class="main">
@@ -145,7 +157,7 @@
     </div>
 
     <div class="rd-note">
-      <b>DEMO：</b>左側選單可切換三頁：<code>3.2 Withdraw List</code>、<code>3.7 Payment Account</code>、<code>3.11 Payment Account Transactions</code>（新頁，選單放在 <code>3.10</code> 之後）。三頁共用同一份合成資料（<code>BANK-OFFLINE</code> 底下 214 個帳號），在任一頁的操作會反映到其他頁；重新整理即還原。mockup 的金額以 JavaScript 數值示範，實作一律用 <code>DECIMAL(18,2)</code>，不可用浮點數。<br>
+      <b>DEMO：</b>左側選單可切換三頁：<code>3.2 Withdraw List</code>、<code>3.7 Payment Account</code>、<code>3.11 Payment Account Transactions</code>（新頁，選單放在 <code>3.10</code> 之後）。另有 <code>11.2 Role Setting</code>，呈現新增的權限節點。三頁共用同一份合成資料（<code>BANK-OFFLINE</code> 底下 214 個帳號），在任一頁的操作會反映到其他頁；重新整理即還原。mockup 的金額以 JavaScript 數值示範，實作一律用 <code>DECIMAL(18,2)</code>，不可用浮點數。<br>
       <code>9.5 Payment Report</code> 與 <code>12.5 Payment Report</code> 本次不改動，mockup 不呈現。
     </div>
     <div class="rd-note perm">
@@ -381,6 +393,28 @@
           <b>手動單單號</b>：系統產生、全系統不重複，前綴 <code>IT</code>（Internal Transfer）、<code>ET</code>（External Transfer）、<code>AJ</code>（Adjust Balance）。<br>
           <b>同一交易內完成</b>：每一筆交易紀錄與帳號餘額的變動要同時生效或同時不生效；內部轉帳的兩筆也是。金流請求帶 <code>Idempotency-Key</code>，重送不重複入帳。<br>
           <b>資料範圍</b>：只列出登入者所屬代理的帳號的紀錄，與 <code>3.7</code> 列表相同。
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 11.2 ============ -->
+    <section class="page" id="pg-112">
+      <div class="card">
+        <p class="rp-sec">Payment Management</p>
+        <div class="rp-all">All <button class="rp-ic ok" title="Select all" disabled>&#10003;</button><button class="rp-ic" title="Clear all" disabled>&#10005;</button><button class="rp-ic" title="Reset" disabled>&#8635;</button></div>
+        <div id="rpGroups"></div>
+        <div class="rd-note">
+          <b>新增的權限群組</b><span class="pill-new">NEW</span>：<code>Payment Management</code> 底下新增群組 <code>Payment Account Transactions</code>，排在 <code>Manual Balance Adjustment</code> 之後。群組標題右邊的三個圖示與其他群組相同。群組含五個節點：<br>
+          ・<code>VIEW</code>：進入 <code>3.11</code>、查詢交易紀錄與 <code>Summary by Account</code>、看摘要卡。沒有這個權限時，選單不顯示 <code>3.11</code>，<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕。<br>
+          ・<code>EXPORT</code>：<code>3.11</code> 兩種檢視的 <code>Export CSV</code>。沒有這個權限時，不顯示 <code>Export CSV</code> 按鈕。<br>
+          ・<code>Internal Transfer</code>：建立內部轉帳單。沒有這個權限時，不顯示 <code>Internal Transfer</code> 按鈕。<br>
+          ・<code>External Transfer</code>：建立轉到外部的單。沒有這個權限時，不顯示 <code>External Transfer</code> 按鈕。<br>
+          ・<code>Adjust Balance</code>：建立調整餘額的單，含 <code>Set balance to</code>。沒有這個權限時，不顯示 <code>Adjust Balance</code> 按鈕。<br>
+          <b>預設值</b>：上線時，所有既有角色的五個節點都不勾選。新建的角色，五個節點預設不勾選。<br>
+          <b>節點之間的關係</b>：五個節點各自獨立儲存。<code>EXPORT</code>、<code>Internal Transfer</code>、<code>External Transfer</code>、<code>Adjust Balance</code> 四個節點，角色同時具備 <code>VIEW</code> 時才有作用。<br>
+          <b>前端＋後端都要擋</b>：手動單沒有審核步驟，權限是唯一的管制。後端對每一個查詢與動作各自驗證對應的節點；角色沒有該節點時，後端回 <code>403</code>。<br>
+          <b>Admin BO 的開關</b>：Admin BO 把這個 Agent 的 <code>Payment Account Transactions</code> 設為 <code>Deny</code> 時，這一頁不顯示這個群組。角色已勾選的節點保留，不清除，但不生效。Admin BO 改回 <code>Enable</code> 後，這個群組重新顯示，已勾選的節點恢復生效。<br>
+          <b>DEMO：</b>mockup 預設五個節點都勾選，方便看其他頁面。這裡的勾選立即生效，與頁面上方的「權限切換」同步；正式的儲存方式與這一頁現況相同。其他群組是既有節點，本需求不改動，mockup 不提供操作。<code>All</code> 那一列的三個圖示也不提供操作。新群組的還原圖示不提供操作。
         </div>
       </div>
     </section>
@@ -646,12 +680,12 @@ function taSet(inp,id){if(id&&!accById(id))id=null;TA[inp].sel=id||null;$(inp).v
 function accInfo(a){return 'Balance: '+money(a.balance)+' · '+(a.allowWithdraw?'Today Withdraw: '+money(a.wdToday)+' / '+money(a.wdThreshold):'Allow Withdraw: No')}
 
 // ---------- 導覽 ----------
-var TITLES={'32':'3.2 Withdraw List','37':'3.7 Payment Account','311':'3.11 Payment Account Transactions'};
+var TITLES={'32':'3.2 Withdraw List','37':'3.7 Payment Account','311':'3.11 Payment Account Transactions','112':'11.2 Role Setting'};
 function show(p){
-  ['32','37','311'].forEach(function(x){$('pg-'+x).classList.toggle('on',x===p)});
+  ['32','37','311','112'].forEach(function(x){$('pg-'+x).classList.toggle('on',x===p)});
   Array.prototype.forEach.call(document.querySelectorAll('.side [data-nav]'),function(e){e.classList.toggle('on',e.dataset.nav===p)});
   $('h1').textContent=TITLES[p];
-  if(p==='32')render32();if(p==='37'){close37();render37()}if(p==='311')render311();
+  if(p==='32')render32();if(p==='37'){close37();render37()}if(p==='311')render311();if(p==='112')render112();
 }
 
 // ---------- 3.2 ----------
@@ -877,7 +911,22 @@ function submitM(){
   }
   closeM();T11.page=1;render311();toast('Created '+ref);
 }
+// ---------- 11.2 Role Setting ----------
+var ALLOW_OTHER='ALLOW PERFORM ORDER PROCESSED BY OTHER PERSON';
+var RP_OLD=[['Deposit List',['APPROVED','EXPORT','Force Approve','VIEW','Manual Deposit','Manual Deposit Approved',ALLOW_OTHER]],['Withdraw List',['APPROVED','CHECK','EXPORT','FORCE APPROVE','VIEW','MANUAL WITHDRAW',ALLOW_OTHER]],
+  ['Bank List',['VIEW','EDIT']],['Payment Level',['ADD','DELETE','EXPORT','VIEW','EDIT']],['Payment Method Management',['VIEW','EDIT']],['Payment Channel',['ADD','DELETE','EXPORT','VIEW','EDIT']],
+  ['Payment Account',['ADD','DELETE','EXPORT','VIEW','EDIT']],['Withdraw Channel',['ADD','DELETE','VIEW','EDIT']],['Transactions Record',['EXPORT','VIEW']],['Manual Balance Adjustment',['ADD','DELETE','VIEW','EDIT']]];
+var RP_NEW=[['view','VIEW'],['exp','EXPORT'],['internal','Internal Transfer'],['external','External Transfer'],['adjust','Adjust Balance']];
+function rpIcons(live){var d=live?'':' disabled';return '<button class="rp-ic ok" title="Select all"'+(live?' data-rpall="1"':d)+'>&#10003;</button><button class="rp-ic" title="Clear all"'+(live?' data-rpall="0"':d)+'>&#10005;</button><button class="rp-ic" title="Reset" disabled>&#8635;</button>'}
+function render112(){
+  $('rpGroups').innerHTML=RP_OLD.map(function(g){return '<div class="rp-grp"><div class="rp-name">'+g[0]+' '+rpIcons(false)+'</div><div class="rp-nodes">'+g[1].map(function(n){return '<label><input type="checkbox" checked disabled> '+n+'</label>'}).join('')+'</div></div>'}).join('')+
+    '<div class="rp-grp" id="rpNew"><div class="rp-name">Payment Account Transactions<span class="pill-new">NEW</span> '+rpIcons(true)+'</div><div class="rp-nodes">'+RP_NEW.map(function(n){return '<label><input type="checkbox" data-rp="'+n[0]+'"'+(PERM[n[0]]?' checked':'')+'> '+n[1]+'</label>'}).join('')+'</div></div>';
+}
+function setPerm(k,v){PERM[k]=v;var c=document.querySelector('input[data-perm="'+k+'"]');if(c)c.checked=v}
+$('rpGroups').addEventListener('change',function(e){var k=e.target.dataset.rp;if(k){setPerm(k,e.target.checked);applyPerm()}});
+$('rpGroups').addEventListener('click',function(e){var b=e.target.closest('[data-rpall]');if(b){RP_NEW.forEach(function(n){setPerm(n[0],b.dataset.rpall==='1')});applyPerm()}});
 function applyPerm(){
+  if($('pg-112').classList.contains('on'))render112();
   document.querySelector('.side [data-nav="311"]').style.display=PERM.view?'':'none';
   $('b11Int').style.display=PERM.internal?'':'none';$('b11Ext').style.display=PERM.external?'':'none';$('b11Adj').style.display=PERM.adjust?'':'none';$('b11Exp').style.display=PERM.exp?'':'none';
   if(!PERM.view&&$('pg-311').classList.contains('on'))show('32');
