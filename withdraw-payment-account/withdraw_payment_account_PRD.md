@@ -1,8 +1,8 @@
 # PRD：Payment Account 管理（出款指定帳號、帳號餘額與手動單）
 
-**版本**：v1（2026-10-05）　**類型**：新功能＋功能變更　**負責**：PM
+**版本**：v1.1（2026-10-08）　**類型**：新功能＋功能變更　**負責**：PM
 **Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)、[操作示範影片（約 2 分鐘）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_demo.mp4)。兩份 mockup 都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`
-**相關**：RD Spec `withdraw_payment_account_spec.md` v0.22（欄位、錯誤碼、介面欄位的完整定義）
+**相關**：RD Spec `withdraw_payment_account_spec.md` v0.23（欄位、錯誤碼、介面欄位的完整定義）
 
 ## 1. 需求背景
 客戶在 `BANK-OFFLINE` 通道底下有兩百多個公司銀行帳號，同時用來收玩家存款與付玩家出款。現在財務在 `3.2 Withdraw List` 核准出款時只能選通道，不能指定由哪個帳號付款；系統也不知道每個帳號裡還有多少錢。客戶目前用 Excel 逐筆記錄每個帳號的存款、出款、內部調撥、銀行手續費、利息、未認領的入帳與借貸，每天人工對帳。
@@ -29,7 +29,7 @@
 | FR-11 | 手動單：Internal Transfer | 從一個 `BANK-OFFLINE` 帳號轉到另一個，產生成對的 `INTERNAL OUT`／`INTERNAL IN`，同一單號、同時生效。 |
 | FR-12 | 手動單：External Transfer | 從 `BANK-OFFLINE` 帳號轉給系統外的對象，產生 `EXTERNAL OUT`，記錄對方資料與用途。 |
 | FR-13 | 手動單：Adjust Balance | 增加、減少或直接設定帳號餘額（`Set balance to`），類別必選、原因必填；各方向的類別固定，見第 3 節 BO 欄位表的 `Category`。未認領的入帳先加後沖。`Set balance to` 的差額以後端送出當下的餘額計算。 |
-| FR-14 | 權限節點 | Agent BO `11.2 Role Setting` 新增 `3.11` 的五個節點：`View`、`Export`、`Internal Transfer`、`External Transfer`、`Adjust Balance`，上線預設都不勾。後端逐一驗權。 |
+| FR-14 | 權限節點 | Agent BO `11.2 Role Setting` 新增群組 `Payment Account Transactions`，含控制 `3.11` 的五個節點：`VIEW`、`EXPORT`、`Internal Transfer`、`External Transfer`、`Adjust Balance`，上線預設都不勾。後端逐一驗權。 |
 | FR-15 | Admin BO 開關 | Admin BO `Agent List › Edit › Role Setting` 新增一列 `Payment Account Transactions`（`Enable`／`Deny`，預設 `Deny`）。`Deny` 的 Agent 不能使用 `3.11`；`3.2` 與 `3.7` 的新功能不受它控制。 |
 
 範圍內（IN）：Agent BO 的 `3.2 Withdraw List`（Finance Approval 核准對話框、列表、篩選、匯出）、`3.7 Payment Account`（列表、新增、編輯）、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；玩家存款核准時的入帳；Admin BO 的 `Agent List › Edit › Role Setting`。範圍外（OUT）：`BANK-OFFLINE` 以外的通道；帳號在通道之間搬移；`Payment Level`；`Force Approve`、`New Withdraw`、Risk Verification 與 `2.5 Risk Automation Process`；核准後修改出款帳號；既有出款單回補；一張出款單由多個帳號分開付款（以 `Not specified` 核准後用調整處理）；手動單的審核、修改、取消、刪除與手續費欄位；`9.5`、`12.5`、`9.17`、`9.18`、`9.19`、`3.9`、`3.1` 的畫面。
@@ -154,10 +154,10 @@ Agent BO 新增 `3.11` 一個選單項；`3.2`、`3.7` 沿用現有選單。Admi
 
 | 選單路徑 | 角色 / 權限 | 說明 |
 |---|---|---|
-| Agent BO：`3. Payment Management` › `3.11 Payment Account Transactions`（新增，排在 `3.10 Manual Balance Adjustment` 之後） | Admin BO 開關為 `Enable` 的 Agent；角色具 `3.11 › View`。建單與匯出另需 `Internal Transfer`、`External Transfer`、`Adjust Balance`、`Export` 節點 | 查交易紀錄與每帳號合計、建手動單。資料範圍限登入者所屬代理（4-tier 既有規則） |
+| Agent BO：`3. Payment Management` › `3.11 Payment Account Transactions`（新增，排在 `3.10 Manual Balance Adjustment` 之後） | Admin BO 開關為 `Enable` 的 Agent；角色具 `3.11 › VIEW`。建單與匯出另需 `Internal Transfer`、`External Transfer`、`Adjust Balance`、`EXPORT` 節點 | 查交易紀錄與每帳號合計、建手動單。資料範圍限登入者所屬代理（4-tier 既有規則） |
 | Agent BO：`3. Payment Management` › `3.2 Withdraw List` | 沿用 Finance Approval 的 Approve 權限與 `3.2` 既有檢視、匯出權限 | 核准時指定出款帳號；看出款帳號欄位與篩選 |
 | Agent BO：`3. Payment Management` › `3.7 Payment Account` | 沿用 `3.7` 既有的檢視、新增、編輯權限 | 設定出款門檻、代碼與分組；看餘額 |
-| Agent BO：`11.2 Role Setting` › `Payment Management` | 沿用 `11.2` 既有權限 | 新增 `3.11` 頁與五個節點，上線預設不勾；Admin BO 開關為 `Deny` 時不顯示 |
+| Agent BO：`11.2 Role Setting` › `Payment Management` | 沿用 `11.2` 既有權限 | 新增群組 `Payment Account Transactions` 與五個節點，上線預設不勾；Admin BO 開關為 `Deny` 時不顯示 |
 | Admin BO：`Agent-Setting` › `Agent List` › `Edit` › `Role Setting` | 沿用 `Agent List` 既有的編輯權限 | 新增 `Payment Account Transactions` 一列，決定該 Agent 能不能使用 `3.11` |
 
 ## 7. 驗收標準（AC）
@@ -168,7 +168,7 @@ Agent BO 新增 `3.11` 一個選單項；`3.2`、`3.7` 沿用現有選單。Admi
 | AC-03 | FR-1 | 帳號原本 `Withdraw Threshold = 50,000`、`Allow Withdraw Over Threshold = Yes`。把 `Allow Withdraw` 改成 No 儲存：兩個欄位不可編輯、不驗證，已存的值保留；之後改回 Yes，兩個欄位帶出 `50,000` 與 Yes。 |
 | AC-04（負向） | FR-1 | 其他通道的帳號（例如 `QRIS-OFFLINE`）：`Allow Deposit` 固定 Yes、`Allow Withdraw` 固定 No 不可改；請求帶了不同的值，後端以固定值儲存；派收款帳號的行為與上線前相同。 |
 | AC-05 | FR-1 | `BANK-OFFLINE` 帳號 X 改成 `Allow Deposit = No` 後，之後的玩家存款不會被派到 X；通道底下所有帳號都不可用時，前台不顯示該存款通道。改設定前已建立、收款帳號是 X 的存款單 D：D 記錄的收款帳號仍是 X，核准沿用既有檢查，核准成功時依 AC-19 在 X 產生 `DEPOSIT`。 |
-| AC-06 | FR-2 | `3.7` 列表第 35 欄顯示 `BANK-OFFLINE` 帳號的餘額，其他通道顯示 `-`；`BANK-OFFLINE` 帳號的 `Threshold` 與 `Withdraw Threshold` 進度條未達 80% 綠、80% 以上橘、100% 以上紅。Agent 的 Admin BO 開關為 `Enable` 且使用者有 `3.11 › View` 時，`BANK-OFFLINE` 帳號有 `Transactions` 按鈕，點了跳到 `3.11` 並以該帳號篩選。 |
+| AC-06 | FR-2 | `3.7` 列表第 35 欄顯示 `BANK-OFFLINE` 帳號的餘額，其他通道顯示 `-`；`BANK-OFFLINE` 帳號的 `Threshold` 與 `Withdraw Threshold` 進度條未達 80% 綠、80% 以上橘、100% 以上紅。Agent 的 Admin BO 開關為 `Enable` 且使用者有 `3.11 › VIEW` 時，`BANK-OFFLINE` 帳號有 `Transactions` 按鈕，點了跳到 `3.11` 並以該帳號篩選。 |
 | AC-07（負向） | FR-2 | 新增與編輯請求帶 `balance` 或 `todayWithdrawAmount` 時，後端不接受，帳號餘額與累計不變。 |
 | AC-08 | FR-3 | 帳號設 `Account Code = A-101` 後，核准對話框、手動單下拉、`3.2` 與 `3.11` 篩選都能用 `a-101` 找到該帳號，且帳號標示開頭是 `A-101 - `。代碼與分組不填時，出款核准、餘額、手動單都照常運作。 |
 | AC-09 | FR-3 | 已有分組 `GRP-B`，在另一個帳號輸入 `  grp-b ` 儲存，存成 `GRP-B`；`3.7` 的 `Account Group` 篩選選 `GRP-B` 只列該分組的帳號，選 `No Group` 只列沒有分組的 `BANK-OFFLINE` 帳號；`3.11` 選 `GRP-B` 只列目前屬於該分組的帳號的交易。 |
@@ -189,11 +189,11 @@ Agent BO 新增 `3.11` 一個選單項；`3.2`、`3.7` 沿用現有選單。Admi
 | AC-24（負向） | FR-8 | `Allow Withdraw = No` 的帳號不出現在核准清單、不能做內部轉帳的轉出與轉到外部（回 `409 WITHDRAW_NOT_ALLOWED`），但可以做內部轉入與調整餘額。同一帳號同時發生兩個轉出時，後完成的依前一個完成後的餘額與累計判定，餘額不會小於 0；以 AC-23 的條件同時送出兩筆 3,000：`Allow Withdraw Over Threshold = Yes` 時第一筆成功（累計 51,000）、第二筆被拒；`= No` 時兩筆都被拒。 |
 | AC-25 | FR-8 | 內部轉入 1,000 後，轉入帳號的 `Today Deposit Amount` 增加 1,000；轉入本身不受存款門檻限制；累計因此達到 `Threshold` 的帳號，不再被派給玩家存款。調整餘額不改變任何累計。今日累計在既有的切日時刻歸零。 |
 | AC-26 | FR-8 | 昨天建立、今天核准的出款單，計入今天的 `Today Withdraw Amount`；計入的是交易金額本身，不扣手續費；之後這張出款單的狀態再有變化，已計入的累計不扣回。 |
-| AC-27 | FR-9 | Agent 開關為 `Enable`、有 `3.11 › View` 的使用者直接進入 `3.11`：日期區間預設為今日累計這一期（最近一次歸零到下一次歸零前一秒），摘要卡顯示全部帳號總覽（帳號數、餘額合計、今日存款合計、今日出款合計），列表依 `Created Time` 由新到舊、每頁 10 筆；選了帳號後摘要卡改顯示該帳號狀態。 |
+| AC-27 | FR-9 | Agent 開關為 `Enable`、有 `3.11 › VIEW` 的使用者直接進入 `3.11`：日期區間預設為今日累計這一期（最近一次歸零到下一次歸零前一秒），摘要卡顯示全部帳號總覽（帳號數、餘額合計、今日存款合計、今日出款合計），列表依 `Created Time` 由新到舊、每頁 10 筆；選了帳號後摘要卡改顯示該帳號狀態。 |
 | AC-28（負向） | FR-9、FR-10 | 日期區間超過 31 天時前端不可查詢並顯示 `Date range cannot exceed 31 days.`；直接呼叫後端回 `400 DATE_RANGE_TOO_LONG`。交易列表、`Summary by Account` 的查詢與兩種匯出都受此限制。 |
 | AC-29 | FR-9 | 篩選條件同時套用到列表、`Total In`／`Total Out` 與 `Export CSV`；`Bank` 選項含已改銀行或已刪除帳號的歷史銀行；`Export CSV` 匯出全部符合的紀錄（不只本頁）共 17 欄，`Amount` 帶正負號。 |
 | AC-30 | FR-10 | 切到 `Summary by Account`：每個有交易的帳號一列，各金額欄等於該帳號在條件範圍內對應類型或類別的合計，`Unclaimed`、`Loan`、`Other Adjust` 為淨額；`Total` 列等於全部列（不只本頁）合計；點未刪除帳號的 `Account Name` 切回交易列表並以該帳號篩選。已刪除帳號仍列出一列並計入 `Total`：代碼、銀行、戶名、帳號用範圍內最新一筆交易當下的值，`Account Group`、`Status`、`Balance` 顯示 `-`，戶名不是連結。匯出 17 欄、全部列，不含 `Total` 列。 |
-| AC-31（負向） | FR-10 | 沒有 `3.11 › View` 時查詢 `Summary by Account` 回 `403`；有 `View` 沒有 `Export` 時看不到 `Export CSV`，直接呼叫匯出回 `403`。 |
+| AC-31（負向） | FR-10 | 沒有 `3.11 › VIEW` 時查詢 `Summary by Account` 回 `403`；有 `VIEW` 沒有 `EXPORT` 時看不到 `Export CSV`，直接呼叫匯出回 `403`。 |
 | AC-32 | FR-10 | 昨天帳號 A、B 各有一筆 `6000000000000000.00` 的存款：查昨天的 `Summary by Account`，`Total` 列的 `Deposit` 顯示 `12,000,000,000,000,000.00`，不截斷、不報錯。 |
 | AC-33 | FR-9 | 同一代理、未刪除的帳號 A、B 目前餘額各為 `6000000000000000.00`，沒有選定帳號時，總覽卡的 `Total Balance` 顯示 `12,000,000,000,000,000.00`，不截斷、不報錯。 |
 | AC-34 | FR-11 | 帳號 A（餘額 10,000）轉 1,000 到帳號 B：產生 `INTERNAL OUT`（A）與 `INTERNAL IN`（B）兩筆，同一 `IT` 開頭的單號、同時生效；A 餘額 9,000、今日出款 +1,000；B 餘額 +1,000、今日存款 +1,000。 |
@@ -205,9 +205,9 @@ Agent BO 新增 `3.11` 一個選單項；`3.2`、`3.7` 沿用現有選單。Admi
 | AC-40 | FR-13 | 表單開著時（畫面顯示餘額 1,200），同帳號先有一筆存款入帳 300；之後送出 `Set balance to 80000`：產生的 `ADJUST IN` 是 78,500.00，餘額 80,000.00，這筆的 `Balance Before` 等於存款那筆的 `Balance After`（1,500.00）。 |
 | AC-41 | FR-13 | 未認領入帳：先 `Increase`、類別 `Unclaimed Deposit` 300，存款單核准後再 `Decrease`、同類別 300；兩筆都出現在 `3.11`，合計表 `Unclaimed` 淨額為 0，餘額淨增加的只有那筆 `DEPOSIT`。 |
 | AC-42（負向） | FR-13 | `Decrease` 金額大於餘額回 `409 PAYMENT_ACCOUNT_INSUFFICIENT_BALANCE`；`Set balance to` 金額等於目前餘額回 `409 BALANCE_UNCHANGED`；類別沒選或 `Remark` 沒填回 400；調整建立後沒有修改、取消、刪除入口。 |
-| AC-43 | FR-14 | Agent 開關為 `Enable`、第一次開通時，所有角色的五個節點都不勾；只勾 `View` 的角色看得到 `3.11` 但看不到三個建單按鈕與 `Export CSV`；再加勾 `Internal Transfer` 時只多出 `Internal Transfer` 按鈕。 |
-| AC-44（負向） | FR-14 | 沒有 `View` 的使用者呼叫 `3.11` 任何介面回 `403`；有 `View` 但缺 `Export`、`Internal Transfer`、`External Transfer` 或 `Adjust Balance` 的，只有對應的匯出或建單回 `403`、不建單，查詢照常。表單開著時權限被收回，送出也回 `403`。 |
-| AC-45 | FR-15 | 從未開通過的 Agent，Admin BO 把 `Payment Account Transactions` 改成 `Enable` 並按 `SAVE` 後，該 Agent 的 `11.2 Role Setting` 出現 `3.11` 與五個節點，全部不勾。 |
+| AC-43 | FR-14 | Agent 開關為 `Enable`、第一次開通時，所有角色的五個節點都不勾；只勾 `VIEW` 的角色看得到 `3.11` 但看不到三個建單按鈕與 `Export CSV`；再加勾 `Internal Transfer` 時只多出 `Internal Transfer` 按鈕。 |
+| AC-44（負向） | FR-14 | 沒有 `VIEW` 的使用者呼叫 `3.11` 任何介面回 `403`；有 `VIEW` 但缺 `EXPORT`、`Internal Transfer`、`External Transfer` 或 `Adjust Balance` 的，只有對應的匯出或建單回 `403`、不建單，查詢照常。表單開著時權限被收回，送出也回 `403`。 |
+| AC-45 | FR-15 | 從未開通過的 Agent，Admin BO 把 `Payment Account Transactions` 改成 `Enable` 並按 `SAVE` 後，該 Agent 的 `11.2 Role Setting` 出現群組 `Payment Account Transactions` 與五個節點，全部不勾。 |
 | AC-46（負向） | FR-15 | `Deny` 的 Agent：`11.2 Role Setting` 不顯示 `3.11` 節點，所有帳號（含最高權限）選單不顯示 `3.11`，`3.7` 不顯示 `Transactions` 按鈕，呼叫 `3.11` 任何介面回 `403`。由 `Enable` 改回 `Deny` 後立即生效，角色原本的勾選保留不清除，再改回 `Enable` 後恢復原本的勾選。改選但沒按 `SAVE` 時設定不變。 |
 | AC-47 | FR-15 | `Deny` 的 Agent 仍可在 `3.2` 指定出款帳號、在 `3.7` 看到新欄位；玩家存款與指定帳號的出款照常產生交易紀錄並變動餘額。 |
 

@@ -82,8 +82,8 @@
       <b>新增一列</b>：<code>Payment Account Transactions</code>，排在 <code>Free Spin Report</code> 之後。選項 <code>Enable</code>／<code>Deny</code>，型別是布林值，每個 Agent 各自一個設定。版面、儲存方式、右側 <code>updated :</code> 的顯示內容與格式、變更紀錄，都與既有的兩列相同。儲存方式（現況行為）：選項改變後，該列的選項右邊出現 <code>SAVE</code> 按鈕，按了才儲存；沒按 <code>SAVE</code> 就離開，設定不變。DEMO：選回原本已儲存的值時 <code>SAVE</code> 按鈕消失、儲存後顯示 <code>Saved</code> 提示、<code>updated :</code> 後面接操作人與時間，這三點是示意，實際照既有兩列的行為。<br>
       <b>預設值</b>：<code>Deny</code>。功能上線時所有既有的 Agent 都是 <code>Deny</code>；之後新建的 Agent 也是 <code>Deny</code>。<br>
       <b>控制的對象</b>：這個 Agent 的 Agent BO 能不能使用 <code>3.11 Payment Account Transactions</code>。<br>
-      ・<code>Enable</code>：Agent BO 的 <code>11.2 Role Setting</code> 在 <code>Payment Management</code> 底下出現 <code>3.11 Payment Account Transactions</code> 與它的五個權限節點（<code>View</code>、<code>Export</code>、<code>Internal Transfer</code>、<code>External Transfer</code>、<code>Adjust Balance</code>）。五個節點預設都不勾，由 Agent 自己開給角色；有勾 <code>View</code> 的角色才看得到選單。<br>
-      ・<code>Deny</code>：Agent BO 的 <code>11.2 Role Setting</code> 不顯示 <code>3.11</code> 與它的節點；所有帳號（含最高權限帳號）的選單都不顯示 <code>3.11</code>；<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕；直接輸入網址時依既有的無權限處理。<br>
+      ・<code>Enable</code>：Agent BO 的 <code>11.2 Role Setting</code> 在 <code>Payment Management</code> 底下出現群組 <code>Payment Account Transactions</code> 與它的五個權限節點（<code>VIEW</code>、<code>EXPORT</code>、<code>Internal Transfer</code>、<code>External Transfer</code>、<code>Adjust Balance</code>）。五個節點預設都不勾，由 Agent 自己開給角色；有勾 <code>VIEW</code> 的角色才看得到選單。<br>
+      ・<code>Deny</code>：Agent BO 的 <code>11.2 Role Setting</code> 不顯示群組 <code>Payment Account Transactions</code> 與它的節點；所有帳號（含最高權限帳號）的選單都不顯示 <code>3.11</code>；<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕；直接輸入網址時依既有的無權限處理。<br>
       <b>前端＋後端都要擋</b>：<code>Deny</code> 的 Agent 呼叫 <code>3.11</code> 的任何介面（交易紀錄查詢、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）一律回 <code>403</code>，不可只靠隱藏選單。<br>
       <b>由 Enable 改成 Deny</b>：按 <code>SAVE</code> 後立即生效，已登入的使用者下一次操作就被擋下。角色原本勾選的五個節點保留不清除，但不生效；之後改回 <code>Enable</code>，原本的勾選恢復生效。帳號的餘額與交易紀錄都保留。<br>
       <b>Deny 期間的資料</b>：玩家存款核准、指定帳號的出款核准仍照常產生交易紀錄並變動餘額（Agent BO 開發 Spec 第 4 節），只是這個 Agent 看不到 <code>3.11</code>。<br>
@@ -95,7 +95,7 @@
     <div class="rd-note">
       <b>DEMO：切換上面的選項並按 <code>SAVE</code>，看這個 Agent 的 Agent BO 會變成什麼樣子</b>（下面兩個方塊是示意，不是 Admin BO 的畫面）
       <div class="prev">
-        <div class="box"><h4>Agent BO 左側選單（有 <code>3.11 › View</code> 的角色）</h4><div class="menu" id="pvMenu"></div></div>
+        <div class="box"><h4>Agent BO 左側選單（有 <code>3.11 › VIEW</code> 的角色）</h4><div class="menu" id="pvMenu"></div></div>
         <div class="box"><h4>Agent BO <code>11.2 Role Setting</code> › <code>Payment Management</code></h4><div id="pvRole"></div></div>
       </div>
     </div>
@@ -112,7 +112,7 @@
     $('patUpd').textContent='updated : '+(STATE.updatedBy?STATE.updatedBy+' '+STATE.updatedAt:'');
     var items=['3.9 Transactions Record','3.10 Manual Balance Adjustment'];
     $('pvMenu').innerHTML=items.map(function(x){return '<div>'+x+'</div>'}).join('')+(STATE.enabled?'<div class="hl">3.11 Payment Account Transactions</div>':'<div class="gone">（不顯示 3.11）</div>');
-    $('pvRole').innerHTML=STATE.enabled?'<div class="node"><b>3.11 Payment Account Transactions</b></div>'+['View','Export','Internal Transfer','External Transfer','Adjust Balance'].map(function(n){return '<label class="node"><input type="checkbox" disabled> '+n+'</label>'}).join(''):'<div class="gone">（不顯示 3.11 與它的五個節點）</div>';
+    $('pvRole').innerHTML=STATE.enabled?'<div class="node"><b>Payment Account Transactions</b></div>'+['VIEW','EXPORT','Internal Transfer','External Transfer','Adjust Balance'].map(function(n){return '<label class="node"><input type="checkbox" disabled> '+n+'</label>'}).join(''):'<div class="gone">（不顯示 Payment Account Transactions 群組與它的五個節點）</div>';
   }
   function picked(){return document.querySelector('input[name=pat]:checked').value==='enable'}
   // 現況行為：選項改變後，該列出現 SAVE 按鈕；按了才儲存

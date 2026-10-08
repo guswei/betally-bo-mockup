@@ -157,13 +157,13 @@
     </div>
 
     <div class="rd-note">
-      <b>DEMO：</b>左側選單可切換三頁：<code>3.2 Withdraw List</code>、<code>3.7 Payment Account</code>、<code>3.11 Payment Account Transactions</code>（新頁，選單放在 <code>3.10</code> 之後）。另有 <code>11.2 Role Setting</code>，呈現新增的權限節點。三頁共用同一份合成資料（<code>BANK-OFFLINE</code> 底下 214 個帳號），在任一頁的操作會反映到其他頁；重新整理即還原。mockup 的金額以 JavaScript 數值示範，實作一律用 <code>DECIMAL(18,2)</code>，不可用浮點數。<br>
+      <b>DEMO：</b>左側選單可切換四頁：<code>3.2 Withdraw List</code>、<code>3.7 Payment Account</code>、<code>3.11 Payment Account Transactions</code>（新頁，選單放在 <code>3.10</code> 之後）。第四頁是 <code>11.2 Role Setting</code>，呈現新增的權限節點。前三頁共用同一份合成資料（<code>BANK-OFFLINE</code> 底下 214 個帳號），在任一頁的操作會反映到其他頁；重新整理即還原。mockup 的金額以 JavaScript 數值示範，實作一律用 <code>DECIMAL(18,2)</code>，不可用浮點數。<br>
       <code>9.5 Payment Report</code> 與 <code>12.5 Payment Report</code> 本次不改動，mockup 不呈現。
     </div>
     <div class="rd-note perm">
       <b>DEMO：權限切換</b>（取消勾選可以看沒有該權限時的畫面。五個都是本次新增的權限節點，在 <code>11.2 Role Setting</code> 設定，上線時所有角色預設不勾）<br>
-      <label><input type="checkbox" data-perm="view" checked> 3.11 › View</label>
-      <label><input type="checkbox" data-perm="exp" checked> 3.11 › Export</label>
+      <label><input type="checkbox" data-perm="view" checked> 3.11 › VIEW</label>
+      <label><input type="checkbox" data-perm="exp" checked> 3.11 › EXPORT</label>
       <label><input type="checkbox" data-perm="internal" checked> 3.11 › Internal Transfer</label>
       <label><input type="checkbox" data-perm="external" checked> 3.11 › External Transfer</label>
       <label><input type="checkbox" data-perm="adjust" checked> 3.11 › Adjust Balance</label>
@@ -244,7 +244,7 @@
             <b>Columns Settings</b>：現況可以拖曳調整欄位順序並儲存，有 <code>Reset</code>。七個新欄位加入 <code>Columns Settings</code>，預設顯示。上面說的是預設順序，也就是按 <code>Reset</code> 之後的順序。已經儲存過自訂順序的使用者，新欄位接在他目前順序的最後面並顯示，不打亂他原本的排列。<br>
             <b>即時狀態</b><span class="pill-new">NEW</span>：<code>BANK-OFFLINE</code> 帳號的 <code>Threshold</code> 與 <code>Withdraw Threshold</code> 兩欄在數字下方加一條進度條（其他通道的帳號不加，<code>Threshold</code> 欄維持現況），顯示今日累計佔門檻的比例，呈現方式與 <code>3.2</code> 核准對話框的帳號清單相同：未達 80% 綠色、80% 以上橘色、已達門檻紅色。既有的 <code>Threshold</code> 欄只加進度條，數字與格式不變。<br>
             <b>Withdraw Threshold</b>：格式 <code>今日出款累計 / 門檻</code>，與既有的 <code>Threshold</code> 欄相同。<code>Allow Withdraw = false</code> 時，<code>Withdraw Threshold</code> 與 <code>Allow Withdraw Over Threshold</code> 顯示 <code>-</code>。<br>
-            <b>Transactions 按鈕</b><span class="pill-new">NEW</span>：<code>Actions</code> 欄在既有的編輯、刪除按鈕之後，<code>BANK-OFFLINE</code> 帳號多一個 <code>Transactions</code> 按鈕，點了跳到 <code>3.11</code> 並以這個帳號篩選。需要 <code>3.11 › View</code> 權限，沒有權限時不顯示；其他通道的帳號也不顯示。<br>
+            <b>Transactions 按鈕</b><span class="pill-new">NEW</span>：<code>Actions</code> 欄在既有的編輯、刪除按鈕之後，<code>BANK-OFFLINE</code> 帳號多一個 <code>Transactions</code> 按鈕，點了跳到 <code>3.11</code> 並以這個帳號篩選。需要 <code>3.11 › VIEW</code> 權限，沒有權限時不顯示；其他通道的帳號也不顯示。<br>
             <b>Status 與 Reconcile Server</b>：照現況呈現，本需求不改動這兩欄的行為。<code>Status</code> 是開關，旁邊顯示 <code>ACTIVE</code> 或 <code>INACTIVE</code>，在列表上直接切換，不必進編輯頁。<code>Reconcile Server</code> 是下拉選單，在列表上直接選；現況只有 <code>BANK-OFFLINE</code> 的帳號有這個下拉選單，其他通道的帳號顯示 <code>-</code>。<b>DEMO：</b>下拉選單的選項是示範值。<br>
             <b>停用與刪除</b>：沿用既有功能，不檢查餘額，也不檢查有沒有交易紀錄。停用的帳號不能用於核准出款、內部轉帳與轉到外部，可以調整餘額。已刪除的帳號不出現在任何帳號清單、下拉選單與篩選候選，不能用於核准出款與手動單；已有的交易紀錄保留，仍列在 <code>3.11</code>，可以用銀行、戶名、帳號號碼、單號等條件查到，這些列的 <code>Account Name</code> 不是連結。<br>
             <b>DEMO：</b>與本需求無關的既有欄位填的是固定的示範值；刪除按鈕不提供操作。<br>
@@ -355,8 +355,8 @@
           ・<code>Type</code>：單選。<br>
           ・日期區間<span class="pill-new">NEW</span>：比對 <code>Created Time</code>，起訖都可以選到時分秒，以 BO 右上角顯示的時區呈現。畫面上的起與迄都算在區間內，查詢條件是「起 ≤ <code>Created Time</code> ＜ 迄＋1 秒」。預設是「今天」：起是今日累計（<code>Today Deposit Amount</code>、<code>Today Withdraw Amount</code>）最近一次歸零的時刻，迄是下一次歸零時刻的前一秒。沒有設定其他條件、日期是預設的今天時，列表的存款類合計（<code>DEPOSIT</code>＋<code>INTERNAL IN</code>）對應摘要卡的今日存款，出款類合計對應今日出款；當天有交易的帳號之後被刪除、功能在一天中途上線的那一天、兩邊查詢的時間點不同，會有差額，屬於正常。<code>Search</code> 與 <code>Reset</code> 都讓兩種檢視回到第 1 頁。區間最長 31 天（迄＋1 秒減起不超過 31×24 小時），超過時前端不可查詢並顯示 <code>Date range cannot exceed 31 days.</code>，後端回 <code>400 DATE_RANGE_TOO_LONG</code>。前端＋後端都要擋。（DEMO 固定為示範資料的那一天，不提供操作。）<br>
           <b>另外兩個快速找帳號的方式</b>：在列表上點任何一列的 <code>Account Name</code>，直接把篩選切到那個帳號；在 <code>3.7</code> 列表每個 <code>BANK-OFFLINE</code> 帳號的 <code>Actions</code> 欄有一個 <code>Transactions</code> 按鈕，點了帶著該帳號跳到這一頁。<br>
-          <b>三個建單按鈕與 Export CSV</b>：各自對應一個權限節點，沒有權限時按鈕不顯示；後端也要驗權，沒有權限回 <code>403</code>。表單開著的時候權限被收回，送出一樣回 <code>403</code>，不建單（DEMO：關閉表單並顯示 <code>Permission denied.</code>，代表既有的無權限處理）。<code>Export CSV</code> 匯出目前篩選條件下的全部紀錄（不只本頁）共 17 欄：列表前 12 欄，接著 <code>Player</code>、<code>Counterparty</code>、<code>Category</code>、<code>Remark</code> 四欄，最後 <code>Created By</code>；<code>Amount</code> 帶正負號（增加為正、減少為負），不加千分位。沒有 <code>3.11 › View</code> 時選單不顯示這一頁。<br>
-          <b>Admin BO 的開關</b><span class="pill-new">NEW</span>：Admin BO 的 <code>Agent List › Edit › Role Setting</code> 新增一列 <code>Payment Account Transactions</code>（<code>Enable</code>／<code>Deny</code>，預設 <code>Deny</code>）。設成 <code>Enable</code> 的 Agent，<code>11.2 Role Setting</code> 才會出現這一頁與五個節點；<code>Deny</code> 的 Agent 不顯示節點與選單，這一頁的所有介面回 <code>403</code>。畫面見另一份 mockup：<a href="https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html" target="_blank" rel="noopener">Admin BO Mockup</a>。<br>
+          <b>三個建單按鈕與 Export CSV</b>：各自對應一個權限節點，沒有權限時按鈕不顯示；後端也要驗權，沒有權限回 <code>403</code>。表單開著的時候權限被收回，送出一樣回 <code>403</code>，不建單（DEMO：關閉表單並顯示 <code>Permission denied.</code>，代表既有的無權限處理）。<code>Export CSV</code> 匯出目前篩選條件下的全部紀錄（不只本頁）共 17 欄：列表前 12 欄，接著 <code>Player</code>、<code>Counterparty</code>、<code>Category</code>、<code>Remark</code> 四欄，最後 <code>Created By</code>；<code>Amount</code> 帶正負號（增加為正、減少為負），不加千分位。沒有 <code>3.11 › VIEW</code> 時選單不顯示這一頁。<br>
+          <b>Admin BO 的開關</b><span class="pill-new">NEW</span>：Admin BO 的 <code>Agent List › Edit › Role Setting</code> 新增一列 <code>Payment Account Transactions</code>（<code>Enable</code>／<code>Deny</code>，預設 <code>Deny</code>）。設成 <code>Enable</code> 的 Agent，<code>11.2 Role Setting</code> 才會出現群組 <code>Payment Account Transactions</code> 與五個節點；<code>Deny</code> 的 Agent 不顯示這個群組與選單，<code>3.11</code> 的所有介面回 <code>403</code>。畫面見另一份 mockup：<a href="https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html" target="_blank" rel="noopener">Admin BO Mockup</a>。<br>
           <b>手動單建立後立即生效</b>，沒有審核步驟，也不能修改、取消或刪除。建錯時建一張反向的單抵銷：內部轉帳建一張方向相反的內部轉帳；轉到外部的單用 <code>Adjust Balance</code> 加回，並在說明寫明更正哪一張單。
         </div>
       </div>
@@ -377,7 +377,7 @@
           <b>摘要卡</b><span class="pill-new">NEW</span>：列表上方固定有一張摘要卡，顯示的是目前的值，不隨日期區間與其他篩選條件改變。<br>
           ・沒有選定 <code>Payment Account</code> 時（直接進入這一頁的預設狀態）：顯示全部 <code>BANK-OFFLINE</code> 帳號的總覽——帳號數（含 <code>INACTIVE</code>，不含已刪除）、<code>Total Balance</code>（全部帳號的餘額合計）、<code>Today Deposit</code>（今日存款累計合計）、<code>Today Withdraw</code>（今日出款累計合計）。金額皆為 <code>DECIMAL(18,2)</code> 的加總，由後端計算。<br>
           ・篩選選定了某一個 <code>Payment Account</code> 時：改顯示這個帳號的狀態——銀行、戶名、帳號號碼、<code>Status</code>、<code>Balance</code>、今日存款累計／存款門檻、今日出款累計／出款門檻（附進度條，顏色規則同 <code>3.7</code> 列表）。<br>
-          <b>兩種檢視</b><span class="pill-new">NEW</span>：摘要卡下方有 <code>Transactions</code>（預設）與 <code>Summary by Account</code> 兩個切換按鈕，兩種檢視共用上面的篩選條件與日期區間，同樣需要 <code>3.11 › View</code>，不另設權限。<code>Export CSV</code> 匯出目前所在檢視的內容。<br>
+          <b>兩種檢視</b><span class="pill-new">NEW</span>：摘要卡下方有 <code>Transactions</code>（預設）與 <code>Summary by Account</code> 兩個切換按鈕，兩種檢視共用上面的篩選條件與日期區間，同樣需要 <code>3.11 › VIEW</code>，不另設權限。<code>Export CSV</code> 匯出目前所在檢視的內容。<br>
           <b>Summary by Account</b><span class="pill-new">NEW</span>：把目前篩選條件下的交易紀錄依帳號加總，每個帳號一列；條件範圍內沒有交易的帳號不列出。欄位共 17 欄：<code>Account Code</code>、<code>Account Group</code>、<code>Bank Name</code>、<code>Account Name</code>、<code>Account No</code>、<code>Status</code>、<code>Balance</code>（這七欄是帳號目前的資料，不隨日期區間改變），接著十個金額欄。<code>Deposit</code>、<code>Withdraw</code>、<code>Internal Out</code>、<code>Internal In</code>、<code>External Out</code> 是同名類型的金額合計；<code>Bank Fee</code>、<code>Interest</code> 是該類別調整的金額合計；<code>Unclaimed</code>、<code>Loan</code>、<code>Other Adjust</code> 是淨額（<code>ADJUST IN</code> 減 <code>ADJUST OUT</code>，可以是負數），其中 <code>Other Adjust</code> 是其餘所有類別的調整。金額皆為 <code>DECIMAL(18,2)</code> 的加總，由後端計算。依 <code>Account Group</code>、<code>Account Code</code> 排序（沒有分組的帳號排在最後，分組顯示 <code>-</code>），每頁 10 筆；表格最下面一列 <code>Total</code> 是全部列（不只本頁）的合計。點 <code>Account Name</code> 切回 <code>Transactions</code> 並以該帳號篩選。已刪除的帳號若在條件範圍內有交易，仍列出一列：帳號資料用交易當下的值，<code>Status</code>、<code>Balance</code> 顯示 <code>-</code>，戶名不是連結。<br>
           <b>一列是一筆會改變帳號餘額的交易</b>，建立後不可修改或刪除。依 <code>Created Time</code> 由新到舊排列。<code>Account Name</code> 是連結，點了把篩選切到該帳號。<br>
           <b>Type 共七種</b>：<br>
@@ -405,13 +405,13 @@
         <div id="rpGroups"></div>
         <div class="rd-note">
           <b>新增的權限群組</b><span class="pill-new">NEW</span>：<code>Payment Management</code> 底下新增群組 <code>Payment Account Transactions</code>，排在 <code>Manual Balance Adjustment</code> 之後。群組標題右邊的三個圖示與其他群組相同。群組含五個節點：<br>
-          ・<code>VIEW</code>：進入 <code>3.11</code>、查詢交易紀錄與 <code>Summary by Account</code>、看摘要卡。沒有這個權限時，選單不顯示 <code>3.11</code>，<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕。<br>
+          ・<code>VIEW</code>：進入 <code>3.11</code>、查詢交易紀錄與 <code>Summary by Account</code>、看摘要卡、取得 <code>3.11</code> 的帳號下拉選項。沒有這個權限時，選單不顯示 <code>3.11</code>，<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕；使用者直接輸入 <code>3.11</code> 的網址時，照既有的無權限處理。<br>
           ・<code>EXPORT</code>：<code>3.11</code> 兩種檢視的 <code>Export CSV</code>。沒有這個權限時，不顯示 <code>Export CSV</code> 按鈕。<br>
           ・<code>Internal Transfer</code>：建立內部轉帳單。沒有這個權限時，不顯示 <code>Internal Transfer</code> 按鈕。<br>
           ・<code>External Transfer</code>：建立轉到外部的單。沒有這個權限時，不顯示 <code>External Transfer</code> 按鈕。<br>
           ・<code>Adjust Balance</code>：建立調整餘額的單，含 <code>Set balance to</code>。沒有這個權限時，不顯示 <code>Adjust Balance</code> 按鈕。<br>
           <b>預設值</b>：上線時，所有既有角色的五個節點都不勾選。新建的角色，五個節點預設不勾選。<br>
-          <b>節點之間的關係</b>：五個節點各自獨立儲存。<code>EXPORT</code>、<code>Internal Transfer</code>、<code>External Transfer</code>、<code>Adjust Balance</code> 四個節點，角色同時具備 <code>VIEW</code> 時才有作用。<br>
+          <b>節點之間的關係</b>：五個節點各自獨立儲存。<code>EXPORT</code>、<code>Internal Transfer</code>、<code>External Transfer</code>、<code>Adjust Balance</code> 四個節點，角色同時具備 <code>VIEW</code> 時才有作用。這一頁不做勾選連動：角色勾了這四個節點而沒有勾 <code>VIEW</code> 時，可以儲存，這四個節點不生效。<br>
           <b>前端＋後端都要擋</b>：手動單沒有審核步驟，權限是唯一的管制。後端對每一個查詢與動作各自驗證對應的節點；角色沒有該節點時，後端回 <code>403</code>。<br>
           <b>Admin BO 的開關</b>：Admin BO 把這個 Agent 的 <code>Payment Account Transactions</code> 設為 <code>Deny</code> 時，這一頁不顯示這個群組。角色已勾選的節點保留，不清除，但不生效。Admin BO 改回 <code>Enable</code> 後，這個群組重新顯示，已勾選的節點恢復生效。<br>
           <b>DEMO：</b>mockup 預設五個節點都勾選，方便看其他頁面。這裡的勾選立即生效，與頁面上方的「權限切換」同步；正式的儲存方式與這一頁現況相同。其他群組是既有節點，本需求不改動，mockup 不提供操作。<code>All</code> 那一列的三個圖示也不提供操作。新群組的還原圖示不提供操作。

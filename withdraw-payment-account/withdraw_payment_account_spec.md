@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.22（2026-10-05）
+- 版本：v0.23（2026-10-08）
 
 ---
 
@@ -116,7 +116,7 @@
   - `Account Group`：下拉，單選，預設 `Account Group: All`。選項依序是 `No Group`，以及目前已有的分組（同 3.3 的提示範圍），依名稱排序，不分大小寫。選 `No Group` 列出沒有分組的 BANK-OFFLINE 帳號；選了 `No Group` 或任何分組時，其他通道的帳號不列出。比對不分大小寫。
 - **Columns Settings**：七個新欄位加入 `Columns Settings`，預設顯示。上表是預設順序，也就是按 `Reset` 之後的順序。已經儲存過自訂欄位順序的使用者，新欄位接在他目前順序的最後面並顯示，不改動他原本的排列。
 - **進度條**：BANK-OFFLINE 帳號的 `Threshold`（第 23 欄，既有）與 `Withdraw Threshold`（第 33 欄）兩欄，在數字下方加一條進度條，顯示今日累計佔門檻的比例：未達 80% 綠色、80% 以上未達 100% 橘色、100% 以上紅色。既有 `Threshold` 欄的數字與格式不變，只加進度條。其他通道的帳號不加進度條，`Threshold` 欄與現況相同。
-- **`Transactions` 按鈕**：`Actions` 欄在既有的編輯、刪除按鈕之後，BANK-OFFLINE 帳號多一個 `Transactions` 按鈕，點了跳到 `3.11` 並以這個帳號篩選（11.6）。登入者沒有 `3.11` 的 `View` 權限時不顯示；其他通道的帳號不顯示。
+- **`Transactions` 按鈕**：`Actions` 欄在既有的編輯、刪除按鈕之後，BANK-OFFLINE 帳號多一個 `Transactions` 按鈕，點了跳到 `3.11` 並以這個帳號篩選（11.6）。登入者沒有 `3.11` 的 `VIEW` 權限時不顯示；其他通道的帳號不顯示。
 
 ### 3.6 變更紀錄
 
@@ -644,17 +644,20 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 ### 13.1 新增的權限節點
 
-在 `11.2 Role Setting` 的 `Payment Management` 底下新增頁面 `3.11 Payment Account Transactions`，含五個節點。上線時所有角色預設都不勾選，由客戶自行開啟。
+在 `11.2 Role Setting` 的 `Payment Management` 底下新增群組 `Payment Account Transactions`，排在 `Manual Balance Adjustment` 之後，含五個節點。這個群組控制 `3.11` 這一頁。群組標題右邊的三個圖示，行為與這一頁既有的群組相同。
+
+上線時，所有既有角色的五個節點都不勾選，由客戶自行開啟。新建的角色，五個節點預設不勾選。
 
 | 節點 | 控制的動作 | 沒有這個權限時的畫面 | 沒有權限卻呼叫後端 |
 |---|---|---|---|
-| `View` | 進入 `3.11`、查詢交易紀錄與 `Summary by Account`（11.7）、看摘要卡（11.5）、取得 `3.11` 的帳號下拉選項 | 選單不顯示 `3.11`；`3.7` 列表不顯示 `Transactions` 按鈕；直接輸入網址時依既有的無權限處理 | `403` |
-| `Export` | `3.11` 兩種檢視的 `Export CSV` | 不顯示 `Export CSV` 按鈕 | `403` |
+| `VIEW` | 進入 `3.11`、查詢交易紀錄與 `Summary by Account`（11.7）、看摘要卡（11.5）、取得 `3.11` 的帳號下拉選項 | 選單不顯示 `3.11`；`3.7` 列表不顯示 `Transactions` 按鈕；直接輸入網址時依既有的無權限處理 | `403` |
+| `EXPORT` | `3.11` 兩種檢視的 `Export CSV` | 不顯示 `Export CSV` 按鈕 | `403` |
 | `Internal Transfer` | 建立內部轉帳單 | 不顯示 `Internal Transfer` 按鈕 | `403` |
 | `External Transfer` | 建立轉到外部的單 | 不顯示 `External Transfer` 按鈕 | `403` |
 | `Adjust Balance` | 建立調整餘額的單，含 `Set balance to` | 不顯示 `Adjust Balance` 按鈕 | `403` |
 
-- `Export`、`Internal Transfer`、`External Transfer`、`Adjust Balance` 四個節點都要同時具備 `View` 才有作用。
+- `EXPORT`、`Internal Transfer`、`External Transfer`、`Adjust Balance` 四個節點都要同時具備 `VIEW` 才有作用。
+- `11.2 Role Setting` 不做勾選連動：五個節點可以各自勾選與儲存。角色勾了其他四個節點而沒有勾 `VIEW` 時，可以儲存，那四個節點不生效。
 - 五個節點互相獨立：可以只給 `Internal Transfer` 而不給 `External Transfer` 與 `Adjust Balance`。
 - 手動單沒有審核步驟，權限是唯一的管制。後端必須逐一驗證對應的節點，不可只靠前端隱藏按鈕。
 
@@ -694,8 +697,8 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 | 設定 | Agent BO 的結果 |
 |---|---|
-| `Enable` | `11.2 Role Setting` 出現 `3.11 Payment Account Transactions` 與 13.1 的五個節點，由 Agent 自己開給角色 |
-| `Deny` | `11.2 Role Setting` 不顯示 `3.11` 與五個節點；所有帳號的選單都不顯示 `3.11`；`3.7` 列表不顯示 `Transactions` 按鈕；`3.11` 的所有查詢與動作（交易紀錄、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）後端一律回 `403` |
+| `Enable` | `11.2 Role Setting` 出現群組 `Payment Account Transactions` 與 13.1 的五個節點，由 Agent 自己開給角色 |
+| `Deny` | `11.2 Role Setting` 不顯示群組 `Payment Account Transactions` 與五個節點；所有帳號的選單都不顯示 `3.11`；`3.7` 列表不顯示 `Transactions` 按鈕；`3.11` 的所有查詢與動作（交易紀錄、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）後端一律回 `403` |
 
 - 由 `Enable` 改成 `Deny`，儲存後立即生效。角色已勾選的五個節點保留不清除，但不生效；改回 `Enable` 後恢復生效。
 - `Deny` 期間，帳號的餘額與交易紀錄都保留，玩家存款與指定帳號的出款照常產生交易紀錄並變動餘額（第 4 節）。
@@ -725,7 +728,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 **分組選項**（新增，讀取；供 `3.7` 編輯頁的提示、`3.7` 與 `3.11` 的 `Account Group` 篩選使用）
 
-- 需要 `3.7 Payment Account` 既有的檢視權限，或 `3.11` 的 `View`。
+- 需要 `3.7 Payment Account` 既有的檢視權限，或 `3.11` 的 `VIEW`。
 - 回應：`groupOptions`，登入者所屬代理、未刪除的 BANK-OFFLINE 帳號用到的分組名稱，不分大小寫去除重複，依名稱排序。
 
 **`3.2` 列表**（既有）
@@ -740,19 +743,19 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 **`3.11` 的帳號下拉選項與單一帳號的摘要**（新增，讀取；供 `3.11` 的 `Payment Account` 篩選、摘要卡、三種手動單的下拉選單使用）
 
-- 需要 `3.11` 的 `View` 權限。
+- 需要 `3.11` 的 `VIEW` 權限。
 - 請求：搜尋文字、是否只要 `ACTIVE`；或指定一個帳號 ID。
 - 回應：未刪除的 BANK-OFFLINE 帳號。每筆包含：帳號 ID、`accountCode`、`accountGroup`、`bankName`、`accountName`、`accountNo`、`status`、`balance`、`allowDeposit`、`depositThreshold`、`todayDepositAmount`、`allowWithdraw`、`withdrawThreshold`、`todayWithdrawAmount`。
 
 **`3.11` 的 `Bank` 篩選選項**（新增，讀取）
 
-- 需要 `3.11` 的 `View` 權限。
+- 需要 `3.11` 的 `VIEW` 權限。
 - 請求：不帶條件。
 - 回應：`bankOptions`，登入者所屬代理的全部交易紀錄裡出現過的銀行名稱（交易當下的值），不重複，含已改銀行與已刪除帳號的紀錄，不受日期區間與其他篩選條件限制。進入頁面與每次按 `Search` 時重新取得。
 
 **`3.11` 全部帳號的總覽**（新增，讀取）
 
-- 需要 `3.11` 的 `View` 權限。
+- 需要 `3.11` 的 `VIEW` 權限。
 - 回應：`accountCount`、`totalBalance`、`totalTodayDepositAmount`、`totalTodayWithdrawAmount`。範圍見 11.5。
 
 **`3.11` 交易紀錄列表與匯出**（新增，讀取）
@@ -762,7 +765,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 **`3.11` 每帳號合計與匯出**（新增，讀取）
 
-- 需要 `3.11` 的 `View` 權限；匯出另需 `Export`。
+- 需要 `3.11` 的 `VIEW` 權限；匯出另需 `EXPORT`。
 - 請求：與交易紀錄列表相同的條件、頁碼、每頁筆數。匯出不帶頁碼。
 - 回應：每列包含帳號 ID、是否已刪除、11.7 的 17 欄；另有總列數、第 8–17 欄的合計、`totalIn`、`totalOut`。
 
