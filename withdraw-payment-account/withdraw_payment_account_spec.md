@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.26（2026-10-13）
+- 版本：v0.28（2026-10-13）
 
 ---
 
@@ -131,7 +131,7 @@
 - 停用（`INACTIVE`）的帳號：不能用於核准出款、內部轉帳與轉到外部，可以調整餘額；餘額與交易紀錄照常顯示。
 - 已刪除的帳號：
   - 不出現在任何帳號清單、下拉選單與篩選候選；不能用於核准出款與手動單（回 `PAYMENT_ACCOUNT_UNAVAILABLE`）。
-  - 已有的交易紀錄保留，仍列在 `3.11`，可以用 `Bank`、`Account Name`、`Account No`、`Reference No`、`Created By`、`Type` 與日期查到。
+  - 已有的交易紀錄保留，仍列在 `3.11`，可以用 `Bank`、`Account Name`、`Account No`、`Reference No`、`Updated By`、`Type` 與日期查到。
   - 已有的出款單上記錄的出款帳號不變（8.2）。
 
 ---
@@ -167,7 +167,7 @@
 | 1 | 存款核准成功時，下列四件事要嘛全部生效，要嘛全部不生效：存款單既有的核准結果、產生一筆 `DEPOSIT` 交易紀錄、收款帳號餘額增加、收款帳號今日存款累計增加（既有） |
 | 2 | 同一張存款單只產生一筆 `DEPOSIT`。核准請求重送、同一張單被重複處理，都不重複產生紀錄、不重複加餘額 |
 | 3 | 核准被拒絕或失敗時，存款單、交易紀錄、餘額、累計都不變 |
-| 4 | `DEPOSIT` 的金額等於這張存款單計入 `Today Deposit Amount` 的金額；`Reference No` 是存款單號；`Created By` 是存款單上記錄的核准人 |
+| 4 | `DEPOSIT` 的金額等於這張存款單計入 `Today Deposit Amount` 的金額；`Reference No` 是存款單號；`Updated By` 是存款單上記錄的核准人 |
 
 功能在一天的中途上線時，當日上線前已核准的存款已經計入 `Today Deposit Amount`，但沒有對應的 `DEPOSIT` 紀錄。從上線後第一次累計歸零起，`Today Deposit Amount` 等於當日 `DEPOSIT` 與 `INTERNAL IN` 的合計。
 
@@ -424,8 +424,8 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 4 | `Account Name` | 文字。部分比對交易當下的戶名，不分大小寫 |
 | 5 | `Account No` | 文字。部分比對交易當下的帳號號碼 |
 | 6 | `Reference No` | 文字。部分比對 `Reference No`，不分大小寫 |
-| 7 | `Created By` | 文字。部分比對 `Created By`，不分大小寫 |
-| 8 | `Details` | 文字。後端比對這筆交易的 `Player`、`Counterparty`、`Remark` 三項資料（11.4）。任何一項含有輸入的文字時，這筆交易符合條件。比對不分大小寫。後端不比對畫面上加的 `Player:`、`From:`、`To:` 前綴 |
+| 7 | `Updated By` | 文字。部分比對 `Updated By`，不分大小寫 |
+| 8 | `Details(Remark)` | 文字。後端比對這筆交易的 `Player`、`Counterparty`、`Remark` 三項資料（11.4）。任何一項含有輸入的文字時，這筆交易符合條件。比對不分大小寫。後端不比對畫面上加的 `Player:`、`From:`、`To:` 前綴 |
 | 9 | `Type` | 單選，預設 `Type: All`。選項：`DEPOSIT`、`WITHDRAW`、`INTERNAL OUT`、`INTERNAL IN`、`LOAN OUT`、`ADJUST IN`、`ADJUST OUT` |
 | 10 | 日期區間 | 比對 `Completed Time`。起訖都可以選到時分秒，以 BO 右上角顯示的時區呈現。規則見表格下方 |
 | 11 | `Search`、`Reset` | 與其他列表頁相同。`Reset` 清空第 1–9 項，日期回到今天。兩個按鈕都讓兩種檢視（11.3）回到第 1 頁，不改變目前所在的檢視 |
@@ -449,7 +449,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 摘要卡下方有兩個檢視切換按鈕：`Transactions`（預設，11.4）與 `Summary by Account`（11.7）。兩種檢視共用 11.2 的全部條件。`Export CSV` 匯出目前所在檢視的內容。
 
-在 `Transactions` 檢視，`Export CSV` 匯出目前篩選條件下的全部紀錄（不只本頁），共 16 欄，依序為：11.4 的第 1–12 欄、`Player`、`Counterparty`、`Remark`、`Created By`。`Amount` 不加千分位：減少餘額的金額前面加 `-`，增加餘額的金額不加符號。`Player`、`Counterparty`、`Remark` 的內容見 11.4 第 13 欄的說明。
+在 `Transactions` 檢視，`Export CSV` 匯出目前篩選條件下的全部紀錄（不只本頁），共 16 欄，依序為：11.4 的第 1–12 欄、`Player`、`Counterparty`、`Remark`、`Updated By`。`Amount` 不加千分位：減少餘額的金額前面加 `-`，增加餘額的金額不加符號。`Player`、`Counterparty`、`Remark` 的內容見 11.4 第 13 欄的說明。
 
 ### 11.4 列表欄位
 
@@ -469,12 +469,12 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 10 | `Balance Before` | 這筆交易之前的餘額 |
 | 11 | `Balance After` | 這筆交易之後的餘額 |
 | 12 | `Reference No` | `DEPOSIT` 是存款單號；`WITHDRAW` 是出款單號；手動單是系統產生的單號（第 12 節）。一張內部轉帳單的兩筆紀錄，`Reference No` 相同 |
-| 13 | `Details` | 把下面三項資料併成一欄顯示，各段以 ` · ` 分隔，沒有值的段落不顯示，三項都沒有時顯示 `-` |
-| 14 | `Created By` | 手動單的建單人；`DEPOSIT`、`WITHDRAW` 是核准的人 |
+| 13 | `Details(Remark)` | 把下面三項資料併成一欄顯示，各段以 ` · ` 分隔，沒有值的段落不顯示，三項都沒有時顯示 `-` |
+| 14 | `Updated By` | 手動單的建單人；`DEPOSIT`、`WITHDRAW` 是核准的人 |
 
-`Details` 的三項資料各自獨立存放：
+`Details(Remark)` 的三項資料各自獨立存放：
 
-| 資料 | 有值的類型 | 內容 | 在 `Details` 的顯示 |
+| 資料 | 有值的類型 | 內容 | 在 `Details(Remark)` 的顯示 |
 |---|---|---|---|
 | `Player` | `DEPOSIT`、`WITHDRAW` | 存款單、出款單上的玩家帳號（`Username`），存交易當下的值 | `Player: {Player}` |
 | `Counterparty` | `INTERNAL OUT`、`INTERNAL IN`、`LOAN OUT` | `INTERNAL OUT` 是轉入帳號，`INTERNAL IN` 是轉出帳號，格式 `{帳號標示}`；`LOAN OUT` 是填寫的對方銀行、戶名、帳號，以 ` / ` 相連，沒填的省略 | `INTERNAL IN` 顯示 `From: {Counterparty}`；`INTERNAL OUT`、`LOAN OUT` 顯示 `To: {Counterparty}` |
@@ -770,8 +770,8 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 **`3.11` 交易紀錄列表與匯出**（新增，讀取）
 
-- 請求：帳號 ID、`accountGroup`、`bankName`、`accountName`、`accountNo`、`referenceNo`、`createdBy`、`details`、`type`、日期區間、頁碼、每頁筆數。匯出用同一組條件，不帶頁碼。
-- 回應：每筆包含帳號 ID、11.4 第 1–12 欄與第 14 欄、`player`、`counterparty`、`remark`（三項分開回傳，`Details` 由前端組合）；另有總筆數、`totalIn`、`totalOut`。
+- 請求：帳號 ID、`accountGroup`、`bankName`、`accountName`、`accountNo`、`referenceNo`、`updatedBy`、`details`、`type`、日期區間、頁碼、每頁筆數。匯出用同一組條件，不帶頁碼。
+- 回應：每筆包含帳號 ID、11.4 第 1–12 欄與第 14 欄、`player`、`counterparty`、`remark`（三項分開回傳，`Details(Remark)` 由前端組合）；另有總筆數、`totalIn`、`totalOut`。
 
 **`3.11` 每帳號合計與匯出**（新增，讀取）
 

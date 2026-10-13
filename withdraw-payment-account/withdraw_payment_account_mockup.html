@@ -331,8 +331,8 @@
           <input type="text" id="t11Name" placeholder="Account Name">
           <input type="text" id="t11No" placeholder="Account No">
           <input type="text" id="t11Ref" placeholder="Reference No">
-          <input type="text" id="t11By" placeholder="Created By">
-          <input type="text" id="t11Det" placeholder="Details">
+          <input type="text" id="t11By" placeholder="Updated By">
+          <input type="text" id="t11Det" placeholder="Details(Remark)">
           <select id="t11Type"><option value="">Type: All</option><option>DEPOSIT</option><option>WITHDRAW</option><option>INTERNAL OUT</option><option>INTERNAL IN</option><option>LOAN OUT</option><option>ADJUST IN</option><option>ADJUST OUT</option></select>
           <input type="text" value="2026-10-01 00:00:00 - 2026-10-01 23:59:59" readonly style="width:300px">
           <button class="btn p" id="t11Search">Search</button>
@@ -352,12 +352,12 @@
           ・<code>Bank</code>：下拉，選項是全部交易紀錄裡出現過的銀行（交易當下的銀行），帳號之後改了銀行或被刪除，原本的銀行仍在選項裡；選項不隨日期與其他條件改變。比對交易當下的銀行，完全相符。<br>
           ・<code>Account Name</code>、<code>Account No</code>：文字，部分比對交易當下的戶名與帳號號碼，不分大小寫。不必先選定帳號，可以直接用戶名或號碼的一部分找。<br>
           ・<code>Reference No</code>：文字，部分比對單號（存款單號、出款單號、手動單單號）。<br>
-          ・<code>Created By</code>：文字，部分比對建單人或核准人。<br>
-          ・<code>Details</code><span class="pill-new">NEW</span>：文字。後端比對這筆交易的玩家帳號、對方帳號、<code>Remark</code> 三項資料。任何一項含有輸入的文字時，這筆交易符合條件。比對不分大小寫。後端不比對畫面上加的 <code>Player:</code>、<code>From:</code>、<code>To:</code> 這三個前綴。<br>
+          ・<code>Updated By</code>：文字，部分比對建單人或核准人。<br>
+          ・<code>Details(Remark)</code><span class="pill-new">NEW</span>：文字。後端比對這筆交易的玩家帳號、對方帳號、<code>Remark</code> 三項資料。任何一項含有輸入的文字時，這筆交易符合條件。比對不分大小寫。後端不比對畫面上加的 <code>Player:</code>、<code>From:</code>、<code>To:</code> 這三個前綴。<br>
           ・<code>Type</code>：單選。<br>
           ・日期區間<span class="pill-new">NEW</span>：比對 <code>Completed Time</code>，起訖都可以選到時分秒，以 BO 右上角顯示的時區呈現。畫面上的起與迄都算在區間內，查詢條件是「起 ≤ <code>Completed Time</code> ＜ 迄＋1 秒」。預設是「今天」：起是今日累計（<code>Today Deposit Amount</code>、<code>Today Withdraw Amount</code>）最近一次歸零的時刻，迄是下一次歸零時刻的前一秒。沒有設定其他條件、日期是預設的今天時，列表的存款類合計（<code>DEPOSIT</code>＋<code>INTERNAL IN</code>）對應摘要卡的今日存款，出款類合計對應今日出款；當天有交易的帳號之後被刪除、功能在一天中途上線的那一天、兩邊查詢的時間點不同，會有差額，屬於正常。<code>Search</code> 與 <code>Reset</code> 都讓兩種檢視回到第 1 頁。區間最長 31 天（迄＋1 秒減起不超過 31×24 小時），超過時前端不可查詢並顯示 <code>Date range cannot exceed 31 days.</code>，後端回 <code>400 DATE_RANGE_TOO_LONG</code>。前端＋後端都要擋。（DEMO 固定為示範資料的那一天，不提供操作。）<br>
           <b>從 3.7 帶帳號過來</b>：<code>3.7</code> 列表每個 <code>BANK-OFFLINE</code> 帳號的 <code>Actions</code> 欄有一個 <code>Transactions</code> 按鈕，點了帶著該帳號跳到這一頁。列表與合計表的 <code>Account Name</code> 是純文字，不是連結：不同帳號的戶名可能相同，要看單一帳號時用 <code>Payment Account</code> 條件選取。<br>
-          <b>三個建單按鈕與 Export CSV</b>：各自對應一個權限節點，沒有權限時按鈕不顯示；後端也要驗權，沒有權限回 <code>403</code>。表單開著的時候權限被收回，送出一樣回 <code>403</code>，不建單（DEMO：關閉表單並顯示 <code>Permission denied.</code>，代表既有的無權限處理）。<code>Export CSV</code> 匯出目前篩選條件下的全部紀錄（不只本頁）共 16 欄：列表前 12 欄，接著 <code>Player</code>、<code>Counterparty</code>、<code>Remark</code> 三欄，最後 <code>Created By</code>；<code>Amount</code> 不加千分位：減少的金額前面加 <code>-</code>，增加的金額不加符號（畫面上的列表才在增加的金額前面加 <code>+</code>）。沒有 <code>3.11 › VIEW</code> 時選單不顯示這一頁。<br>
+          <b>三個建單按鈕與 Export CSV</b>：各自對應一個權限節點，沒有權限時按鈕不顯示；後端也要驗權，沒有權限回 <code>403</code>。表單開著的時候權限被收回，送出一樣回 <code>403</code>，不建單（DEMO：關閉表單並顯示 <code>Permission denied.</code>，代表既有的無權限處理）。<code>Export CSV</code> 匯出目前篩選條件下的全部紀錄（不只本頁）共 16 欄：列表前 12 欄，接著 <code>Player</code>、<code>Counterparty</code>、<code>Remark</code> 三欄，最後 <code>Updated By</code>；<code>Amount</code> 不加千分位：減少的金額前面加 <code>-</code>，增加的金額不加符號（畫面上的列表才在增加的金額前面加 <code>+</code>）。沒有 <code>3.11 › VIEW</code> 時選單不顯示這一頁。<br>
           <b>Admin BO 的開關</b><span class="pill-new">NEW</span>：Admin BO 的 <code>Agent List › Edit › Role Setting</code> 新增一列 <code>Payment Account Transactions</code>（<code>Enable</code>／<code>Deny</code>，預設 <code>Deny</code>）。設成 <code>Enable</code> 的 Agent，<code>11.2 Role Setting</code> 才會出現群組 <code>Payment Account Transactions</code> 與五個節點；<code>Deny</code> 的 Agent 不顯示這個群組與選單，<code>3.11</code> 的所有介面回 <code>403</code>。畫面見另一份 mockup：<a href="https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html" target="_blank" rel="noopener">Admin BO Mockup</a>。<br>
           <b>手動單建立後立即生效</b>，沒有審核步驟，也不能修改、取消或刪除。建錯時建一張反向的單抵銷：內部轉帳建一張方向相反的內部轉帳；轉到外部的單用 <code>Adjust Balance</code> 加回，並在 <code>Remark</code> 寫明更正哪一張單。
         </div>
@@ -370,7 +370,7 @@
           <tbody></tbody><tfoot></tfoot>
         </table></div>
         <div class="wrap" id="t11w"><table id="t11">
-          <thead><tr><th>Completed Time</th><th>Payment Channel</th><th>Account Code</th><th>Account Group<span class="pill-new">NEW</span></th><th>Bank Name</th><th>Account Name</th><th>Account No</th><th>Type</th><th class="num">Amount</th><th class="num">Balance Before</th><th class="num">Balance After</th><th>Reference No</th><th>Details</th><th>Created By</th></tr></thead>
+          <thead><tr><th>Completed Time</th><th>Payment Channel</th><th>Account Code</th><th>Account Group<span class="pill-new">NEW</span></th><th>Bank Name</th><th>Account Name</th><th>Account No</th><th>Type</th><th class="num">Amount</th><th class="num">Balance Before</th><th class="num">Balance After</th><th>Reference No</th><th>Details(Remark)</th><th>Updated By</th></tr></thead>
           <tbody></tbody>
         </table></div>
         <div class="tot" id="t11Tot"></div>
@@ -388,7 +388,7 @@
           ・<code>INTERNAL OUT</code>（－）、<code>INTERNAL IN</code>（＋）：一張內部轉帳單產生兩筆，轉出帳號一筆、轉入帳號一筆，金額相同、<code>Reference No</code> 相同、同時生效。<br>
           ・<code>LOAN OUT</code>（－）：轉到外部。<br>
           ・<code>ADJUST IN</code>（＋）、<code>ADJUST OUT</code>（－）：調整餘額，含用 <code>Set balance to</code> 登記帳號實際金額時產生的差額。<br>
-          <b>欄位</b>：<code>Amount</code> 恆為正數，畫面以 ＋／－ 表示方向；<code>Balance Before</code>／<code>Balance After</code> 是這筆交易前後該帳號的餘額；金額皆為 <code>DECIMAL(18,2)</code>。<code>Reference No</code>：<code>DEPOSIT</code>／<code>WITHDRAW</code> 是存款單號／出款單號，手動單是系統產生的單號。<code>Details</code>：前端把玩家帳號、對方帳號、<code>Remark</code> 三項資料併成一欄顯示。各段以「·」分隔。沒有值的段落不顯示。三項都沒有值時顯示 <code>-</code>。<code>INTERNAL OUT</code>＝<code>To: 對方帳號</code>＋Remark；<code>INTERNAL IN</code>＝<code>From: 對方帳號</code>＋Remark；<code>LOAN OUT</code>＝<code>To: 對方銀行 / 戶名 / 帳號</code>＋Remark；<code>ADJUST IN</code>／<code>ADJUST OUT</code>＝Remark；<code>DEPOSIT</code>／<code>WITHDRAW</code>＝<code>Player: 玩家帳號</code>（存款單、出款單上的 <code>Username</code>）。資料上玩家帳號、對方帳號、Remark 是三個獨立欄位，匯出 CSV 時分成三欄。<code>Created By</code>：建單人；<code>DEPOSIT</code>／<code>WITHDRAW</code> 是核准的人。<br>
+          <b>欄位</b>：<code>Amount</code> 恆為正數，畫面以 ＋／－ 表示方向；<code>Balance Before</code>／<code>Balance After</code> 是這筆交易前後該帳號的餘額；金額皆為 <code>DECIMAL(18,2)</code>。<code>Reference No</code>：<code>DEPOSIT</code>／<code>WITHDRAW</code> 是存款單號／出款單號，手動單是系統產生的單號。<code>Details(Remark)</code>：前端把玩家帳號、對方帳號、<code>Remark</code> 三項資料併成一欄顯示。各段以「·」分隔。沒有值的段落不顯示。三項都沒有值時顯示 <code>-</code>。<code>INTERNAL OUT</code>＝<code>To: 對方帳號</code>＋Remark；<code>INTERNAL IN</code>＝<code>From: 對方帳號</code>＋Remark；<code>LOAN OUT</code>＝<code>To: 對方銀行 / 戶名 / 帳號</code>＋Remark；<code>ADJUST IN</code>／<code>ADJUST OUT</code>＝Remark；<code>DEPOSIT</code>／<code>WITHDRAW</code>＝<code>Player: 玩家帳號</code>（存款單、出款單上的 <code>Username</code>）。資料上玩家帳號、對方帳號、Remark 是三個獨立欄位，匯出 CSV 時分成三欄。<code>Updated By</code>：建單人；<code>DEPOSIT</code>／<code>WITHDRAW</code> 是核准的人。<br>
           <b>帳號欄位</b>（代碼、銀行、戶名、帳號號碼）顯示交易當下的資料，之後在 <code>3.7</code> 修改帳號不影響已有的紀錄。例外是 <code>Account Group</code><span class="pill-new">NEW</span>：顯示帳號<b>目前</b>的分組，與篩選條件一致；帳號改了分組，舊紀錄也跟著顯示新的分組；已刪除的帳號、沒有分組的帳號顯示 <code>-</code>。戶名、帳號號碼、錢包地址、對方帳號屬敏感資料，AES-256 加密存放。<br>
           <b>Total In／Total Out</b>：目前篩選條件下全部紀錄（不只本頁）的轉入合計與轉出合計。<br>
           <b>金額上限</b>：單筆金額、餘額、今日存款累計、今日出款累計的上限都是 <code>9999999999999999.99</code>。任何交易會讓某個帳號的餘額或今日累計超過上限時，整筆不生效（內部轉帳兩筆都不產生）。核准出款與手動單回 <code>409 AMOUNT_LIMIT_EXCEEDED</code>；玩家存款核准則是核准失敗、存款單狀態不變，依既有的核准失敗方式回應，不新增錯誤碼。手動單的表單顯示 <code>The amount exceeds the maximum value allowed for this account.</code>（mockup 不呈現）。前端＋後端都要擋。<br>
@@ -529,7 +529,7 @@
       <div class="rd-note mnote" data-k="ext">
         <b>External Transfer</b>：把錢從 Payment Account 轉給系統外的對象。需要權限 <code>3.11 › External Transfer</code>。<br>
         <b>From Account</b>：必填，下拉選單，規則與 Internal Transfer 的 <code>From Account</code> 相同：選項只有 <code>3.7 Payment Account</code> 裡掛在 <code>BANK-OFFLINE</code> 通道底下、<code>ACTIVE</code>、未刪除的帳號，只能從選項中選取。<b>Amount</b>：必填，<code>DECIMAL(18,2)</code>，大於 0、最多兩位小數。<br>
-        <b>Recipient Bank／Recipient Account Name／Recipient Account No</b>：選填，最長 64、64、32 字；戶名與帳號屬敏感資料，AES-256 加密存放。<b>Remark</b>：必填。最長 200 字。輸入框最多輸入 200 字，超過的字無法輸入；這個情況不顯示錯誤訊息，也沒有錯誤碼。交易列表的 <code>Details</code> 欄顯示 <code>Remark</code> 的內容。<b>Tx ID</b>：選填，銀行交易序號，最長 64 字。<br>
+        <b>Recipient Bank／Recipient Account Name／Recipient Account No</b>：選填，最長 64、64、32 字；戶名與帳號屬敏感資料，AES-256 加密存放。<b>Remark</b>：必填。最長 200 字。輸入框最多輸入 200 字，超過的字無法輸入；這個情況不顯示錯誤訊息，也沒有錯誤碼。交易列表的 <code>Details(Remark)</code> 欄顯示 <code>Remark</code> 的內容。<b>Tx ID</b>：選填，銀行交易序號，最長 64 字。<br>
         <b>轉出帳號的檢查</b>與 Internal Transfer 相同：<code>Allow Withdraw = Yes</code>、餘額足夠、依每日出款門檻可轉出。前端＋後端都要擋。<br>
         <b>生效後</b>：產生一筆 <code>LOAN OUT</code>；帳號餘額減少、今日出款累計增加。
       </div>
@@ -1055,7 +1055,7 @@ function csv311(){
   if(T11.view==='sum'){var rs=[['Account Code','Account Group','Bank Name','Account Name','Account No','Status','Balance','Deposit','Withdraw','Internal Out','Internal In','Loan Out','Adjust In','Adjust Out']];
     summary311(filtered311()).forEach(function(r){rs.push([r.code,r.group||'-',r.bank,r.name,r.no,r.live?r.status:'-',r.live?r.balance.toFixed(2):'-'].concat(SUMCOLS.map(function(k){return r[k].toFixed(2)})))});
     return rs.map(function(r){return r.map(q).join(',')}).join('\n')}
-  var rows=[['Completed Time','Payment Channel','Account Code','Account Group','Bank Name','Account Name','Account No','Type','Amount','Balance Before','Balance After','Reference No','Player','Counterparty','Remark','Created By']];
+  var rows=[['Completed Time','Payment Channel','Account Code','Account Group','Bank Name','Account Name','Account No','Type','Amount','Balance Before','Balance After','Reference No','Player','Counterparty','Remark','Updated By']];
   filtered311().forEach(function(e){rows.push([e.time,e.channel,e.code,(accById(e.accId)||{}).group||'-',e.bank,e.name,e.no||e.wallet,e.type,(isIn(e.type)?'':'-')+e.amount.toFixed(2),e.before.toFixed(2),e.after.toFixed(2),e.ref,e.player,e.counter,e.remark,e.by])});
   return rows.map(function(r){return r.map(q).join(',')}).join('\n');
 }
