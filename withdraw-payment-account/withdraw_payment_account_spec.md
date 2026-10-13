@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.25（2026-10-13）
+- 版本：v0.26（2026-10-13）
 
 ---
 
@@ -644,6 +644,9 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | `Set balance to` 送出時，帳號餘額與表單上顯示的目前餘額不同 | `409 BALANCE_CHANGED` | `The balance changed to {餘額}. Check the Actual Balance. Submit again.` |
 | `Set balance to` 的請求沒有 `expectedBalance`，或它的格式不對 | `400 EXPECTED_BALANCE_INVALID` | 畫面操作不會產生這個情況；前端依既有的錯誤處理顯示 |
 | 交易會讓任何一個帳號的餘額或今日累計超過金額上限（4.2） | `409 AMOUNT_LIMIT_EXCEEDED` | `The amount exceeds the maximum value allowed for this account.` |
+
+- 三張表單的 `Remark` 輸入框最多輸入 200 字，超過的字無法輸入。
+- `Remark` 的長度沒有錯誤訊息，也沒有錯誤碼。
 
 ---
 

@@ -522,14 +522,14 @@
       <div class="rd-note mnote" data-k="int">
         <b>Internal Transfer</b>：把錢從一個 Payment Account 轉到另一個。需要權限 <code>3.11 › Internal Transfer</code>。<br>
         <b>From Account／To Account</b>：必填，下拉選單。選項只有 <code>3.7 Payment Account</code> 裡掛在 <code>BANK-OFFLINE</code> 通道底下、<code>ACTIVE</code>、未刪除的帳號；點開列出全部選項；直接在欄位裡輸入文字可以縮小範圍（部分比對代碼、銀行、戶名、帳號號碼），欄位的提示文字是 <code>Select or type to search</code>。只能從選項中選取，不接受自行輸入的內容。每個選項顯示餘額與今日出款累計。兩個帳號不能相同。<br>
-        <b>Amount</b>：必填，<code>DECIMAL(18,2)</code>，大於 0、最多兩位小數。<b>Remark</b>：選填，最長 200 字。不處理手續費；有手續費時另外用 <code>Adjust Balance</code> 的 <code>Decrease</code> 扣除，並在 <code>Remark</code> 寫明是手續費。<br>
+        <b>Amount</b>：必填，<code>DECIMAL(18,2)</code>，大於 0、最多兩位小數。<b>Remark</b>：選填，最長 200 字。輸入框最多輸入 200 字，超過的字無法輸入；這個情況不顯示錯誤訊息，也沒有錯誤碼。不處理手續費；有手續費時另外用 <code>Adjust Balance</code> 的 <code>Decrease</code> 扣除，並在 <code>Remark</code> 寫明是手續費。<br>
         <b>轉出帳號的檢查</b>（前端＋後端都要擋）：<code>Allow Withdraw = Yes</code>；餘額大於等於金額；依每日出款門檻可轉出，規則與核准玩家出款相同（<code>Allow Withdraw Over Threshold = Yes</code> 時今日累計小於門檻即可；<code>No</code> 時今日累計加上金額不得超過門檻）。<br>
         <b>生效後</b>：產生 <code>INTERNAL OUT</code> 與 <code>INTERNAL IN</code> 兩筆紀錄；轉出帳號餘額減少、今日出款累計增加；轉入帳號餘額增加、今日存款累計增加。轉入不受存款門檻限制，但累計增加後，該帳號可能因達到存款門檻而不再派給玩家存款。
       </div>
       <div class="rd-note mnote" data-k="ext">
         <b>External Transfer</b>：把錢從 Payment Account 轉給系統外的對象。需要權限 <code>3.11 › External Transfer</code>。<br>
         <b>From Account</b>：必填，下拉選單，規則與 Internal Transfer 的 <code>From Account</code> 相同：選項只有 <code>3.7 Payment Account</code> 裡掛在 <code>BANK-OFFLINE</code> 通道底下、<code>ACTIVE</code>、未刪除的帳號，只能從選項中選取。<b>Amount</b>：必填，<code>DECIMAL(18,2)</code>，大於 0、最多兩位小數。<br>
-        <b>Recipient Bank／Recipient Account Name／Recipient Account No</b>：選填，最長 64、64、32 字；戶名與帳號屬敏感資料，AES-256 加密存放。<b>Remark</b>：必填。最長 200 字。交易列表的 <code>Details</code> 欄顯示 <code>Remark</code> 的內容。<b>Tx ID</b>：選填，銀行交易序號，最長 64 字。<br>
+        <b>Recipient Bank／Recipient Account Name／Recipient Account No</b>：選填，最長 64、64、32 字；戶名與帳號屬敏感資料，AES-256 加密存放。<b>Remark</b>：必填。最長 200 字。輸入框最多輸入 200 字，超過的字無法輸入；這個情況不顯示錯誤訊息，也沒有錯誤碼。交易列表的 <code>Details</code> 欄顯示 <code>Remark</code> 的內容。<b>Tx ID</b>：選填，銀行交易序號，最長 64 字。<br>
         <b>轉出帳號的檢查</b>與 Internal Transfer 相同：<code>Allow Withdraw = Yes</code>、餘額足夠、依每日出款門檻可轉出。前端＋後端都要擋。<br>
         <b>生效後</b>：產生一筆 <code>LOAN OUT</code>；帳號餘額減少、今日出款累計增加。
       </div>
@@ -545,7 +545,7 @@
         ・使用者確認後再按一次 <code>Submit</code>。這一次是新的請求，使用新的 <code>Idempotency-Key</code>。更新後所填金額等於目前餘額時，後端回 <code>409 BALANCE_UNCHANGED</code>。<br>
         ・<b>DEMO：</b>mockup 沒有真的送出請求，用畫面上記下的餘額與資料裡的餘額比對來示意；<code>EXPECTED_BALANCE_INVALID</code> 不呈現。<code>Increase</code> 與 <code>Decrease</code> 填的是變動金額，不做這項檢查。<br>
         <b>金額格式</b>：<code>DECIMAL(18,2)</code>，最多兩位小數。<br>
-        <b>Remark</b>：必填，最長 200 字。這張表單沒有類別欄位；調整的原因（例如銀行手續費、利息、未認領的入帳、更正）由財務寫在 <code>Remark</code>。<br>
+        <b>Remark</b>：必填，最長 200 字。輸入框最多輸入 200 字，超過的字無法輸入；這個情況不顯示錯誤訊息，也沒有錯誤碼。這張表單沒有類別欄位；調整的原因（例如銀行手續費、利息、未認領的入帳、更正）由財務寫在 <code>Remark</code>。<br>
         <b>餘額不能是負數</b>，前端＋後端都要擋。<br>
         <b>生效後</b>：產生一筆 <code>ADJUST IN</code> 或 <code>ADJUST OUT</code>。調整不計入今日存款累計或今日出款累計，也不受每日門檻限制。
       </div>
