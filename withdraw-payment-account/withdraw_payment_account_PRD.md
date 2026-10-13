@@ -1,8 +1,8 @@
 # PRD：Payment Account 管理（出款指定帳號、帳號餘額與手動單）
 
-**版本**：v1.2（2026-10-09）　**類型**：新功能＋功能變更　**負責**：PM
+**版本**：v1.3（2026-10-13）　**類型**：新功能＋功能變更　**負責**：PM
 **Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)、[操作示範影片（約 2 分鐘）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_demo.mp4)。兩份 mockup 都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`
-**相關**：RD Spec `withdraw_payment_account_spec.md` v0.24（欄位、錯誤碼、介面欄位的完整定義）
+**相關**：RD Spec `withdraw_payment_account_spec.md` v0.25（欄位、錯誤碼、介面欄位的完整定義）
 
 ## 1. 需求背景
 客戶在 `BANK-OFFLINE` 通道底下有兩百多個公司銀行帳號，同時用來收玩家存款與付玩家出款。現在財務在 `3.2 Withdraw List` 核准出款時只能選通道，不能指定由哪個帳號付款；系統也不知道每個帳號裡還有多少錢。客戶目前用 Excel 逐筆記錄每個帳號的存款、出款、內部調撥、銀行手續費、利息、未認領的入帳與借貸，每天人工對帳。
@@ -24,10 +24,10 @@
 | FR-6 | 出款單記錄出款帳號 | 指定帳號核准成功時，出款單記錄帳號 ID 與核准當下的銀行、戶名、帳號、錢包地址，之後不可修改。`3.2` 兩張表新增四欄、新增 `Payment Account` 篩選、`Export CSV` 帶出四欄。 |
 | FR-7 | 帳號餘額與交易紀錄 | 系統記錄每個 `BANK-OFFLINE` 帳號的餘額。玩家存款核准產生 `DEPOSIT`（金額等於該存款單計入 `Today Deposit Amount` 的金額，同一張存款單只產生一筆）、指定帳號的出款核准產生 `WITHDRAW`、手動單產生對應紀錄，每筆記錄前後餘額。餘額不可為負；交易紀錄不可修改或刪除。上線時餘額為 0，不回補歷史。 |
 | FR-8 | 每日出款門檻 | 指定帳號出款、內部轉帳的轉出、轉到外部，三種轉出都要通過：`Allow Withdraw = Yes`、餘額足夠、每日門檻。轉出計入 `Today Withdraw Amount`，依生效時間（出款是核准時間）歸屬當日，用交易金額本身、不扣手續費，計入後不因出款單狀態變化扣回。內部轉入計入既有的 `Today Deposit Amount`，轉入本身不受存款門檻限制，但累計達到 `Threshold` 後該帳號不再派給玩家存款。調整不計入任何累計。 |
-| FR-9 | `3.11` 交易紀錄頁 | 新頁 `3.11 Payment Account Transactions`：篩選（帳號、分組、銀行、戶名、帳號號碼、單號、經手人、類型、日期區間）、摘要卡（未選帳號時是全部帳號總覽，選了帳號時是該帳號狀態）、交易列表、`Total In`／`Total Out`、`Export CSV`。日期區間預設今天，最長 31 天。 |
+| FR-9 | `3.11` 交易紀錄頁 | 新頁 `3.11 Payment Account Transactions`：篩選（帳號、分組、銀行、戶名、帳號號碼、單號、經手人、`Details` 的內容、類型、日期區間）、摘要卡（未選帳號時是全部帳號總覽，選了帳號時是該帳號狀態）、交易列表、`Total In`／`Total Out`、`Export CSV`。日期區間預設今天，最長 31 天。 |
 | FR-10 | `3.11` 每帳號合計 | `3.11` 可切換到 `Summary by Account`：每個帳號一列，列出日期區間內存款、出款、內部轉出、內部轉入、轉到外部、調整增加、調整減少的合計，最下面一列總計，可匯出。 |
 | FR-11 | 手動單：Internal Transfer | 從一個 `BANK-OFFLINE` 帳號轉到另一個，產生成對的 `INTERNAL OUT`／`INTERNAL IN`，同一單號、同時生效。 |
-| FR-12 | 手動單：External Transfer | 從 `BANK-OFFLINE` 帳號轉給系統外的對象，產生 `EXTERNAL OUT`，記錄對方資料與用途。 |
+| FR-12 | 手動單：External Transfer | 從 `BANK-OFFLINE` 帳號轉給系統外的對象，產生 `LOAN OUT`，記錄對方資料與 `Remark`。 |
 | FR-13 | 手動單：Adjust Balance | 增加、減少或直接設定帳號餘額（`Set balance to`）。`Remark` 必填。表單沒有類別欄位；調整的原因寫在 `Remark`。未認領的入帳先加後沖。`Set balance to` 送出時，帳號餘額與表單上顯示的不同就不建單，請使用者確認後重送。 |
 | FR-14 | 權限節點 | Agent BO `11.2 Role Setting` 新增群組 `Payment Account Transactions`，含控制 `3.11` 的五個節點：`VIEW`、`EXPORT`、`Internal Transfer`、`External Transfer`、`Adjust Balance`，上線預設都不勾。後端逐一驗權。 |
 | FR-15 | Admin BO 開關 | Admin BO `Agent List › Edit › Role Setting` 新增一列 `Payment Account Transactions`（`Enable`／`Deny`，預設 `Deny`）。`Deny` 的 Agent 不能使用 `3.11`；`3.2` 與 `3.7` 的新功能不受它控制。 |
@@ -60,8 +60,7 @@
 | `Amount`（手動單） | `DECIMAL(18,2)` | 是 | 大於 0、最多兩位小數；轉出與 `Decrease` 不得大於餘額。前端＋後端都要擋 |
 | `Actual Balance`（`Set balance to`） | `DECIMAL(18,2)` | 是 | 大於等於 0，不得等於目前餘額。請求另帶表單上顯示的目前餘額；後端讀到的餘額與它不同時回 `409 BALANCE_CHANGED`。前端＋後端都要擋 |
 | `Direction` | `enum('INCREASE','DECREASE','SET')` | 是 | 預設 `DECREASE` |
-| `Remark` | `VARCHAR(200)` | 調整必填；內部轉帳選填 | — |
-| `Purpose` | `VARCHAR(200)` | 是（External Transfer） | — |
+| `Remark` | `VARCHAR(200)` | 轉到外部與調整必填；內部轉帳選填 | — |
 | `Recipient Bank`／`Recipient Account Name`／`Recipient Account No` | `VARCHAR(64)`／`VARCHAR(64)`／`VARCHAR(32)` | 否 | 戶名與帳號 AES-256 加密 |
 | `Tx ID`（External Transfer） | `VARCHAR(64)` | 否 | 銀行交易序號 |
 | `Payment Account Transactions`（Admin BO） | `BOOLEAN` | 是 | 每個 Agent 一個，預設 `false`（`Deny`） |
@@ -80,7 +79,7 @@
 | Payment Account（既有） | `account_code`、`account_group` | `VARCHAR(32)` | NULL 可 |
 | 出款單（既有） | `payment_account_id` | 與帳號 ID 相同 | NULL 可；寫入後不可修改 |
 | 出款單（既有） | `payment_account_bank_name`、`payment_account_name`、`payment_account_no`、`payment_account_wallet_address` | 字串，長度同 `3.7` 對應欄位 | NULL 可；後三者 AES-256 加密；核准當下的值 |
-| 帳號交易紀錄（新增） | 帳號 ID、`type`、`amount`、`balance_before`、`balance_after`、`reference_no`、`created_by`、`created_time` | `type`：`enum('DEPOSIT','WITHDRAW','INTERNAL OUT','INTERNAL IN','EXTERNAL OUT','ADJUST IN','ADJUST OUT')`；金額三欄 `DECIMAL(18,2)` | NOT NULL；`amount` > 0；`balance_after` ≥ 0；建立後不可修改或刪除 |
+| 帳號交易紀錄（新增） | 帳號 ID、`type`、`amount`、`balance_before`、`balance_after`、`reference_no`、`created_by`、`completed_time` | `type`：`enum('DEPOSIT','WITHDRAW','INTERNAL OUT','INTERNAL IN','LOAN OUT','ADJUST IN','ADJUST OUT')`；金額三欄 `DECIMAL(18,2)` | NOT NULL；`amount` > 0；`balance_after` ≥ 0；建立後不可修改或刪除 |
 | 帳號交易紀錄（新增） | 交易當下的 `account_code`、`bank_name`、`account_name`、`account_no` | 字串 | 戶名與帳號 AES-256 加密 |
 | 帳號交易紀錄（新增） | `player`、`counterparty`、`remark`、`tx_id` | 字串 | `counterparty` AES-256 加密 |
 | 帳號交易紀錄（新增） | 來源單據 | 存款單 ID／出款單 ID／手動單號 | 同一張存款單只有一筆 `DEPOSIT`；同一張出款單只有一筆 `WITHDRAW` |
@@ -188,18 +187,18 @@ Agent BO 新增 `3.11` 一個選單項；`3.2`、`3.7` 沿用現有選單。Admi
 | AC-24（負向） | FR-8 | `Allow Withdraw = No` 的帳號不出現在核准清單、不能做內部轉帳的轉出與轉到外部（回 `409 WITHDRAW_NOT_ALLOWED`），但可以做內部轉入與調整餘額。同一帳號同時發生兩個轉出時，後完成的依前一個完成後的餘額與累計判定，餘額不會小於 0；以 AC-23 的條件同時送出兩筆 3,000：`Allow Withdraw Over Threshold = Yes` 時第一筆成功（累計 51,000）、第二筆被拒；`= No` 時兩筆都被拒。 |
 | AC-25 | FR-8 | 內部轉入 1,000 後，轉入帳號的 `Today Deposit Amount` 增加 1,000；轉入本身不受存款門檻限制；累計因此達到 `Threshold` 的帳號，不再被派給玩家存款。調整餘額不改變任何累計。今日累計在既有的切日時刻歸零。 |
 | AC-26 | FR-8 | 昨天建立、今天核准的出款單，計入今天的 `Today Withdraw Amount`；計入的是交易金額本身，不扣手續費；之後這張出款單的狀態再有變化，已計入的累計不扣回。 |
-| AC-27 | FR-9 | Agent 開關為 `Enable`、有 `3.11 › VIEW` 的使用者直接進入 `3.11`：日期區間預設為今日累計這一期（最近一次歸零到下一次歸零前一秒），摘要卡顯示全部帳號總覽（帳號數、餘額合計、今日存款合計、今日出款合計），列表依 `Created Time` 由新到舊、每頁 10 筆；選了帳號後摘要卡改顯示該帳號狀態。 |
+| AC-27 | FR-9 | Agent 開關為 `Enable`、有 `3.11 › VIEW` 的使用者直接進入 `3.11`：日期區間預設為今日累計這一期（最近一次歸零到下一次歸零前一秒），摘要卡顯示全部帳號總覽（帳號數、餘額合計、今日存款合計、今日出款合計），列表依 `Completed Time` 由新到舊、每頁 10 筆；選了帳號後摘要卡改顯示該帳號狀態。 |
 | AC-28（負向） | FR-9、FR-10 | 日期區間超過 31 天時前端不可查詢並顯示 `Date range cannot exceed 31 days.`；直接呼叫後端回 `400 DATE_RANGE_TOO_LONG`。交易列表、`Summary by Account` 的查詢與兩種匯出都受此限制。 |
-| AC-29 | FR-9 | 篩選條件同時套用到列表、`Total In`／`Total Out` 與 `Export CSV`；`Bank` 選項含已改銀行或已刪除帳號的歷史銀行；`Export CSV` 匯出全部符合的紀錄（不只本頁）共 16 欄；`Amount` 不加千分位，減少的金額前面加 `-`，增加的金額不加符號。交易列表的 `Account Name` 是純文字，點了不改變篩選條件。 |
+| AC-29 | FR-9 | 篩選條件同時套用到列表、`Total In`／`Total Out` 與 `Export CSV`；`Bank` 選項含已改銀行或已刪除帳號的歷史銀行；`Export CSV` 匯出全部符合的紀錄（不只本頁）共 16 欄；`Amount` 不加千分位，減少的金額前面加 `-`，增加的金額不加符號。交易列表的 `Account Name` 是純文字，點了不改變篩選條件。`Details` 條件填 `rent`：只列出玩家帳號、對方帳號或 `Remark` 含有 `rent` 的紀錄，不分大小寫。`Details` 條件填 `Player:`：畫面上的 `Player:` 前綴不算符合，三項資料本身都不含 `Player:` 的紀錄不列出。 |
 | AC-30 | FR-10 | 切到 `Summary by Account`：每個有交易的帳號一列，各金額欄等於該帳號在條件範圍內對應類型的合計，`Adjust In` 是 `ADJUST IN` 的合計、`Adjust Out` 是 `ADJUST OUT` 的合計；`Total` 列等於全部列（不只本頁）合計；`Account Name` 是純文字，點了仍停在合計表。已刪除帳號仍列出一列並計入 `Total`：代碼、銀行、戶名、帳號用範圍內最新一筆交易當下的值，`Account Group`、`Status`、`Balance` 顯示 `-`。匯出 14 欄、全部列，不含 `Total` 列。 |
 | AC-31（負向） | FR-10 | 沒有 `3.11 › VIEW` 時查詢 `Summary by Account` 回 `403`；有 `VIEW` 沒有 `EXPORT` 時看不到 `Export CSV`，直接呼叫匯出回 `403`。 |
 | AC-32 | FR-10 | 昨天帳號 A、B 各有一筆 `6000000000000000.00` 的存款：查昨天的 `Summary by Account`，`Total` 列的 `Deposit` 顯示 `12,000,000,000,000,000.00`，不截斷、不報錯。 |
 | AC-33 | FR-9 | 同一代理、未刪除的帳號 A、B 目前餘額各為 `6000000000000000.00`，沒有選定帳號時，總覽卡的 `Total Balance` 顯示 `12,000,000,000,000,000.00`，不截斷、不報錯。 |
 | AC-34 | FR-11 | 帳號 A（餘額 10,000）轉 1,000 到帳號 B：產生 `INTERNAL OUT`（A）與 `INTERNAL IN`（B）兩筆，同一 `IT` 開頭的單號、同時生效；A 餘額 9,000、今日出款 +1,000；B 餘額 +1,000、今日存款 +1,000。 |
 | AC-35（負向） | FR-11 | 轉出與轉入選同一個帳號回 `400 SAME_ACCOUNT`；轉入帳號是 `INACTIVE` 時不在選項中、直接呼叫回 `409 PAYMENT_ACCOUNT_INACTIVE`；任一邊不能生效時兩筆都不產生。 |
-| AC-36 | FR-12 | 填 `Recipient Bank = KBANK`、`Recipient Account Name = ACME Co`、`Recipient Account No = 123456`、`Purpose = Rent`，轉出 500：產生一筆 `EXTERNAL OUT`（`ET` 開頭單號），餘額 −500、今日出款 +500，`Details` 顯示 `To: KBANK / ACME Co / 123456 · Rent`。 |
-| AC-37 | FR-12 | 對方三個欄位都不填、只填 `Purpose = Rent`：可以建單，`Details` 只顯示 `Rent`。 |
-| AC-38（負向） | FR-12 | `Purpose` 沒填回 `400 PURPOSE_REQUIRED`；金額大於餘額回 `409 PAYMENT_ACCOUNT_INSUFFICIENT_BALANCE`；不建單、餘額不變。 |
+| AC-36 | FR-12 | 填 `Recipient Bank = KBANK`、`Recipient Account Name = ACME Co`、`Recipient Account No = 123456`、`Remark = Rent`，轉出 500：產生一筆 `LOAN OUT`（`ET` 開頭單號），餘額 −500、今日出款 +500，`Details` 顯示 `To: KBANK / ACME Co / 123456 · Rent`。 |
+| AC-37 | FR-12 | 對方三個欄位都不填、只填 `Remark = Rent`：可以建單，`Details` 只顯示 `Rent`。 |
+| AC-38（負向） | FR-12 | `Remark` 沒填回 `400 REMARK_REQUIRED`；金額大於餘額回 `409 PAYMENT_ACCOUNT_INSUFFICIENT_BALANCE`；不建單、餘額不變。 |
 | AC-39 | FR-13 | 帳號餘額 1,200，選 `Set balance to` 填 `80000`、`Remark` 填 `Opening balance`：畫面即時顯示 `Current balance: 1,200.00 · Difference: +78,800.00`；送出後產生一筆 `ADJUST IN` 78,800.00，餘額 80,000.00，今日累計不變。 |
 | AC-40（負向） | FR-13 | 表單開著時（畫面顯示餘額 1,200），同帳號先有一筆存款入帳 300；之後送出 `Set balance to 80000`：後端回 `409 BALANCE_CHANGED`，不建單，餘額維持 1,500.00；表單保持開啟，顯示 `The balance changed to 1,500.00. Check the Actual Balance. Submit again.`，帳號欄位下方的 `Balance` 與 `Current balance` 都更新為 1,500.00、`Difference` 更新為 +78,500.00。使用者再按一次 `Submit`（新的請求，使用新的 `Idempotency-Key`）：產生 `ADJUST IN` 78,500.00，餘額 80,000.00。同樣情況下送出 `Decrease 10`：照常建單，不回 `BALANCE_CHANGED`。 |
 | AC-41 | FR-13 | 未認領入帳：先 `Increase` 300（`Remark` 寫明是未認領的入帳），存款單核准後再 `Decrease` 300；兩筆都出現在 `3.11`，`Details` 只顯示各自的 `Remark`；合計表 `Adjust In` 與 `Adjust Out` 各增加 300，餘額淨增加的只有那筆 `DEPOSIT`。 |

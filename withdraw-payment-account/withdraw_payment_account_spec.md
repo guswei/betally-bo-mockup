@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.24（2026-10-09）
+- 版本：v0.25（2026-10-13）
 
 ---
 
@@ -147,7 +147,7 @@
 | `WITHDRAW` | 減少 | Finance Approval 以 `BANK-OFFLINE`、指定帳號核准出款 |
 | `INTERNAL OUT` | 減少 | 內部轉帳的轉出帳號 |
 | `INTERNAL IN` | 增加 | 內部轉帳的轉入帳號 |
-| `EXTERNAL OUT` | 減少 | 轉到外部 |
+| `LOAN OUT` | 減少 | 轉到外部 |
 | `ADJUST IN` | 增加 | 調整餘額 |
 | `ADJUST OUT` | 減少 | 調整餘額 |
 
@@ -360,7 +360,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 累計 | 計入的交易 |
 |---|---|
 | `Today Deposit Amount`（既有） | 玩家存款（既有行為），加上 `INTERNAL IN` |
-| `Today Withdraw Amount`（新增） | `WITHDRAW`、`INTERNAL OUT`、`EXTERNAL OUT` |
+| `Today Withdraw Amount`（新增） | `WITHDRAW`、`INTERNAL OUT`、`LOAN OUT` |
 
 - `ADJUST IN`、`ADJUST OUT` 不計入任何累計。
 - 每一筆在交易生效時計入，歸屬日由生效時間決定，計入後不再變動。玩家出款的生效時間是核准時間，不是建單時間：昨天申請、今天核准的單，算在今天。
@@ -425,17 +425,18 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 5 | `Account No` | 文字。部分比對交易當下的帳號號碼 |
 | 6 | `Reference No` | 文字。部分比對 `Reference No`，不分大小寫 |
 | 7 | `Created By` | 文字。部分比對 `Created By`，不分大小寫 |
-| 8 | `Type` | 單選，預設 `Type: All`。選項：`DEPOSIT`、`WITHDRAW`、`INTERNAL OUT`、`INTERNAL IN`、`EXTERNAL OUT`、`ADJUST IN`、`ADJUST OUT` |
-| 9 | 日期區間 | 比對 `Created Time`。起訖都可以選到時分秒，以 BO 右上角顯示的時區呈現。規則見表格下方 |
-| 10 | `Search`、`Reset` | 與其他列表頁相同。`Reset` 清空第 1–8 項，日期回到今天。兩個按鈕都讓兩種檢視（11.3）回到第 1 頁，不改變目前所在的檢視 |
+| 8 | `Details` | 文字。後端比對這筆交易的 `Player`、`Counterparty`、`Remark` 三項資料（11.4）。任何一項含有輸入的文字時，這筆交易符合條件。比對不分大小寫。後端不比對畫面上加的 `Player:`、`From:`、`To:` 前綴 |
+| 9 | `Type` | 單選，預設 `Type: All`。選項：`DEPOSIT`、`WITHDRAW`、`INTERNAL OUT`、`INTERNAL IN`、`LOAN OUT`、`ADJUST IN`、`ADJUST OUT` |
+| 10 | 日期區間 | 比對 `Completed Time`。起訖都可以選到時分秒，以 BO 右上角顯示的時區呈現。規則見表格下方 |
+| 11 | `Search`、`Reset` | 與其他列表頁相同。`Reset` 清空第 1–9 項，日期回到今天。兩個按鈕都讓兩種檢視（11.3）回到第 1 頁，不改變目前所在的檢視 |
 
-第 4–7 項不必先選定帳號，可以單獨使用。文字欄位留空表示不套用該條件。
+第 4–8 項不必先選定帳號，可以單獨使用。文字欄位留空表示不套用該條件。
 
 日期區間的規則：
 
-- **起訖的意思**：畫面上的起與迄都算在區間內，精確到秒。查詢條件是 `起 ≤ Created Time < 迄 + 1 秒`，所以迄那一秒內的交易都算，下一秒的不算。
+- **起訖的意思**：畫面上的起與迄都算在區間內，精確到秒。查詢條件是 `起 ≤ Completed Time < 迄 + 1 秒`，所以迄那一秒內的交易都算，下一秒的不算。
 - **預設是「今天」**：起是今日累計（`Today Deposit Amount`、`Today Withdraw Amount`，第 9 節）最近一次歸零的時刻，迄是下一次歸零時刻的前一秒。
-- **與摘要卡今日數字的關係**：沒有設定第 1–8 項的任何條件、日期是預設的今天時，列表裡 `DEPOSIT`＋`INTERNAL IN` 的合計對應摘要卡的今日存款，`WITHDRAW`＋`INTERNAL OUT`＋`EXTERNAL OUT` 的合計對應今日出款。下列情況兩邊會有差額，屬於正常：
+- **與摘要卡今日數字的關係**：沒有設定第 1–9 項的任何條件、日期是預設的今天時，列表裡 `DEPOSIT`＋`INTERNAL IN` 的合計對應摘要卡的今日存款，`WITHDRAW`＋`INTERNAL OUT`＋`LOAN OUT` 的合計對應今日出款。下列情況兩邊會有差額，屬於正常：
   - 當天有交易的帳號之後被刪除：列表仍含它的交易，總覽卡不含已刪除的帳號（11.5）。
   - 功能在一天的中途上線的那一天：今日存款含上線前的存款，列表沒有對應的紀錄（4.1）。
   - 列表與摘要卡不是同一個時間點查的。
@@ -452,11 +453,11 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 ### 11.4 列表欄位
 
-一列是一筆交易紀錄，依 `Created Time` 由新到舊排列，每頁 10 筆。
+一列是一筆交易紀錄，依 `Completed Time` 由新到舊排列，每頁 10 筆。
 
 | 欄位序 | 欄名 | 內容 |
 |---|---|---|
-| 1 | `Created Time` | 交易生效的時間 |
+| 1 | `Completed Time` | 交易生效的時間。`DEPOSIT`、`WITHDRAW` 是存款單、出款單核准成功的時間；手動單是建單成功的時間 |
 | 2 | `Payment Channel` | 帳號所屬通道 |
 | 3 | `Account Code` | 交易當下帳號的代碼，沒有時為空 |
 | 4 | `Account Group` | 帳號**目前**的分組，與 11.2 的 `Account Group` 篩選一致；帳號改了分組，舊紀錄也顯示新的分組。沒有分組或帳號已刪除時顯示 `-` |
@@ -476,8 +477,8 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 資料 | 有值的類型 | 內容 | 在 `Details` 的顯示 |
 |---|---|---|---|
 | `Player` | `DEPOSIT`、`WITHDRAW` | 存款單、出款單上的玩家帳號（`Username`），存交易當下的值 | `Player: {Player}` |
-| `Counterparty` | `INTERNAL OUT`、`INTERNAL IN`、`EXTERNAL OUT` | `INTERNAL OUT` 是轉入帳號，`INTERNAL IN` 是轉出帳號，格式 `{帳號標示}`；`EXTERNAL OUT` 是填寫的對方銀行、戶名、帳號，以 ` / ` 相連，沒填的省略 | `INTERNAL IN` 顯示 `From: {Counterparty}`；`INTERNAL OUT`、`EXTERNAL OUT` 顯示 `To: {Counterparty}` |
-| `Remark` | 手動單 | 內部轉帳與調整的 `Remark`；`EXTERNAL OUT` 的 `Purpose` | 原樣顯示 |
+| `Counterparty` | `INTERNAL OUT`、`INTERNAL IN`、`LOAN OUT` | `INTERNAL OUT` 是轉入帳號，`INTERNAL IN` 是轉出帳號，格式 `{帳號標示}`；`LOAN OUT` 是填寫的對方銀行、戶名、帳號，以 ` / ` 相連，沒填的省略 | `INTERNAL IN` 顯示 `From: {Counterparty}`；`INTERNAL OUT`、`LOAN OUT` 顯示 `To: {Counterparty}` |
+| `Remark` | 手動單 | 三種手動單表單上的 `Remark` | 原樣顯示 |
 
 - 列表下方顯示 `Total In : {金額}` 與 `Total Out : {金額}`，是目前篩選條件下全部紀錄（不只本頁）的增加合計與減少合計。
 - 交易紀錄建立後不可修改或刪除。帳號欄位（第 3、5、6、7 欄）顯示交易當下的資料，之後在 `3.7` 修改帳號不影響已有的紀錄；第 4 欄 `Account Group` 例外，顯示目前的分組。
@@ -512,7 +513,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 ### 11.6 從 `3.7` 帶帳號過來
 
-`3.7` 列表的 `Transactions` 按鈕（3.5）：跳到 `3.11`，`Payment Account` 條件設成該帳號，11.2 的第 2–8 項為空，日期是今天。
+`3.7` 列表的 `Transactions` 按鈕（3.5）：跳到 `3.11`，`Payment Account` 條件設成該帳號，11.2 的第 2–9 項為空，日期是今天。
 
 列表（11.4）與合計表（11.7）的 `Account Name` 不提供點擊篩選。不同帳號的戶名可能相同；要看單一帳號時，使用 11.2 的 `Payment Account` 條件。
 
@@ -533,7 +534,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 9 | `Withdraw` | `WITHDRAW` 的金額合計 |
 | 10 | `Internal Out` | `INTERNAL OUT` 的金額合計 |
 | 11 | `Internal In` | `INTERNAL IN` 的金額合計 |
-| 12 | `External Out` | `EXTERNAL OUT` 的金額合計 |
+| 12 | `Loan Out` | `LOAN OUT` 的金額合計 |
 | 13 | `Adjust In` | `ADJUST IN` 的金額合計 |
 | 14 | `Adjust Out` | `ADJUST OUT` 的金額合計 |
 
@@ -586,11 +587,11 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | `Recipient Bank` | 否 | 最長 64 字 |
 | `Recipient Account Name` | 否 | 最長 64 字。AES-256 欄位加密 |
 | `Recipient Account No` | 否 | 最長 32 字。AES-256 欄位加密 |
-| `Purpose` | 是 | 最長 200 字 |
 | `Tx ID` | 否 | 銀行交易序號，最長 64 字 |
+| `Remark` | 是 | 最長 200 字 |
 
 - 轉出帳號要通過第 6 節的三個條件。
-- 生效後：產生一筆 `EXTERNAL OUT`；帳號餘額減少、今日出款累計增加。
+- 生效後：產生一筆 `LOAN OUT`；帳號餘額減少、今日出款累計增加。
 
 ### 12.3 Adjust Balance
 
@@ -633,8 +634,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 內部轉帳的轉出與轉入帳號相同 | `400 SAME_ACCOUNT` | `The two accounts must be different.` |
 | 金額不是大於 0、或超過兩位小數（`Increase`、`Decrease`、兩種轉帳） | `400 AMOUNT_INVALID` | `Amount must be greater than 0, with up to 2 decimal places.` |
 | `Set balance to` 的金額小於 0、或超過兩位小數 | `400 AMOUNT_INVALID` | `Actual Balance must be 0 or greater, with up to 2 decimal places.` |
-| `Purpose` 沒填 | `400 PURPOSE_REQUIRED` | `Purpose is required.` |
-| 調整的 `Remark` 沒填 | `400 REMARK_REQUIRED` | `Remark is required.` |
+| 轉到外部或調整的 `Remark` 沒填 | `400 REMARK_REQUIRED` | `Remark is required.` |
 | 帳號不存在、已刪除、不屬於登入者所屬代理，或不是 BANK-OFFLINE 帳號 | `409 PAYMENT_ACCOUNT_UNAVAILABLE` | `The selected payment account is no longer available. Please select another one.` |
 | 內部轉帳或轉到外部的帳號不是 `ACTIVE` | `409 PAYMENT_ACCOUNT_INACTIVE` | `The account is inactive.` |
 | 轉出帳號 `Allow Withdraw = No` | `409 WITHDRAW_NOT_ALLOWED` | `Withdraw is not allowed for this account. Turn on Allow Withdraw in 3.7 Payment Account first.` |
@@ -767,7 +767,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 **`3.11` 交易紀錄列表與匯出**（新增，讀取）
 
-- 請求：帳號 ID、`accountGroup`、`bankName`、`accountName`、`accountNo`、`referenceNo`、`createdBy`、`type`、日期區間、頁碼、每頁筆數。匯出用同一組條件，不帶頁碼。
+- 請求：帳號 ID、`accountGroup`、`bankName`、`accountName`、`accountNo`、`referenceNo`、`createdBy`、`details`、`type`、日期區間、頁碼、每頁筆數。匯出用同一組條件，不帶頁碼。
 - 回應：每筆包含帳號 ID、11.4 第 1–12 欄與第 14 欄、`player`、`counterparty`、`remark`（三項分開回傳，`Details` 由前端組合）；另有總筆數、`totalIn`、`totalOut`。
 
 **`3.11` 每帳號合計與匯出**（新增，讀取）
@@ -786,7 +786,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 **建立手動單**（新增，三個動作）
 
 - Internal Transfer：轉出帳號 ID、轉入帳號 ID、`amount`、`remark`。
-- External Transfer：轉出帳號 ID、`amount`、`recipientBank`、`recipientAccountName`、`recipientAccountNo`、`purpose`、`txId`。
+- External Transfer：轉出帳號 ID、`amount`、`recipientBank`、`recipientAccountName`、`recipientAccountNo`、`txId`、`remark`。
 - Adjust Balance：帳號 ID、`direction`（`INCREASE`／`DECREASE`／`SET`）、`amount`、`remark`；`direction` 是 `SET` 時必須帶 `expectedBalance`（表單上顯示的目前餘額，`DECIMAL(18,2)`）。
 - 回應：手動單的單號。
 - `409 BALANCE_CHANGED` 的回應另帶 `currentBalance`（帳號最新的餘額，`DECIMAL(18,2)`），供前端更新畫面。
