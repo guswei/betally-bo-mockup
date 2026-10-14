@@ -81,15 +81,20 @@
     <div class="rd-note">
       <b>新增一列</b>：<code>Payment Account Transactions</code>，排在 <code>Free Spin Report</code> 之後。選項 <code>Enable</code>／<code>Deny</code>，型別是布林值，每個 Agent 各自一個設定。版面、儲存方式、右側 <code>updated :</code> 的顯示內容與格式、變更紀錄，都與既有的兩列相同。儲存方式（現況行為）：選項改變後，該列的選項右邊出現 <code>SAVE</code> 按鈕，按了才儲存；沒按 <code>SAVE</code> 就離開，設定不變。DEMO：選回原本已儲存的值時 <code>SAVE</code> 按鈕消失、儲存後顯示 <code>Saved</code> 提示、<code>updated :</code> 後面接操作人與時間，這三點是示意，實際照既有兩列的行為。<br>
       <b>預設值</b>：<code>Deny</code>。功能上線時所有既有的 Agent 都是 <code>Deny</code>；之後新建的 Agent 也是 <code>Deny</code>。<br>
-      <b>控制的對象</b>：這個 Agent 的 Agent BO 能不能使用 <code>3.11 Payment Account Transactions</code>。<br>
+      <b>控制的對象</b>：這個 Agent 的 Agent BO 能不能使用 Payment Account 管理的功能：<code>3.11 Payment Account Transactions</code>、<code>3.2</code> 的指定出款帳號、<code>3.7</code> 的六個新欄位。<br>
       ・<code>Enable</code>：Agent BO 的 <code>11.2 Role Setting</code> 在 <code>Payment Management</code> 底下出現群組 <code>Payment Account Transactions</code> 與它的五個權限節點（<code>VIEW</code>、<code>EXPORT</code>、<code>Internal Transfer</code>、<code>External Transfer</code>、<code>Adjust Balance</code>）。五個節點預設都不勾，由 Agent 自己開給角色；有勾 <code>VIEW</code> 的角色才看得到選單。<br>
-      ・<code>Deny</code>：Agent BO 的 <code>11.2 Role Setting</code> 不顯示群組 <code>Payment Account Transactions</code> 與它的節點；所有帳號（含最高權限帳號）的選單都不顯示 <code>3.11</code>；<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕；直接輸入網址時依既有的無權限處理。<br>
-      <b>前端＋後端都要擋</b>：<code>Deny</code> 的 Agent 呼叫 <code>3.11</code> 的任何介面（交易紀錄查詢、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）一律回 <code>403</code>，不可只靠隱藏選單。<br>
+      ・<code>Deny</code>：Agent BO 的 <code>11.2 Role Setting</code> 不顯示群組 <code>Payment Account Transactions</code> 與它的節點；所有帳號（含最高權限帳號）的選單都不顯示 <code>3.11</code>；<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕；直接輸入網址時依既有的無權限處理。另外：<br>
+      　- <code>3.2</code> 核准對話框選 <code>BANK-OFFLINE</code> 時不顯示 <code>Payment Account</code>，送出的結果與 <code>Not specified</code> 相同。<br>
+      　- <code>3.2</code> 兩張表不顯示四個出款帳號欄位。<br>
+      　- <code>3.2</code> 篩選區不顯示 <code>Payment Account</code>。<br>
+      　- <code>3.2</code> 的 <code>Export CSV</code> 不帶出四個出款帳號欄位。<br>
+      　- <code>3.7</code> 編輯頁、新增頁、列表不顯示六個新欄位（<code>Allow Withdraw</code>、<code>Withdraw Threshold</code>、<code>Allow Withdraw Over Threshold</code>、<code>Balance</code>、<code>Account Code</code>、<code>Account Group</code>），也不顯示 <code>Account Code</code>、<code>Account Group</code> 篩選。<br>
+      <b>前端＋後端都要擋</b>：<code>Deny</code> 的 Agent 呼叫 <code>3.11</code> 的任何介面（交易紀錄查詢、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）一律回 <code>403</code>，不可只靠隱藏選單。<code>Deny</code> 的 Agent 取得核准對話框的帳號清單、核准時帶出款帳號 ID、在 <code>3.2</code> 用出款帳號篩選、在 <code>3.7</code> 用代碼或分組篩選，後端也回 <code>403</code>。<code>3.7</code> 的新增或編輯請求帶了五個可編輯新欄位時，後端忽略它們。編輯時，已存的值不變。新增時，後端以 <code>Allow Withdraw = No</code>、<code>Withdraw Threshold</code> 為空、<code>Allow Withdraw Over Threshold = No</code>、代碼與分組為空儲存。<br>
       <b>由 Enable 改成 Deny</b>：按 <code>SAVE</code> 後立即生效，已登入的使用者下一次操作就被擋下。角色原本勾選的五個節點保留不清除，但不生效；之後改回 <code>Enable</code>，原本的勾選恢復生效。帳號的餘額與交易紀錄都保留。<br>
-      <b>Deny 期間的資料</b>：玩家存款核准、指定帳號的出款核准仍照常產生交易紀錄並變動餘額（Agent BO 開發 Spec 第 4 節），只是這個 Agent 看不到 <code>3.11</code>。<br>
+      <b>Deny 期間的資料</b>：玩家存款核准照常產生 <code>DEPOSIT</code> 並增加餘額（Agent BO 開發 Spec 第 4 節）。<code>Deny</code> 期間不能指定出款帳號，所以不會產生 <code>WITHDRAW</code>。<code>3.7</code> 已存的出款設定、代碼與分組，以及出款單上記錄的出款帳號都保留，改回 <code>Enable</code> 後照原值顯示。<br>
       <b>誰能操作</b>：能在 Admin BO 編輯 <code>Agent List</code> 的人，沿用這一頁既有的權限，不新增 Admin BO 的權限節點。<br>
-      <b>範圍</b>：這個開關只控制 <code>3.11</code>。<code>3.2</code> 核准對話框的 <code>Payment Account</code> 選項、<code>3.7</code> 的新欄位（出款設定、餘額、代碼與分組）不受它控制，所有 Agent 上線後都看得到。<code>Deny</code> 不改變核准時指定帳號清單的條件：照樣依帳號目前的出款設定、餘額與每日門檻判定，不看餘額是怎麼來的。<br>
-      <b>介面欄位</b>：這一頁既有的讀取與儲存增加一個布林欄位（<code>true</code>＝<code>Enable</code>，<code>false</code>＝<code>Deny</code>），讀取時回傳已儲存的值與 <code>updated :</code> 要顯示的資料；Agent BO 判斷 <code>403</code> 與要不要顯示節點，讀的是同一個設定。
+      <b>範圍</b>：<code>3.2</code>、<code>3.7</code> 其他既有的欄位與功能不受這個開關影響。<br>
+      <b>介面欄位</b>：這一頁既有的讀取與儲存增加一個布林欄位（<code>true</code>＝<code>Enable</code>，<code>false</code>＝<code>Deny</code>），讀取時回傳已儲存的值與 <code>updated :</code> 要顯示的資料；Agent BO 判斷上述每一項的顯示與 <code>403</code>，讀的是同一個設定。
     </div>
 
     <div class="rd-note">

@@ -146,6 +146,8 @@
   .perm label{display:inline-flex;align-items:center;gap:5px;margin:4px 16px 0 0}
   .side div.sub.newnav::after{content:'NEW';background:#d93025;color:#fff;border-radius:8px;font-size:10px;padding:0 6px;margin-left:6px;font-weight:700}
   th.newcol{background:#bfe3bf} td.newcol{background:#f7fcf5}
+  body.adm-off .admx{display:none!important}
+  .tools .mb{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mute)} .tools .mb input{width:120px;text-align:right} .tools .mb input.bad{border-color:var(--red)}
   .pill-new{background:#d93025;color:#fff;border-radius:8px;font-size:10px;padding:0 6px;margin-left:5px;vertical-align:middle;font-weight:700}
 </style>
 </head>
@@ -182,7 +184,9 @@
       <label><input type="checkbox" data-perm="exp" checked> 3.11 › EXPORT</label>
       <label><input type="checkbox" data-perm="internal" checked> 3.11 › Internal Transfer</label>
       <label><input type="checkbox" data-perm="external" checked> 3.11 › External Transfer</label>
-      <label><input type="checkbox" data-perm="adjust" checked> 3.11 › Adjust Balance</label>
+      <label><input type="checkbox" data-perm="adjust" checked> 3.11 › Adjust Balance</label><br>
+      <b>DEMO：Admin BO 設定</b>（取消勾選＝Admin BO 把這個 Agent 的 <code>Payment Account Transactions</code> 設為 <code>Deny</code>，可以看 <code>3.2</code>、<code>3.7</code>、<code>3.11</code>、<code>11.2</code> 會藏起哪些東西。上線時所有 Agent 預設 <code>Deny</code>）<br>
+      <label><input type="checkbox" data-perm="adm" checked> Admin BO › Payment Account Transactions = Enable</label>
     </div>
 
     <!-- ============ 3.2 ============ -->
@@ -190,7 +194,7 @@
       <div class="card">
         <div class="flt">
           <input type="text" id="l32User" placeholder="Username">
-          <div class="grow">
+          <div class="grow admx">
             <input type="text" id="l32Acc" placeholder="Payment Account: search bank, account name or account no" autocomplete="off">
             <div class="ta-list" id="l32AccList"></div>
           </div>
@@ -200,14 +204,15 @@
         <div class="rd-note">
           <b>Payment Account 篩選（新增）</b>：單選，可清除。帳號數量多，做成輸入後搜尋的欄位，不用一次載入全部選項的下拉。輸入文字後，部分比對 <code>Account Code</code>、<code>Bank Name</code>、<code>Account Name</code>、<code>Bank Account No</code>，不分大小寫，最多顯示 8 筆候選，由後端查詢。<br>
           <b>候選範圍</b>：掛在 <code>BANK-OFFLINE</code> 通道底下、未刪除的 <code>3.7</code> 帳號，含 <code>ACTIVE</code> 與 <code>INACTIVE</code>，也含 <code>Allow Withdraw = No</code> 的帳號。<br>
-          <b>條件</b>：出款單記錄的出款帳號 ID 等於所選帳號。按 <code>Search</code> 後套用到兩張表、統計列與 <code>Export CSV</code>。篩選用的是帳號 ID，所以帳號在 <code>3.7</code> 改過戶名或號碼後，仍查得到改之前核准的單。
+          <b>條件</b>：出款單記錄的出款帳號 ID 等於所選帳號。按 <code>Search</code> 後套用到兩張表、統計列與 <code>Export CSV</code>。篩選用的是帳號 ID，所以帳號在 <code>3.7</code> 改過戶名或號碼後，仍查得到改之前核准的單。<br>
+          <b>Admin BO 設為 Deny 時</b><span class="pill-new">NEW</span>：篩選區不顯示 <code>Payment Account</code>。後端收到 <code>paymentAccountId</code> 條件、或候選帳號的查詢時，回 <code>403</code>。
         </div>
       </div>
 
       <div class="card">
         <h2>Pending Requests</h2>
         <div class="wrap"><table id="pendTbl">
-          <thead><tr><th>Finance Approval</th><th>Status</th><th>Withdrawal No</th><th>Payment Channel</th><th class="newcol">Payment Account Bank<span class="pill-new">NEW</span></th><th class="newcol">Payment Account Name<span class="pill-new">NEW</span></th><th class="newcol">Payment Account No<span class="pill-new">NEW</span></th><th class="newcol">Payment Account Wallet Address<span class="pill-new">NEW</span></th><th>Binding Account Type</th><th>Username</th><th class="num">Amount</th><th>Bank Name</th><th>Account Name</th><th>Bank Account No</th><th>Created Date</th></tr></thead>
+          <thead><tr><th>Finance Approval</th><th>Status</th><th>Withdrawal No</th><th>Payment Channel</th><th class="newcol admx">Payment Account Bank<span class="pill-new">NEW</span></th><th class="newcol admx">Payment Account Name<span class="pill-new">NEW</span></th><th class="newcol admx">Payment Account No<span class="pill-new">NEW</span></th><th class="newcol admx">Payment Account Wallet Address<span class="pill-new">NEW</span></th><th>Binding Account Type</th><th>Username</th><th class="num">Amount</th><th>Bank Name</th><th>Account Name</th><th>Bank Account No</th><th>Created Date</th></tr></thead>
           <tbody></tbody>
         </table></div>
         <div class="rd-note"><code>Pending Requests</code> 表同樣有四個新欄位；尚未核准的單還沒有出款帳號，顯示 <code>—</code>。<br>點綠色勾開啟核准對話框。選 <code>BANK-OFFLINE</code> → <code>Payment Account</code> 選 <code>Specify account</code> → 出現帳號清單。三張單的金額不同，金額越大，可用的帳號越少。</div>
@@ -215,7 +220,7 @@
 
       <div class="card">
         <div class="wrap"><table id="doneTbl">
-          <thead><tr><th>Status</th><th>Withdrawal No</th><th>Payment Channel</th><th>Payment Account Bank<span class="pill-new">NEW</span></th><th>Payment Account Name<span class="pill-new">NEW</span></th><th>Payment Account No<span class="pill-new">NEW</span></th><th>Payment Account Wallet Address<span class="pill-new">NEW</span></th><th class="num">Amount</th><th>Username</th><th>Processed By</th><th>Processed Time</th></tr></thead>
+          <thead><tr><th>Status</th><th>Withdrawal No</th><th>Payment Channel</th><th class="admx">Payment Account Bank<span class="pill-new">NEW</span></th><th class="admx">Payment Account Name<span class="pill-new">NEW</span></th><th class="admx">Payment Account No<span class="pill-new">NEW</span></th><th class="admx">Payment Account Wallet Address<span class="pill-new">NEW</span></th><th class="num">Amount</th><th>Username</th><th>Processed By</th><th>Processed Time</th></tr></thead>
           <tbody></tbody>
         </table></div>
         <div class="pg"><span id="l32Info"></span><button class="btn s" id="l32Prev">‹</button><button class="btn s" id="l32Next">›</button></div>
@@ -226,7 +231,8 @@
           <b>內容</b>：核准當下所選出款帳號的資料，核准後不再變動。之後在 <code>3.7</code> 修改、停用或刪除這個帳號，這裡顯示的值都不變。<br>
           <b>顯示 <code>—</code> 的情況</b>：選 <code>Not specified</code> 的單、以 <code>BANK-OFFLINE</code> 以外的通道核准的單、經 <code>Force Approve</code> 完成且之前沒有以指定帳號核准成功過的單、本功能上線前已核准的單。<code>Force Approve</code> 本身不寫入、也不清除已記錄的出款帳號。<br>
           既有的 <code>Bank Name</code>／<code>Account Name</code>／<code>Bank Account No</code>／<code>Wallet Address</code> 是玩家的收款帳號，內容與位置都不變。<br>
-          帳號號碼、錢包地址、戶名屬敏感資料，存放時 AES-256 加密。
+          帳號號碼、錢包地址、戶名屬敏感資料，存放時 AES-256 加密。<br>
+          <b>Admin BO 設為 Deny 時</b><span class="pill-new">NEW</span>：<br>・兩張表都不顯示四個新欄位。<br>・<code>Columns Settings</code> 不列四個新欄位。<br>・<code>Export CSV</code> 不帶出四欄。<br>・後端的列表回應不含這四個欄位。<br>・使用者已儲存的欄位順序保留。改回 <code>Enable</code> 後照原值顯示。
         </div>
       </div>
     </section>
@@ -236,8 +242,8 @@
       <div id="v37list">
         <div class="card">
           <div class="flt">
-            <input type="text" id="f37Code" placeholder="Account Code">
-            <select id="f37Grp"></select>
+            <input type="text" id="f37Code" class="admx" placeholder="Account Code">
+            <select id="f37Grp" class="admx"></select>
             <input type="text" id="f37Bank" placeholder="Bank Name">
             <input type="text" id="f37Name" placeholder="Account Name">
             <input type="text" id="f37No" placeholder="Bank Account No">
@@ -248,17 +254,27 @@
           </div>
         </div>
         <div class="card">
-          <div class="rd-note" style="margin-top:0"><b>DEMO：</b>列表照現況畫出全部 30 欄，七個新欄位排在最右邊，要往右捲才看得到。 <button class="btn s" id="j37">捲到新欄位</button></div>
+          <div class="rd-note" style="margin-top:0"><b>DEMO：</b>列表照現況畫出全部 30 欄，六個新欄位排在最右邊，要往右捲才看得到。 <button class="btn s" id="j37">捲到新欄位</button></div>
           <div class="colp" id="cp37"><h2>Columns Settings</h2><div id="cl37"></div><div class="foot"><button class="btn" id="cc37">&#10005; Cancel</button><button class="btn" id="cr37" style="color:var(--red)">&#8635; Reset</button><button class="btn p" id="cs37">&#10003; Save</button></div></div>
           <div class="wrap" id="w37"><table id="t37">
-            <thead><tr><th>Actions</th><th>Sort</th><th>Payment Channel</th><th>Bank Name</th><th>Bank Branch Name</th><th>Account Name</th><th>Bank Account No</th><th>Wallet Address</th><th>Status</th><th>Reconcile Server</th><th>Operator Fee</th><th>Player Fee</th><th>Min Deposit Amount</th><th>Max Deposit Amount</th><th>Deposit Player Fee Type</th><th>Deposit Player Fee Fixed</th><th>Deposit Player Fee Perc</th><th>Min Deposit Player Fee</th><th>Max Deposit Player Fee</th><th>Minimum Deposit Crypto</th><th>Maximum Deposit Crypto</th><th>Agent Payment Level IDs</th><th>Threshold</th><th>Deposit Amount</th><th>Created By</th><th>Created Date</th><th>Updated By</th><th>Updated Time</th><th>Image</th><th>Allow Deposit Over Threshold</th><th class="newcol">Allow Deposit<span class="pill-new">NEW</span></th><th class="newcol">Allow Withdraw<span class="pill-new">NEW</span></th><th class="newcol">Withdraw Threshold<span class="pill-new">NEW</span></th><th class="newcol">Allow Withdraw Over Threshold<span class="pill-new">NEW</span></th><th class="newcol num">Balance<span class="pill-new">NEW</span></th><th class="newcol">Account Code<span class="pill-new">NEW</span></th><th class="newcol">Account Group<span class="pill-new">NEW</span></th></tr></thead>
+            <thead><tr><th>Actions</th><th>Sort</th><th>Payment Channel</th><th>Bank Name</th><th>Bank Branch Name</th><th>Account Name</th><th>Bank Account No</th><th>Wallet Address</th><th>Status</th><th>Reconcile Server</th><th>Operator Fee</th><th>Player Fee</th><th>Min Deposit Amount</th><th>Max Deposit Amount</th><th>Deposit Player Fee Type</th><th>Deposit Player Fee Fixed</th><th>Deposit Player Fee Perc</th><th>Min Deposit Player Fee</th><th>Max Deposit Player Fee</th><th>Minimum Deposit Crypto</th><th>Maximum Deposit Crypto</th><th>Agent Payment Level IDs</th><th>Threshold</th><th>Deposit Amount</th><th>Created By</th><th>Created Date</th><th>Updated By</th><th>Updated Time</th><th>Image</th><th>Allow Deposit Over Threshold</th><th class="newcol admx">Allow Withdraw<span class="pill-new">NEW</span></th><th class="newcol admx">Withdraw Threshold<span class="pill-new">NEW</span></th><th class="newcol admx">Allow Withdraw Over Threshold<span class="pill-new">NEW</span></th><th class="newcol num admx">Balance<span class="pill-new">NEW</span></th><th class="newcol admx">Account Code<span class="pill-new">NEW</span></th><th class="newcol admx">Account Group<span class="pill-new">NEW</span></th></tr></thead>
             <tbody></tbody>
           </table></div>
           <div class="pg pgx"><button class="btn s" id="c37">&#9776; Columns Settings</button><div class="r"><b>Page</b><input type="text" class="pgin" id="g37" inputmode="numeric"><b>Items per page</b><select id="z37"><option>10</option><option>20</option><option>50</option><option>100</option></select><span id="i37"></span><button class="nav" id="p37First" title="First page">&#8676;</button><button class="nav" id="p37Prev" title="Previous page">&#8249;</button><button class="nav" id="p37Next" title="Next page">&#8250;</button><button class="nav" id="p37Last" title="Last page">&#8677;</button></div></div>
           <div class="rd-note">
-            <b>新欄位的位置</b>：現有 30 欄的順序不變。七個新欄位接在最後一欄 <code>Allow Deposit Over Threshold</code>（第 30 欄）之後，依序為第 31 欄 <code>Allow Deposit</code>、第 32 欄 <code>Allow Withdraw</code>、第 33 欄 <code>Withdraw Threshold</code>、第 34 欄 <code>Allow Withdraw Over Threshold</code>、第 35 欄 <code>Balance</code>、第 36 欄 <code>Account Code</code>、第 37 欄 <code>Account Group</code>。<code>Export CSV</code> 的欄位順序相同。<br>
+            <b>新欄位的位置</b>：現有 30 欄的順序不變。六個新欄位接在最後一欄 <code>Allow Deposit Over Threshold</code>（第 30 欄）之後，依序為第 31 欄 <code>Allow Withdraw</code>、第 32 欄 <code>Withdraw Threshold</code>、第 33 欄 <code>Allow Withdraw Over Threshold</code>、第 34 欄 <code>Balance</code>、第 35 欄 <code>Account Code</code>、第 36 欄 <code>Account Group</code>。<code>Export CSV</code> 的欄位順序相同。<br>
+            <b>Admin BO 設為 Deny 時</b><span class="pill-new">NEW</span>：<br>
+            ・六個新欄位不顯示。<br>
+            ・<code>Columns Settings</code> 不列六個新欄位。<br>
+            ・<code>Export CSV</code> 不帶出六個新欄位。<br>
+            ・篩選區不顯示 <code>Account Code</code>、<code>Account Group</code>。<br>
+            ・不顯示 <code>Transactions</code> 按鈕。<br>
+            ・既有 <code>Threshold</code> 欄的進度條照常顯示。<br>
+            ・使用者已儲存的欄位順序保留，改回 <code>Enable</code> 後六個欄位依儲存的順序顯示。在 <code>Deny</code> 期間按 <code>Reset</code> 並儲存時，全部欄位回到預設順序並顯示，六個新欄位也一樣。<br>
+            ・後端的列表、單筆讀取與匯出回應，不含這六欄的資料。<br>
+            ・查詢帶了 <code>accountCode</code> 或 <code>accountGroup</code> 條件時，後端回 <code>403</code>。呼叫分組選項時，後端回 <code>403</code>。<br>
             <b>Balance</b>：<code>DECIMAL(18,2)</code>，系統記錄的帳號目前餘額，唯讀。只有 <code>BANK-OFFLINE</code> 的帳號有值，其他通道的帳號顯示 <code>-</code>。有 <code>3.7</code> 檢視權限就看得到。算法見編輯頁的註記。<br>
-            <b>Columns Settings</b>：現況可以拖曳調整欄位順序並儲存，有 <code>Reset</code>。七個新欄位加入 <code>Columns Settings</code>，預設顯示。上面說的是預設順序，也就是按 <code>Reset</code> 之後的順序。已經儲存過自訂順序的使用者，新欄位接在他目前順序的最後面並顯示，不打亂他原本的排列。<br>
+            <b>Columns Settings</b>：現況可以拖曳調整欄位順序並儲存，有 <code>Reset</code>。六個新欄位加入 <code>Columns Settings</code>，預設顯示。上面說的是預設順序，也就是按 <code>Reset</code> 之後的順序。已經儲存過自訂順序的使用者，新欄位接在他目前順序的最後面並顯示，不打亂他原本的排列。<br>
             <b>分頁列與 Columns Settings 的畫面</b>：照現況呈現，本需求不改動。列表下方左邊是 <code>Columns Settings</code> 按鈕，右邊是 <code>Page</code>（輸入頁碼跳頁）、<code>Items per page</code>（<code>10</code>／<code>20</code>／<code>50</code>／<code>100</code>，預設 <code>10</code>）、筆數與四個換頁按鈕。按 <code>Columns Settings</code> 時，列表的位置換成欄位設定面板：每一列是一個欄位，可以拖曳調整順序，可以用開關顯示或隱藏。<code>Actions</code> 欄固定在最前面，不在面板裡。面板下方有 <code>Cancel</code>、<code>Reset</code>、<code>Save</code>。<b>DEMO：</b>mockup 的 <code>Reset</code> 只把面板改回預設，按 <code>Save</code> 才生效；實作沿用 BO 現有的行為。mockup 的設定重新整理就還原。<br>
             <b>即時狀態</b><span class="pill-new">NEW</span>：<code>BANK-OFFLINE</code> 帳號的 <code>Threshold</code> 與 <code>Withdraw Threshold</code> 兩欄在數字下方加一條進度條（其他通道的帳號不加，<code>Threshold</code> 欄維持現況），顯示今日累計佔門檻的比例，呈現方式與 <code>3.2</code> 核准對話框的帳號清單相同：未達 80% 綠色、80% 以上橘色、已達門檻紅色。既有的 <code>Threshold</code> 欄只加進度條，數字與格式不變。<br>
             <b>Withdraw Threshold</b>：格式 <code>今日出款累計 / 門檻</code>，與既有的 <code>Threshold</code> 欄相同。<code>Allow Withdraw = false</code> 時，<code>Withdraw Threshold</code> 與 <code>Allow Withdraw Over Threshold</code> 顯示 <code>-</code>。<br>
@@ -293,21 +309,19 @@
             <label><span class="req">*</span>Allow Deposit Over Threshold</label>
             <div class="radios"><label><input type="radio" name="e37DepOver" value="yes"> Yes</label><label><input type="radio" name="e37DepOver" value="no"> No</label></div>
 
-            <label><span class="req">*</span>Allow Deposit<span class="pill-new">NEW</span></label>
-            <div><div class="radios"><label><input type="radio" name="e37Dep" value="yes"> Yes</label><label><input type="radio" name="e37Dep" value="no"> No</label></div><div class="sub-info" id="e37DepLock" style="display:none">Only available for BANK-OFFLINE accounts.</div></div>
-            <label><span class="req">*</span>Allow Withdraw<span class="pill-new">NEW</span></label>
-            <div><div class="radios"><label><input type="radio" name="e37Wd" value="yes"> Yes</label><label><input type="radio" name="e37Wd" value="no"> No</label></div><div class="sub-info" id="e37WdLock" style="display:none">Only available for BANK-OFFLINE accounts.</div></div>
-            <label id="e37WdTL"><span class="req">*</span>Withdraw Threshold<span class="pill-new">NEW</span></label>
-            <div><input type="text" id="e37WdT" inputmode="decimal"><div class="sub-info" id="e37WdToday"></div><div class="ferr" id="e37WdErr"></div></div>
-            <label id="e37WdOverL"><span class="req">*</span>Allow Withdraw Over Threshold<span class="pill-new">NEW</span></label>
-            <div class="radios"><label><input type="radio" name="e37WdOver" value="yes"> Yes</label><label><input type="radio" name="e37WdOver" value="no"> No</label></div>
+            <label class="e37n"><span class="req">*</span>Allow Withdraw<span class="pill-new">NEW</span></label>
+            <div class="e37n"><div class="radios"><label><input type="radio" name="e37Wd" value="yes"> Yes</label><label><input type="radio" name="e37Wd" value="no"> No</label></div></div>
+            <label id="e37WdTL" class="e37n"><span class="req">*</span>Withdraw Threshold<span class="pill-new">NEW</span></label>
+            <div class="e37n"><input type="text" id="e37WdT" inputmode="decimal"><div class="sub-info" id="e37WdToday"></div><div class="ferr" id="e37WdErr"></div></div>
+            <label id="e37WdOverL" class="e37n"><span class="req">*</span>Allow Withdraw Over Threshold<span class="pill-new">NEW</span></label>
+            <div class="radios e37n"><label><input type="radio" name="e37WdOver" value="yes"> Yes</label><label><input type="radio" name="e37WdOver" value="no"> No</label></div>
 
-            <label>Balance<span class="pill-new">NEW</span></label>
-            <div><input type="text" id="e37Bal" readonly></div>
-            <label>Account Code<span class="pill-new">NEW</span></label>
-            <div><input type="text" id="e37Code" maxlength="32"><div class="sub-info e37bo" style="display:none">Only available for BANK-OFFLINE accounts.</div></div>
-            <label>Account Group<span class="pill-new">NEW</span></label>
-            <div><input type="text" id="e37Group" maxlength="32" list="e37GrpList" autocomplete="off"><datalist id="e37GrpList"></datalist><div class="sub-info e37bo" style="display:none">Only available for BANK-OFFLINE accounts.</div></div>
+            <label class="e37n">Balance<span class="pill-new">NEW</span></label>
+            <div class="e37n"><input type="text" id="e37Bal" readonly></div>
+            <label class="e37n">Account Code<span class="pill-new">NEW</span></label>
+            <div class="e37n"><input type="text" id="e37Code" maxlength="32"></div>
+            <label class="e37n">Account Group<span class="pill-new">NEW</span></label>
+            <div class="e37n"><input type="text" id="e37Group" maxlength="32" list="e37GrpList" autocomplete="off"><datalist id="e37GrpList"></datalist></div>
 
             <label><span class="req">*</span>Payment Level</label><div class="radios"><label><input type="radio" checked disabled> All</label><label><input type="radio" disabled> Optional</label></div>
             <label>Image</label><input type="text" disabled>
@@ -315,11 +329,13 @@
           <div class="foot" style="justify-content:flex-start;padding-left:244px"><button class="btn" id="e37Cancel">Cancel</button><button class="btn p" id="e37Submit">Submit</button></div>
 
           <div class="rd-note">
-            <b>新欄位的位置</b>：現有 17 個欄位的順序不變（<code>ID</code>、<code>Sort</code>、<code>Payment Channel</code>、<code>Bank Name</code>、<code>Bank Branch Name</code>、<code>Account Name</code>、<code>Account No</code>、<code>Operator Fee</code>、<code>Min. Deposit (Fiat)</code>、<code>Max. Deposit (Fiat)</code>、<code>Deposit Player Fee</code>、<code>Min Deposit (Crypto)</code>、<code>Max Deposit (Crypto)</code>、<code>Threshold</code>、<code>Allow Deposit Over Threshold</code>、<code>Payment Level</code>、<code>Image</code>）。七個新欄位插在 <code>Allow Deposit Over Threshold</code> 與 <code>Payment Level</code> 之間，依序為 <code>Allow Deposit</code>、<code>Allow Withdraw</code>、<code>Withdraw Threshold</code>、<code>Allow Withdraw Over Threshold</code>、<code>Balance</code>（唯讀）、<code>Account Code</code>、<code>Account Group</code>，與列表的新欄位順序一致。新增頁（<code>Add</code>）的欄位與順序相同。<br>
+            <b>新欄位的位置</b>：現有 17 個欄位的順序不變（<code>ID</code>、<code>Sort</code>、<code>Payment Channel</code>、<code>Bank Name</code>、<code>Bank Branch Name</code>、<code>Account Name</code>、<code>Account No</code>、<code>Operator Fee</code>、<code>Min. Deposit (Fiat)</code>、<code>Max. Deposit (Fiat)</code>、<code>Deposit Player Fee</code>、<code>Min Deposit (Crypto)</code>、<code>Max Deposit (Crypto)</code>、<code>Threshold</code>、<code>Allow Deposit Over Threshold</code>、<code>Payment Level</code>、<code>Image</code>）。六個新欄位插在 <code>Allow Deposit Over Threshold</code> 與 <code>Payment Level</code> 之間，依序為 <code>Allow Withdraw</code>、<code>Withdraw Threshold</code>、<code>Allow Withdraw Over Threshold</code>、<code>Balance</code>（唯讀）、<code>Account Code</code>、<code>Account Group</code>，與列表的新欄位順序一致。新增頁（<code>Add</code>）的欄位與順序相同。<br>
+            <b>什麼時候顯示</b><span class="pill-new">NEW</span>：帳號是 <code>BANK-OFFLINE</code> 帳號，且 Admin BO 的 <code>Payment Account Transactions</code> 設為 <code>Enable</code> 時，前端顯示六個新欄位。其他情況前端不顯示。新增頁改選 <code>Payment Channel</code> 時，六個欄位跟著出現或消失。<br>
+            <b>Admin BO 設為 Deny 時</b>：單筆讀取的回應不含六個新欄位的資料。請求帶了五個可編輯新欄位時，後端忽略它們。編輯時，已存的值不變。新增時，後端以 <code>Allow Withdraw = No</code>、門檻為空、<code>Allow Withdraw Over Threshold = No</code>、代碼與分組為空儲存。<br>
+            <b>存款</b>：所有帳號都可以收玩家存款，派收款帳號的行為與現況相同，本次不改動。<br>
             <b>DEMO：</b>灰色的既有欄位本次不改動，行為不變，mockup 不提供操作。<br>
-            <b>Allow Deposit</b>：必填，Yes／No。新增帳號預設 Yes；既有帳號上線時為 Yes。只有 <code>BANK-OFFLINE</code> 的帳號可以改成 No；其他通道的帳號固定為 Yes 且不可改，並顯示 <code>Only available for BANK-OFFLINE accounts.</code>，存款行為與現況相同。前端＋後端都要擋。No 時這個帳號不會派給玩家存款；既有規則「通道底下沒有可用的收款帳號時，前台不顯示該存款通道」判斷時，把 <code>Allow Deposit = No</code> 的帳號視為不可用。既有存款欄位的必填與驗證都不變。<br>
-            <b>Allow Withdraw</b>：必填，Yes／No。代表能不能從這個帳號轉出錢：Yes 時這個帳號才會出現在出款核准的帳號清單，也才能在 <code>3.11</code> 做 <code>Internal Transfer</code> 的轉出與 <code>External Transfer</code>。新增 <code>BANK-OFFLINE</code> 的帳號預設 Yes；既有帳號上線時為 No。<br>
-            <b>只有 BANK-OFFLINE 的帳號能出款</b>：<code>Payment Channel</code> 不是 <code>BANK-OFFLINE</code> 時，<code>Allow Withdraw</code> 固定為 No 且不可改，並顯示 <code>Only available for BANK-OFFLINE accounts.</code>；在新增頁把通道改選成其他通道時立即變成 No。前端＋後端都要擋。<br>
+            <b>Allow Withdraw</b>：必填，Yes／No。代表能不能從這個帳號轉出錢：Yes 時這個帳號才會出現在出款核准的帳號清單，也才能在 <code>3.11</code> 做 <code>Internal Transfer</code> 的轉出與 <code>External Transfer</code>。Admin BO 設為 <code>Enable</code> 時，新增 <code>BANK-OFFLINE</code> 的帳號預設 Yes；既有帳號上線時為 No。<br>
+            <b>只有 BANK-OFFLINE 的帳號有這些設定</b>：<code>Payment Channel</code> 不是 <code>BANK-OFFLINE</code> 時，六個新欄位不顯示。其他通道的帳號，不論請求帶了什麼值，後端都存成 <code>Allow Withdraw = No</code>、<code>Withdraw Threshold</code> 為空、<code>Allow Withdraw Over Threshold = No</code>、代碼與分組為空。<br>
             <b>通道不可搬移</b><span class="pill-new">NEW</span>：帳號是不是 <code>BANK-OFFLINE</code> 帳號，在新增時決定，之後不變。編輯頁：<code>BANK-OFFLINE</code> 帳號的 <code>Payment Channel</code> 唯讀；其他通道的帳號，選項不含 <code>BANK-OFFLINE</code>，在其他通道之間改選與現況相同。新增頁可以選任何通道。編輯請求把帳號改進或改出 <code>BANK-OFFLINE</code> 時，後端回 <code>400 PAYMENT_CHANNEL_NOT_CHANGEABLE</code>，前端顯示 <code>Payment Channel cannot be changed to or from BANK-OFFLINE.</code>（mockup 不呈現）。前端＋後端都要擋。<br>
             <b>Withdraw Threshold</b>：<code>DECIMAL(18,2)</code>，金額禁用 float。<code>Allow Withdraw = Yes</code> 時必填、必須大於 0、最多兩位小數、不得大於 <code>9999999999999999.99</code>；單位是 BO 幣別的金額。<code>Allow Withdraw = No</code> 時不可編輯、不驗證，已存的值保留。前端＋後端都要擋。<br>
             <b>Today Withdraw Amount</b>：唯讀，今日從這個帳號轉出的金額合計，包含以這個帳號核准的玩家出款、<code>INTERNAL OUT</code>、<code>LOAN OUT</code>，顯示方式與既有的 <code>Today Deposit Amount</code> 相同。新增與編輯的請求都不接受這個值。既有的 <code>Today Deposit Amount</code> 另外計入 <code>INTERNAL IN</code>。<br>
@@ -328,8 +344,8 @@
             <b>Balance</b><span class="pill-new">NEW</span>：唯讀，<code>DECIMAL(18,2)</code>。新增與編輯的請求都不接受這個值。只有 <code>BANK-OFFLINE</code> 的帳號有餘額，新增帳號與既有帳號上線時都是 0；其他通道的帳號顯示 <code>-</code>，系統不記錄它們的餘額。<br>
             <b>Balance 的算法</b>：功能上線之後，所有計入這個帳號的交易加總。加項：收款到這個帳號的玩家存款、<code>INTERNAL IN</code>、<code>ADJUST IN</code>；減項：以這個帳號核准的玩家出款、<code>INTERNAL OUT</code>、<code>LOAN OUT</code>、<code>ADJUST OUT</code>。功能上線之前的存款與出款都不計入。<br>
             <b>登記帳號實際有多少錢</b>：不在這一頁。到 <code>3.11</code> 的 <code>Adjust Balance</code> 選 <code>Set balance to</code>，填帳號的實際金額，系統會把餘額對齊到那個數字。出款只看餘額夠不夠，沒有「必須先登記」這個條件：餘額不足的帳號不會出現在出款核准的帳號清單，也不能手動轉出；餘額除了來自登記，也會因玩家存款與內部轉入而增加。<br>
-            <b>Account Code、Account Group</b><span class="pill-new">NEW</span>：兩個選填的文字欄位，只是方便客戶管理帳號的標記，兩者互相獨立；不填不影響出款核准、餘額、交易紀錄與手動單。各最長 32 字，只有 <code>BANK-OFFLINE</code> 帳號可以填，其他通道的帳號不可編輯且為空。<code>Account Code</code> 是客戶自己稱呼帳號用的代碼，不檢查是否重複；<code>Account Group</code> 是帳號的分組，例如帳號是從哪一個供應商取得的；不填就是沒有分組，畫面顯示 <code>-</code>。輸入時下方提示目前已有的分組，可以直接點選，也可以輸入新的。儲存時去掉前後空白；與既有分組只差大小寫時，沿用既有分組的寫法，不另成一組。分組沒有另外的管理清單，改名要逐一修改帳號。編輯頁排在 <code>Balance</code> 之後、<code>Payment Level</code> 之前；列表是第 36、37 欄。有代碼的帳號，系統裡所有顯示帳號的地方都在最前面加上代碼（格式 <code>{Account Code} - {Bank Name} / {Account Name} / {Account No}</code>），所有找帳號的搜尋也比對代碼。列表篩選區多兩個條件：<code>Account Code</code>（部分比對，不分大小寫）與 <code>Account Group</code>（下拉，預設 <code>Account Group: All</code>；選項是 <code>No Group</code> 加上目前所有 <code>BANK-OFFLINE</code> 帳號用到的分組，依名稱排序；<code>No Group</code> 找出沒有分組的帳號；選了任何分組時，其他通道的帳號不列出）。<br>
-            <b>變更紀錄</b>：六個可編輯的新欄位，與既有欄位一樣寫入 <code>11.9 Change Log</code>。餘額的每一次變動都記在 <code>3.11</code>。<br>
+            <b>Account Code、Account Group</b><span class="pill-new">NEW</span>：兩個選填的文字欄位，只是方便客戶管理帳號的標記，兩者互相獨立；不填不影響出款核准、餘額、交易紀錄與手動單。各最長 32 字，只有 <code>BANK-OFFLINE</code> 帳號有這兩個欄位，其他通道的帳號為空。<code>Account Code</code> 是客戶自己稱呼帳號用的代碼，不檢查是否重複；<code>Account Group</code> 是帳號的分組，例如帳號是從哪一個供應商取得的；不填就是沒有分組，畫面顯示 <code>-</code>。輸入時下方提示目前已有的分組，可以直接點選，也可以輸入新的。儲存時去掉前後空白；與既有分組只差大小寫時，沿用既有分組的寫法，不另成一組。分組沒有另外的管理清單，改名要逐一修改帳號。編輯頁排在 <code>Balance</code> 之後、<code>Payment Level</code> 之前；列表是第 35、36 欄。有代碼的帳號，系統裡所有顯示帳號的地方都在最前面加上代碼（格式 <code>{Account Code} - {Bank Name} / {Account Name} / {Account No}</code>），所有找帳號的搜尋也比對代碼。列表篩選區多兩個條件：<code>Account Code</code>（部分比對，不分大小寫）與 <code>Account Group</code>（下拉，預設 <code>Account Group: All</code>；選項是 <code>No Group</code> 加上目前所有 <code>BANK-OFFLINE</code> 帳號用到的分組，依名稱排序；<code>No Group</code> 找出沒有分組的帳號；選了任何分組時，其他通道的帳號不列出）。<br>
+            <b>變更紀錄</b>：五個可編輯的新欄位，與既有欄位一樣寫入 <code>11.9 Change Log</code>。餘額的每一次變動都記在 <code>3.11</code>。<br>
             <b>權限</b>：檢視與編輯沿用 <code>3.7 Payment Account</code> 既有的權限，這一頁不新增權限節點。
           </div>
         </div>
@@ -466,9 +482,12 @@
       </div>
 
       <div class="rd-note" id="paNote" style="display:none">
-        <b>顯示條件</b>：所選通道是 <code>BANK-OFFLINE</code> 時，表單多一列 <code>Payment Account</code>，有兩個選項，預設 <code>Not specified</code>。選其他通道（不論線上或離線，例如 <code>QRIS-OFFLINE</code>）都不顯示這一列，行為與現況相同。<code>BANK-OFFLINE</code> 以系統的通道代碼辨識，不以可以修改的通道名稱比對。切換通道時回到預設值並清空已選的帳號。<br>
+        <b>顯示條件</b>：所選通道是 <code>BANK-OFFLINE</code>，且 Admin BO 的 <code>Payment Account Transactions</code> 設為 <code>Enable</code> 時，表單多一列 <code>Payment Account</code>，有兩個選項，預設 <code>Not specified</code>。選其他通道（不論線上或離線，例如 <code>QRIS-OFFLINE</code>）都不顯示這一列，行為與現況相同。<code>BANK-OFFLINE</code> 以系統的通道代碼辨識，不以可以修改的通道名稱比對。切換通道時回到預設值並清空已選的帳號。<br>
         <b>Not specified</b>：不顯示帳號清單，可直接送出。這張單沒有出款帳號，不扣任何帳號的餘額，也不計入任何帳號的今日出款累計，行為與現況相同。<br>
         <b>Specify account</b>：展開帳號清單，必須選一個帳號才能送出；沒選時 <code>Submit</code> 不可按。切回 <code>Not specified</code> 時清空已選的帳號。
+      </div>
+      <div class="rd-note" id="paDenyNote" style="display:none">
+        <b>Admin BO 設為 Deny 時</b><span class="pill-new">NEW</span>：選 <code>BANK-OFFLINE</code> 也不顯示 <code>Payment Account</code> 這一列，送出的結果與 <code>Not specified</code> 相同。後端：取得帳號清單回 <code>403</code>。核准請求帶了出款帳號 ID 時回 <code>403</code>，不核准。<b>DEMO：</b>對話框開著時切成 <code>Deny</code>，已選的帳號清空、回到 <code>Not specified</code>。
       </div>
 
       <div class="pa" id="pa">
@@ -487,6 +506,7 @@
             <option value="wdlow">Sort: Today withdraw (low to high)</option>
             <option value="bal">Sort: Balance (high to low)</option>
           </select>
+          <label class="mb">Min Balance<input type="text" id="qMin" inputmode="decimal"></label>
           <span class="cnt" id="cnt"></span>
         </div>
         <div class="acc"><table id="accTbl">
@@ -505,8 +525,15 @@
         <b>Balance</b><span class="pill-new">NEW</span>：帳號目前的餘額（算法見 <code>3.7</code> 編輯頁）。餘額不足的帳號不列出。能執行 Finance Approval 的人就看得到這一欄。<br>
         <b>門檻判定</b>（<code>S</code> = 今日出款累計，<code>T</code> = 出款門檻，<code>A</code> = 這張單的金額）：<code>Allow Withdraw Over Threshold = Yes</code> 的帳號 <code>S &lt; T</code> 即可選；<code>No</code> 的帳號要 <code>S + A ≤ T</code>。判定由後端做，前端不自行計算。<br>
         <b>數量</b>：通道底下的帳號可達兩百個以上，搜尋、篩選、排序、分頁都由後端處理，建議每頁 10 筆、輸入停止 300ms 後才查詢。右上的筆數是「符合目前搜尋與篩選的筆數 of 這張單可用的帳號總數」。<br>
-        <b>搜尋</b>：三個獨立的文字欄位 <code>Account Code</code>、<code>Account Name</code>、<code>Account No</code>，各自部分比對同名的資料，<code>Account Code</code> 與 <code>Account Name</code> 不分大小寫。欄位留空表示不套用。<b>Bank 篩選</b>：下拉選單，選項是可用帳號用到的銀行。三個文字欄位與 <code>Bank</code> 下拉之間是「而且」的關係。<br>
-        <b>Today Deposit / Threshold</b>：<code>3.7</code> 既有的 <code>Today Deposit Amount</code> 與 <code>Threshold</code>。<code>Allow Deposit = No</code> 的帳號標示 <code>Deposit off</code>。<br>
+        <b>搜尋</b>：三個獨立的文字欄位 <code>Account Code</code>、<code>Account Name</code>、<code>Account No</code>，各自部分比對同名的資料，<code>Account Code</code> 與 <code>Account Name</code> 不分大小寫。欄位留空表示不套用。<b>Bank 篩選</b>：下拉選單，選項是可用帳號用到的銀行。三個文字欄位、<code>Bank</code> 下拉與 <code>Min Balance</code> 之間是「而且」的關係。<br>
+        <b>Min Balance</b><span class="pill-new">NEW</span>：<code>DECIMAL(18,2)</code>，只列 <code>Balance</code> 大於等於輸入值的帳號。有效值大於等於 0、不得大於 <code>9999999999999999.99</code>、最多兩位小數。前端＋後端都要擋。<br>
+        ・開啟清單時，前端把 <code>Min Balance</code> 設為這張單的 <code>Amount</code>。財務可以修改這個值。<br>
+        ・切換通道時，前端把 <code>Min Balance</code> 設回 <code>Amount</code>。切到 <code>Specify account</code> 時，前端把 <code>Min Balance</code> 設回 <code>Amount</code>。<br>
+        ・財務改了 <code>Min Balance</code> 時，清單回到第 1 頁。<br>
+        ・輸入不是有效值時，前端把欄位標紅。輸入不是有效值時，前端以上一次的有效值查詢。後端收到不是有效值的 <code>minBalance</code> 時，回 <code>400 MIN_BALANCE_INVALID</code>。<br>
+        ・後端不列出餘額小於 <code>Amount</code> 的帳號。輸入值小於 <code>Amount</code> 或清空時，清單與輸入 <code>Amount</code> 相同。<br>
+        ・右上「可用的帳號總數」，後端不套用 <code>Min Balance</code> 計算。<br>
+        <b>Today Deposit / Threshold</b>：<code>3.7</code> 既有的 <code>Today Deposit Amount</code> 與 <code>Threshold</code>。<br>
         <b>Today Withdraw / Threshold</b>：新增的今日出款累計與 <code>Withdraw Threshold</code>，皆為 <code>DECIMAL(18,2)</code>，金額禁用 float。「今日」的切日基準與 <code>Today Deposit Amount</code> 相同。<code>Over-threshold allowed</code> 表示這個帳號允許最後一筆超過門檻。<br>
         <b>After This Withdrawal</b>：今日出款累計加上這張單的 <code>Amount</code>，進度條的藍色區段是這一筆會增加的量。<br>
         <b>沒有可用的帳號</b>：清單顯示空白訊息，財務可以改選 <code>Not specified</code> 或其他通道。<br>
@@ -608,11 +635,11 @@ for(var i=0;i<214;i++){
   var wd=u<0.12?wt:(u<0.2?Math.round(wt*(0.9+R()*0.09)):Math.round(wt*R()*0.75/100)*100);
   ACCOUNTS.push({id:5000+i,channelId:1,sort:i,group:i%7===6?'':['GRP-A','GRP-B','GRP-C'][i%3],code:i%10===9?'':['A','B','C'][i%3]+'-'+(101+i),bank:pick(BANKS),name:pick(FN)+' '+pick(LN),no:digits(10),wallet:'',
     status:R()<0.95?'ACTIVE':'INACTIVE',
-    allowDeposit:R()>0.25,depThreshold:dt,depToday:Math.round(dt*R()*0.9/100)*100,allowDepOver:R()<0.4,
+    depThreshold:dt,depToday:Math.round(dt*R()*0.9/100)*100,allowDepOver:R()<0.4,
     allowWithdraw:aw,wdThreshold:aw?wt:null,wdToday:aw?wd:0,allowOver:aw&&R()<0.3});
 }
 for(var j=0;j<3;j++)ACCOUNTS.push({id:5300+j,channelId:4,sort:j,group:'',code:'',bank:'',name:pick(FN)+' '+pick(LN),no:digits(12),wallet:'',status:'ACTIVE',
-  allowDeposit:true,depThreshold:100000,depToday:Math.round(R()*600)*100,allowDepOver:false,allowWithdraw:false,wdThreshold:null,wdToday:0,allowOver:false});
+  depThreshold:100000,depToday:Math.round(R()*600)*100,allowDepOver:false,allowWithdraw:false,wdThreshold:null,wdToday:0,allowOver:false});
 var RECON=['','Spay2'];   // DEMO：Reconcile Server 下拉的示範選項
 var NEXT_ACC_ID=5400,SEQ=100,CLOCK=0;
 function snap(a){return{id:a.id,bank:a.bank,name:a.name,no:a.no,wallet:a.wallet}}
@@ -653,12 +680,12 @@ ACCOUNTS.forEach(function(a){
 });
 function nowT(){CLOCK++;return TODAY+' '+tm(10,30+Math.floor(CLOCK/60),CLOCK%60)}
 
-var ST={order:null,channelId:null,specify:false,accId:null,qc:'',qn:'',qo:'',bank:'',sort:'sort',page:1,size:10};
+var ST={order:null,channelId:null,specify:false,accId:null,qc:'',qn:'',qo:'',min:0,bank:'',sort:'sort',page:1,size:10};
 var L32={user:'',accId:null,pendAccId:null,page:1,size:10};
 var S37={grp:'',code:'',bank:'',name:'',no:'',ch:'',page:1,size:10,editId:null,isNew:false};
 var T11={grp:'',accId:null,bank:'',name:'',no:'',ref:'',by:'',det:'',type:'',page:1,size:10,view:'tx'},T11S={page:1,size:10};
 var M={kind:null};
-var PERM={view:true,exp:true,internal:true,external:true,adjust:true};
+var PERM={view:true,exp:true,internal:true,external:true,adjust:true,adm:true};   // adm：Admin BO 的 Payment Account Transactions（Enable／Deny）
 window.__state={ACCOUNTS:ACCOUNTS,ORDERS:ORDERS,LEDGER:LEDGER,CHANNELS:CHANNELS,ST:ST,L32:L32,S37:S37,T11:T11,PERM:PERM};
 
 // ---------- 共用 ----------
@@ -726,13 +753,13 @@ function render32(){
   var u=L32.user.trim().toLowerCase();
   var pend=ORDERS.pending.filter(function(o){return(!u||o.user.toLowerCase().indexOf(u)>=0)&&!L32.accId});
   $('pendTbl').tBodies[0].innerHTML=pend.map(function(o){
-    return '<tr><td><button class="icon-btn lk" title="Unlock">&#128274;</button><button class="icon-btn ok" title="Approve" data-approve="'+o.no+'">&#10004;</button><button class="icon-btn no" title="Reject">&#10006;</button></td><td>LOCK</td><td>'+o.no+'</td><td></td><td class="newcol">—</td><td class="newcol">—</td><td class="newcol">—</td><td class="newcol">—</td><td>'+o.type+'</td><td>'+esc(o.user)+'</td><td class="num">'+money(o.amount)+'</td><td>'+esc(o.pBank)+'</td><td>'+esc(o.pName)+'</td><td>'+o.pNo+'</td><td>'+o.created+'</td></tr>';
-  }).join('')||'<tr><td colspan="15" class="empty">No Data</td></tr>';
+    return '<tr><td><button class="icon-btn lk" title="Unlock">&#128274;</button><button class="icon-btn ok" title="Approve" data-approve="'+o.no+'">&#10004;</button><button class="icon-btn no" title="Reject">&#10006;</button></td><td>LOCK</td><td>'+o.no+'</td><td></td><td class="newcol admx">—</td><td class="newcol admx">—</td><td class="newcol admx">—</td><td class="newcol admx">—</td><td>'+o.type+'</td><td>'+esc(o.user)+'</td><td class="num">'+money(o.amount)+'</td><td>'+esc(o.pBank)+'</td><td>'+esc(o.pName)+'</td><td>'+o.pNo+'</td><td>'+o.created+'</td></tr>';
+  }).join('')||'<tr><td colspan="'+(PERM.adm?15:11)+'" class="empty">No Data</td></tr>';
   var rows=pager(filtered32(),L32,'l32Info','l32Prev','l32Next');
   $('doneTbl').tBodies[0].innerHTML=rows.map(function(o){
     var s=o.pa;
-    return '<tr><td>APPROVED</td><td>'+o.no+'</td><td>'+esc(o.channel)+'</td><td>'+(s&&s.bank?esc(s.bank):'—')+'</td><td>'+(s?esc(s.name):'—')+'</td><td>'+(s&&s.no?s.no:'—')+'</td><td>'+(s&&s.wallet?esc(s.wallet):'—')+'</td><td class="num">'+money(o.amount)+'</td><td>'+esc(o.user)+'</td><td>OLETH_admin</td><td>'+o.processed+'</td></tr>';
-  }).join('')||'<tr><td colspan="11" class="empty">No Data</td></tr>';
+    return '<tr><td>APPROVED</td><td>'+o.no+'</td><td>'+esc(o.channel)+'</td><td class="admx">'+(s&&s.bank?esc(s.bank):'—')+'</td><td class="admx">'+(s?esc(s.name):'—')+'</td><td class="admx">'+(s&&s.no?s.no:'—')+'</td><td class="admx">'+(s&&s.wallet?esc(s.wallet):'—')+'</td><td class="num">'+money(o.amount)+'</td><td>'+esc(o.user)+'</td><td>OLETH_admin</td><td>'+o.processed+'</td></tr>';
+  }).join('')||'<tr><td colspan="'+(PERM.adm?11:7)+'" class="empty">No Data</td></tr>';
 }
 function taOptions(q){
   q=q.trim().toLowerCase();if(!q)return[];
@@ -755,33 +782,30 @@ function render37(){
   $('f37Ch').innerHTML='<option value="">Payment Channel: ALL</option>'+CHANNELS.map(function(c){return '<option value="'+c.id+'"'+(String(c.id)===S37.ch?' selected':'')+'>'+c.name+'</option>'}).join('');
   var rows=pager(filtered37(),S37,'i37','p37Prev','p37Next');
   $('t37').tBodies[0].innerHTML=rows.map(function(a){
-    return '<tr><td><button class="icon-btn ok" title="Edit" data-edit="'+a.id+'">&#9998;</button><button class="icon-btn no" title="Delete" disabled>&#10006;</button>'+(isBO(a)&&PERM.view?'<button class="icon-btn" title="Transactions" data-tx="'+a.id+'">&#128203;</button>':'')+'</td>'+
+    return '<tr><td><button class="icon-btn ok" title="Edit" data-edit="'+a.id+'">&#9998;</button><button class="icon-btn no" title="Delete" disabled>&#10006;</button>'+(isBO(a)&&PERM.view&&PERM.adm?'<button class="icon-btn" title="Transactions" data-tx="'+a.id+'">&#128203;</button>':'')+'</td>'+
       '<td>'+a.sort+'</td><td>'+esc(chById(a.channelId).name)+'</td><td>'+esc(a.bank)+'</td><td></td><td>'+esc(a.name)+'</td><td>'+a.no+'</td><td>'+esc(a.wallet)+'</td>'+
       '<td><label class="tgl"><input type="checkbox" data-st="'+a.id+'"'+(a.status==='ACTIVE'?' checked':'')+'><span></span></label>'+a.status+'</td><td>'+(isBO(a)?'<select class="rs" data-rs="'+a.id+'">'+RECON.map(function(x){return '<option'+(x===(a.reconcile||'')?' selected':'')+'>'+x+'</option>'}).join('')+'</select>':'-')+'</td><td>0%</td><td></td>'+
       '<td class="num">100</td><td class="num">1,000,000</td><td>USE_CHANNEL_SETTINGS</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0</td><td class="num">10</td><td class="num">1000000</td><td>ALL</td>'+
       '<td>'+money(a.depToday)+' / '+money(a.depThreshold)+(isBO(a)?bar(a.depToday,a.depThreshold):'')+'</td><td class="num">'+money(a.depToday)+'</td>'+
       '<td>OLETH_admin</td><td>2026-08-13 17:31:51</td><td>OLETH_admin</td><td>2026-08-13 17:31:51</td><td></td><td>'+a.allowDepOver+'</td>'+
-      '<td class="newcol">'+a.allowDeposit+'</td><td class="newcol">'+a.allowWithdraw+'</td>'+
-      '<td class="newcol">'+(a.allowWithdraw?money(a.wdToday)+' / '+money(a.wdThreshold)+bar(a.wdToday,a.wdThreshold):'-')+'</td><td class="newcol">'+(a.allowWithdraw?a.allowOver:'-')+'</td>'+
-      '<td class="newcol num">'+(isBO(a)?money(a.balance):'-')+'</td><td class="newcol">'+(isBO(a)?esc(a.code||''):'-')+'</td><td class="newcol">'+(isBO(a)?esc(a.group||'-'):'-')+'</td></tr>';
-  }).join('')||'<tr><td colspan="37" class="empty">No Data</td></tr>';
+      '<td class="newcol admx">'+a.allowWithdraw+'</td>'+
+      '<td class="newcol admx">'+(a.allowWithdraw?money(a.wdToday)+' / '+money(a.wdThreshold)+bar(a.wdToday,a.wdThreshold):'-')+'</td><td class="newcol admx">'+(a.allowWithdraw?a.allowOver:'-')+'</td>'+
+      '<td class="newcol num admx">'+(isBO(a)?money(a.balance):'-')+'</td><td class="newcol admx">'+(isBO(a)?esc(a.code||''):'-')+'</td><td class="newcol admx">'+(isBO(a)?esc(a.group||'-'):'-')+'</td></tr>';
+  }).join('')||'<tr><td colspan="'+(COLS.t37.order.filter(function(i){return !COLS.t37.hidden[i]&&(PERM.adm||!COLS.t37.th[i].classList.contains("admx"))}).length+1)+'" class="empty">No Data</td></tr>';   // 空列跨目前顯示的欄數
   applyCols('t37');
 }
 function close37(){$('v37list').style.display='';$('v37edit').style.display='none';S37.editId=null;S37.isNew=false}
 function sync37(){
   var ch=chById($('e37Ch').value),online=!isBOch(ch);
-  if(online){radio('e37Wd',false);radio('e37Dep',true)}
-  ['e37Code','e37Group'].forEach(function(i){$(i).disabled=!!online;if(online)$(i).value=''});Array.prototype.forEach.call(document.querySelectorAll('.e37bo'),function(x){x.style.display=online?'':'none'});
-  radioDisabled('e37Dep',!!online);$('e37DepLock').style.display=online?'':'none';
-  radioDisabled('e37Wd',!!online);$('e37WdLock').style.display=online?'':'none';
-  if(S37.isNew)$('e37Bal').value=online?'-':money(0);
+  Array.prototype.forEach.call(document.querySelectorAll('.e37n'),function(x){x.style.display=online||!PERM.adm?'none':''});   // 其他通道、或 Admin BO 設為 Deny 時，六個新欄位不顯示
+  if(S37.isNew)$('e37Bal').value=money(0);
   var wd=radio('e37Wd');
   $('e37WdT').disabled=!wd;radioDisabled('e37WdOver',!wd);
   $('e37WdTL').firstElementChild.style.visibility=wd?'':'hidden';$('e37WdOverL').firstElementChild.style.visibility=wd?'':'hidden';
   if(!wd)$('e37WdErr').classList.remove('on');
 }
 function open37(id){
-  var isNew=id==null,a=isNew?{id:'',channelId:1,bank:BANKS[0],name:'',no:'',allowDeposit:true,depThreshold:'',depToday:0,allowDepOver:false,allowWithdraw:true,wdThreshold:null,wdToday:0,allowOver:false,balance:0}:accById(id);
+  var isNew=id==null,a=isNew?{id:'',channelId:1,bank:BANKS[0],name:'',no:'',depThreshold:'',depToday:0,allowDepOver:false,allowWithdraw:true,wdThreshold:null,wdToday:0,allowOver:false,balance:0}:accById(id);
   S37.editId=isNew?null:id;S37.isNew=isNew;
   $('e37Title').textContent='3.7 Payment Account - '+(isNew?'Add':'Edit');
   $('e37Id').value=a.id;
@@ -789,7 +813,7 @@ function open37(id){
   $('e37Ch').innerHTML=CHANNELS.filter(function(c){return isNew||boAcc||!isBOch(c)}).map(function(c){return '<option value="'+c.id+'"'+(c.id===a.channelId?' selected':'')+'>'+c.name+'</option>'}).join('');$('e37Ch').disabled=boAcc;
   $('e37Bank').innerHTML='<option value=""></option>'+BANKS.map(function(b){return '<option'+(b===a.bank?' selected':'')+'>'+esc(b)+'</option>'}).join('');
   $('e37Name').value=a.name;$('e37No').value=a.no;$('e37Code').value=a.code||'';$('e37Group').value=a.group||'';$('e37GrpList').innerHTML=grpOptions().map(function(g){return '<option value="'+esc(g)+'">'}).join('');
-  radio('e37Dep',a.allowDeposit);$('e37DepT').value=a.depThreshold===''?'':String(a.depThreshold);
+  $('e37DepT').value=a.depThreshold===''?'':String(a.depThreshold);
   $('e37DepToday').textContent='Today Deposit Amount: '+money(a.depToday);radio('e37DepOver',a.allowDepOver);
   radio('e37Wd',a.allowWithdraw);$('e37WdT').value=a.wdThreshold==null?'':String(a.wdThreshold);
   $('e37WdToday').textContent='Today Withdraw Amount: '+money(a.wdToday);radio('e37WdOver',a.allowOver);
@@ -797,16 +821,16 @@ function open37(id){
   $('v37list').style.display='none';$('v37edit').style.display='';sync37();
 }
 function submit37(){
-  var ch=chById($('e37Ch').value),bo=isBOch(ch),wd=radio('e37Wd')&&bo,raw=$('e37WdT').value.trim(),err=$('e37WdErr');
+  var ch=chById($('e37Ch').value),bo=isBOch(ch),adm=PERM.adm,wd=radio('e37Wd')&&bo&&adm,raw=$('e37WdT').value.trim(),err=$('e37WdErr');
   err.classList.remove('on');
   if(wd){
     if(!/^\d+(\.\d+)?$/.test(raw)||Number(raw)<=0){err.textContent='Withdraw Threshold is required and must be greater than 0.';err.classList.add('on');return}
     if(!/^\d{1,16}(\.\d{1,2})?$/.test(raw)){err.textContent='Withdraw Threshold is out of range or has more than 2 decimal places.';err.classList.add('on');return}
   }
   var a=S37.isNew?{id:NEXT_ACC_ID++,sort:0,wallet:'',status:'ACTIVE',depToday:0,wdToday:0,wdThreshold:null,allowOver:false,balance:0}:accById(S37.editId);
-  a.channelId=ch.id;a.bank=$('e37Bank').value;a.name=$('e37Name').value.trim();a.no=$('e37No').value.trim();a.code=bo?$('e37Code').value.trim():'';var gv=bo?$('e37Group').value.trim():'',gm=grpOptions().filter(function(g){return g.toLowerCase()===gv.toLowerCase()})[0];a.group=gm||gv;   // 與既有分組只差大小寫時沿用既有寫法
-  a.allowDeposit=bo?radio('e37Dep'):true;a.depThreshold=Number($('e37DepT').value)||0;a.allowDepOver=radio('e37DepOver');
-  a.allowWithdraw=wd;
+  a.channelId=ch.id;a.bank=$('e37Bank').value;a.name=$('e37Name').value.trim();a.no=$('e37No').value.trim();if(!bo){a.code='';a.group=''}else if(adm){a.code=$('e37Code').value.trim();var gv=$('e37Group').value.trim(),gm=grpOptions().filter(function(g){return g.toLowerCase()===gv.toLowerCase()})[0];a.group=gm||gv}else if(S37.isNew){a.code='';a.group=''}   // 與既有分組只差大小寫時沿用既有寫法；Deny 時後端忽略這幾個欄位
+  a.depThreshold=Number($('e37DepT').value)||0;a.allowDepOver=radio('e37DepOver');
+  if(!bo||adm||S37.isNew)a.allowWithdraw=wd;   // Deny 時編輯不改 Allow Withdraw；新增的帳號存成 No
   if(wd){a.wdThreshold=Number(raw);a.allowOver=radio('e37WdOver')}   // Allow Withdraw = No 時保留原值
   if(S37.isNew)ACCOUNTS.unshift(a);
   close37();render37();toast('Saved');
@@ -872,7 +896,7 @@ function render311(){
       '<div><div class="k">Today Withdraw</div>'+money(sw)+'</div>';}
   if(a)c.innerHTML='<div><div class="k">Payment Account</div><b>'+esc(accLabel(a))+'</b> <span class="tag '+(a.status==='ACTIVE'?'g':'n')+'">'+a.status+'</span></div>'+
     '<div><div class="k">Balance</div><span class="big">'+money(a.balance)+'</span></div>'+
-    '<div><div class="k">Today Deposit / Threshold</div>'+money(a.depToday)+' / '+money(a.depThreshold)+bar(a.depToday,a.depThreshold)+(a.allowDeposit?'':'<div class="tl"><span class="tag n">Deposit off</span></div>')+'</div>'+
+    '<div><div class="k">Today Deposit / Threshold</div>'+money(a.depToday)+' / '+money(a.depThreshold)+bar(a.depToday,a.depThreshold)+'</div>'+
     '<div><div class="k">Today Withdraw / Threshold</div>'+(a.allowWithdraw?money(a.wdToday)+' / '+money(a.wdThreshold)+bar(a.wdToday,a.wdThreshold):'<span class="tag n">Allow Withdraw: No</span>')+'</div>';
 }
 function go311(id){if(!accById(id))return;setView('tx');show('311');taSet('t11Acc',id);['t11Name','t11No','t11Ref','t11By','t11Det'].forEach(function(i){$(i).value=''});$('t11Grp').value='';T11.grp='';$('t11Bank').value='';$('t11Type').value='';T11.accId=id;T11.bank=T11.name=T11.no=T11.ref=T11.by=T11.det=T11.type='';T11.page=1;render311()}
@@ -901,7 +925,7 @@ function closeM(){$('mask2').classList.remove('on');M.kind=null}
 function mErr(m){var e=$('m2Err');e.textContent=m;e.classList.add('on')}
 function submitM(){
   var k=M.kind,from=accById(TA.mFrom.sel),to=accById(TA.mTo.sel),raw=$('mAmt').value.trim(),ref;
-  if(!PERM.view||!PERM[{int:'internal',ext:'external',adj:'adjust'}[k]]){closeM();toast('Permission denied.');return}   // DEMO：模擬後端回 403
+  if(!PERM.adm||!PERM.view||!PERM[{int:'internal',ext:'external',adj:'adjust'}[k]]){closeM();toast('Permission denied.');return}   // DEMO：模擬後端回 403
   $('m2Err').classList.remove('on');
   if((TA.mFrom.sel&&!from)||(k==='int'&&TA.mTo.sel&&!to))return mErr('The selected payment account is no longer available. Please select another one.');   // DEMO：選取之後帳號被刪除
   if(!from)return mErr('Please select a payment account.');
@@ -947,28 +971,34 @@ var RP_NEW=[['view','VIEW'],['exp','EXPORT'],['internal','Internal Transfer'],['
 function rpIcons(live){var d=live?'':' disabled';return '<button class="rp-ic ok" title="Select all"'+(live?' data-rpall="1"':d)+'>&#10003;</button><button class="rp-ic" title="Clear all"'+(live?' data-rpall="0"':d)+'>&#10005;</button><button class="rp-ic" title="Reset" disabled>&#8635;</button>'}
 function render112(){
   $('rpGroups').innerHTML=RP_OLD.map(function(g){return '<div class="rp-grp"><div class="rp-name">'+g[0]+' '+rpIcons(false)+'</div><div class="rp-nodes">'+g[1].map(function(n){return '<label><input type="checkbox" checked disabled> '+n+'</label>'}).join('')+'</div></div>'}).join('')+
-    '<div class="rp-grp" id="rpNew"><div class="rp-name">Payment Account Transactions<span class="pill-new">NEW</span> '+rpIcons(true)+'</div><div class="rp-nodes">'+RP_NEW.map(function(n){return '<label><input type="checkbox" data-rp="'+n[0]+'"'+(PERM[n[0]]?' checked':'')+'> '+n[1]+'</label>'}).join('')+'</div></div>';
+    '<div class="rp-grp" id="rpNew"'+(PERM.adm?'':' style="display:none"')+'><div class="rp-name">Payment Account Transactions<span class="pill-new">NEW</span> '+rpIcons(true)+'</div><div class="rp-nodes">'+RP_NEW.map(function(n){return '<label><input type="checkbox" data-rp="'+n[0]+'"'+(PERM[n[0]]?' checked':'')+'> '+n[1]+'</label>'}).join('')+'</div></div>';
 }
 function setPerm(k,v){PERM[k]=v;var c=document.querySelector('input[data-perm="'+k+'"]');if(c)c.checked=v}
 $('rpGroups').addEventListener('change',function(e){var k=e.target.dataset.rp;if(k){setPerm(k,e.target.checked);applyPerm()}});
 $('rpGroups').addEventListener('click',function(e){var b=e.target.closest('[data-rpall]');if(b){RP_NEW.forEach(function(n){setPerm(n[0],b.dataset.rpall==='1')});applyPerm()}});
 function applyPerm(){
+  document.body.classList.toggle('adm-off',!PERM.adm);
+  if(!PERM.adm){L32.accId=L32.pendAccId=null;$('l32Acc').value='';S37.code=S37.grp='';$('f37Code').value='';$('f37Grp').value='';colClose('37')}   // Deny：這幾個篩選條件不存在
+  if(ST.order){if(!PERM.adm)setMode(false);renderDlg()}   // 開著的核准對話框跟著設定更新，已選的帳號清空
   if($('pg-112').classList.contains('on'))render112();
-  document.querySelector('.side [data-nav="311"]').style.display=PERM.view?'':'none';
+  if($('pg-32').classList.contains('on'))render32();
+  if($('pg-37').classList.contains('on')&&$('v37list').style.display==='none')sync37();
+  document.querySelector('.side [data-nav="311"]').style.display=PERM.view&&PERM.adm?'':'none';
   $('b11Int').style.display=PERM.internal?'':'none';$('b11Ext').style.display=PERM.external?'':'none';$('b11Adj').style.display=PERM.adjust?'':'none';$('b11Exp').style.display=PERM.exp?'':'none';
-  if(!PERM.view&&$('pg-311').classList.contains('on'))show('32');
+  if((!PERM.view||!PERM.adm)&&$('pg-311').classList.contains('on'))show('32');
   if($('pg-37').classList.contains('on')&&$('v37list').style.display!=='none')render37();
 }
 
 // ---------- 核准對話框 ----------
 function openDlg(no){
   ST.order=ORDERS.pending.filter(function(o){return o.no===no})[0];
-  ST.channelId=null;ST.specify=false;ST.accId=null;qClear();ST.bank='';ST.sort='sort';ST.page=1;
+  ST.channelId=null;ST.specify=false;ST.accId=null;qClear();ST.bank='';ST.sort='sort';ST.page=1;minReset();
   $('fNo').value=ST.order.no;$('fAmt').value=money(ST.order.amount)+' THB';$('fTx').value='';
   $('fCh').innerHTML='<option value="">Select</option>'+CHANNELS.filter(function(c){return c.wd}).map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>'}).join('');
   $('fSort').value='sort';setMode(false);$('err').classList.remove('on');
   $('mask').classList.add('on');renderDlg();
 }
+function minReset(){ST.min=ST.order?ST.order.amount:0;$('qMin').value=ST.order?money(ST.order.amount):'';$('qMin').classList.remove('bad')}   // Min Balance 預設帶入這張單的 Amount
 function qClear(){ST.qc=ST.qn=ST.qo='';['qCode','qName','qNo'].forEach(function(i){$(i).value=''})}
 function setMode(yes){ST.specify=yes;document.querySelector('input[name=paMode][value='+(yes?'yes':'no')+']').checked=true;if(!yes)ST.accId=null}
 function usable(){var amt=ST.order.amount;return ACCOUNTS.filter(function(a){return String(a.channelId)===String(ST.channelId)&&a.status==='ACTIVE'&&a.allowWithdraw&&check(a,amt).ok&&a.balance>=amt})}
@@ -980,6 +1010,7 @@ function filtered(){
   if(qn)list=list.filter(function(a){return a.name.toLowerCase().indexOf(qn)>=0});
   if(qo)list=list.filter(function(a){return a.no.indexOf(qo)>=0});
   if(ST.bank)list=list.filter(function(a){return a.bank===ST.bank});
+  if(ST.min)list=list.filter(function(a){return a.balance>=ST.min});   // 餘額小於 Amount 的帳號已被 usable() 排除，所以填得比 Amount 小不會多出帳號
   if(ST.sort==='remain')list=list.slice().sort(function(a,b){return (b.wdThreshold-b.wdToday)-(a.wdThreshold-a.wdToday)||a.sort-b.sort});
   else if(ST.sort==='wdlow')list=list.slice().sort(function(a,b){return a.wdToday-b.wdToday||a.sort-b.sort||a.id-b.id});
   else if(ST.sort==='bal')list=list.slice().sort(function(a,b){return b.balance-a.balance||a.sort-b.sort||a.id-b.id});
@@ -987,7 +1018,8 @@ function filtered(){
   return list;
 }
 function renderDlg(){
-  var ch=currentChannel(),offline=isBOch(ch),showList=offline&&ST.specify;
+  var ch=currentChannel(),offline=isBOch(ch)&&PERM.adm,showList=offline&&ST.specify;
+  $('paDenyNote').style.display=isBOch(ch)&&!PERM.adm?'':'none';
   $('paOptL').style.display=offline?'':'none';$('paOpt').style.display=offline?'':'none';
   $('dlg').classList.toggle('wide',showList);$('pa').classList.toggle('on',showList);
   $('paNote').style.display=offline?'':'none';$('listNote').style.display=showList?'':'none';
@@ -1003,7 +1035,7 @@ function renderDlg(){
     return '<tr class="row'+(sel?' sel':'')+'" data-acc="'+a.id+'">'+
       '<td><input type="radio" name="acc"'+(sel?' checked':'')+'></td>'+
       '<td>'+esc(a.code||'-')+'</td><td>'+esc(a.bank)+'</td><td>'+esc(a.name)+'</td><td>'+(a.no||esc(a.wallet))+'</td><td class="num">'+money(a.balance)+'</td>'+
-      '<td>'+money(a.depToday)+' / '+money(a.depThreshold)+bar(a.depToday,a.depThreshold)+(a.allowDeposit?'':'<div class="tl"><span class="tag n">Deposit off</span></div>')+'</td>'+
+      '<td>'+money(a.depToday)+' / '+money(a.depThreshold)+bar(a.depToday,a.depThreshold)+'</td>'+
       '<td>'+money(a.wdToday)+' / '+money(a.wdThreshold)+bar(a.wdToday,a.wdThreshold,amt)+(a.allowOver?'<div class="tl"><span class="tag a">Over-threshold allowed</span></div>':'')+'</td>'+
       '<td class="num">'+money(after)+'</td></tr>';
   }).join('')||'<tr><td colspan="9" class="empty">'+(all.length?'No payment account matches the current search.':'No payment account can be used for this amount.')+'</td></tr>';
@@ -1014,7 +1046,8 @@ function renderDlg(){
 function submit(){
   var ch=currentChannel(),o=ST.order;if(!ch)return;
   var acc=null;
-  if(isBOch(ch)&&ST.specify&&ST.accId){
+  if(isBOch(ch)&&!PERM.adm&&ST.accId){toast('Permission denied.');return}   // DEMO：Deny 時帶出款帳號 ID，後端回 403
+  if(isBOch(ch)&&PERM.adm&&ST.specify&&ST.accId){
     acc=accById(ST.accId);
     var c=acc&&isBO(acc)&&acc.status==='ACTIVE'&&acc.allowWithdraw?check(acc,o.amount):{ok:false,reason:'unavailable'};   // DEMO：模擬後端重新驗證
     if(c.ok&&acc.balance<o.amount)c={ok:false,reason:'balance'};
@@ -1099,7 +1132,7 @@ function colShow(k,on){$('cp'+k).classList.toggle('on',on);var hide=k==='37'?['w
   Array.prototype.forEach.call(document.querySelectorAll('#pg-'+(k==='37'?'37':'311')+' .pgx'),function(x){x.style.display=on?'none':''})}
 function colClose(k){if(CEDIT&&CEDIT.k===k){CEDIT=null;colShow(k,false)}}
 function colList(){var e=CEDIT,c=COLS[e.tid];
-  $('cl'+e.k).innerHTML=e.order.map(function(i){return '<div class="crow" draggable="true" data-ci="'+i+'"><span class="hdl">&#8942;&#8942;</span><span class="nm">'+esc(c.names[i])+'</span><label class="tgl"><input type="checkbox" data-cv="'+i+'"'+(e.hidden[i]?'':' checked')+'><span></span></label></div>'}).join('')}
+  $('cl'+e.k).innerHTML=e.order.filter(function(i){return PERM.adm||!c.th[i].classList.contains('admx')}).map(function(i){return '<div class="crow" draggable="true" data-ci="'+i+'"><span class="hdl">&#8942;&#8942;</span><span class="nm">'+esc(c.names[i])+'</span><label class="tgl"><input type="checkbox" data-cv="'+i+'"'+(e.hidden[i]?'':' checked')+'><span></span></label></div>'}).join('')}
 ['37','11'].forEach(function(k){
   $('c'+k).addEventListener('click',function(){colOpen(k)});
   $('cc'+k).addEventListener('click',function(){CEDIT=null;colShow(k,false)});
@@ -1124,7 +1157,7 @@ function csv311(){
   return rows.map(function(r){return r.map(q).join(',')}).join('\n');
 }
 $('b11Exp').addEventListener('click',function(){
-  if(!PERM.view||!PERM.exp){toast('Permission denied.');return}
+  if(!PERM.adm||!PERM.view||!PERM.exp){toast('Permission denied.');return}
   var c=csv311();window.__state.lastCsv=c;
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+c],{type:'text/csv'}));a.download=T11.view==='sum'?'payment_account_summary.csv':'payment_account_transactions.csv';document.body.appendChild(a);a.click();a.remove();
   toast('Exported '+(c.split('\n').length-1)+' records');
@@ -1137,11 +1170,12 @@ $('m2Submit').addEventListener('click',submitM);
 Array.prototype.forEach.call(document.querySelectorAll('input[name=mDir]'),function(r){r.addEventListener('change',function(){seeBal();syncAmt()})});
 Array.prototype.forEach.call(document.querySelectorAll('input[data-perm]'),function(c){c.addEventListener('change',function(){PERM[this.dataset.perm]=this.checked;applyPerm()})});
 // 對話框
-$('fCh').addEventListener('change',function(){ST.channelId=this.value||null;setMode(false);ST.page=1;qClear();ST.bank='';$('err').classList.remove('on');renderDlg()});
+$('fCh').addEventListener('change',function(){ST.channelId=this.value||null;setMode(false);ST.page=1;qClear();minReset();ST.bank='';$('err').classList.remove('on');renderDlg()});
 [['qCode','qc'],['qName','qn'],['qNo','qo']].forEach(function(x){$(x[0]).addEventListener('input',function(){ST[x[1]]=this.value;ST.page=1;renderDlg()})});
 $('fBank').addEventListener('change',function(){ST.bank=this.value;ST.page=1;renderDlg()});
+$('qMin').addEventListener('input',function(){var v=this.value.replace(/,/g,'').trim(),ok=v===''||/^\d{1,16}(\.\d{1,2})?$/.test(v);this.classList.toggle('bad',!ok);if(!ok)return;ST.min=v===''?0:Number(v);ST.page=1;renderDlg()});   // 不符合格式時標紅、不重新查詢
 $('fSort').addEventListener('change',function(){ST.sort=this.value;ST.page=1;renderDlg()});
-Array.prototype.forEach.call(document.querySelectorAll('input[name=paMode]'),function(r){r.addEventListener('change',function(){setMode(this.value==='yes');ST.page=1;qClear();ST.bank='';$('err').classList.remove('on');renderDlg()})});
+Array.prototype.forEach.call(document.querySelectorAll('input[name=paMode]'),function(r){r.addEventListener('change',function(){setMode(this.value==='yes');ST.page=1;qClear();minReset();ST.bank='';$('err').classList.remove('on');renderDlg()})});
 $('pgPrev').addEventListener('click',function(){ST.page--;renderDlg()});
 $('pgNext').addEventListener('click',function(){ST.page++;renderDlg()});
 $('bCancel').addEventListener('click',closeDlg);

@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.29（2026-10-14）
+- 版本：v0.31（2026-10-14）
 
 ---
 
@@ -12,11 +12,11 @@
 
 本次做五件事：
 
-1. `3.7 Payment Account`：帳號可以設定能不能收款、能不能出款、每日出款門檻、帳號代碼與分組；並顯示系統記錄的餘額。
+1. `3.7 Payment Account`：帳號可以設定能不能出款、每日出款門檻、帳號代碼與分組；並顯示系統記錄的餘額。
 2. `3.2 Withdraw List`：Finance Approval 核准時選到 `BANK-OFFLINE`，財務可以選擇是否指定出款帳號；出款單記錄所選的帳號，列表、篩選與 CSV 帶出。
 3. 帳號餘額：系統記錄每個帳號的餘額。玩家存款、玩家出款、手動單都會改變餘額。
 4. `3.11 Payment Account Transactions`（新頁）：每個帳號的交易紀錄、每個帳號的合計表（`Summary by Account`），以及三種手動單：內部轉帳、轉到外部、調整餘額。
-5. 權限：新增五個權限節點；Admin BO 可以決定每個 Agent 能不能使用 `3.11`。
+5. 權限：新增五個權限節點；Admin BO 可以決定每個 Agent 能不能使用本次的功能（13.4）。
 
 全部功能**只適用於 `BANK-OFFLINE`** 通道底下的帳號。 其他通道（不論線上或離線）的帳號與出款流程都不變。
 
@@ -43,10 +43,11 @@
 
 ### 3.1 新增欄位
 
+只有 BANK-OFFLINE 帳號有這些欄位。其他通道的帳號在編輯頁與新增頁不顯示這些欄位（3.3）。
+
 | UI 標籤 | 型別 | 必填 | 新增帳號的預設值 | 說明 |
 |---|---|---|---|---|
-| `Allow Deposit` | Yes／No | 是 | Yes | No 時，這個帳號不會派給玩家存款。只有 BANK-OFFLINE 帳號可以設成 No；其他通道的帳號固定 Yes |
-| `Allow Withdraw` | Yes／No | 是 | BANK-OFFLINE 帳號 Yes；其他通道的帳號固定 No | 能不能從這個帳號轉出錢。Yes 時這個帳號才能用於核准玩家出款、內部轉帳的轉出、轉到外部 |
+| `Allow Withdraw` | Yes／No | 是 | Admin BO 設定為 `Enable` 時，BANK-OFFLINE 帳號 Yes。Admin BO 設定為 `Deny` 時 No（13.4）。其他通道的帳號固定 No | 能不能從這個帳號轉出錢。Yes 時這個帳號才能用於核准玩家出款、內部轉帳的轉出、轉到外部 |
 | `Withdraw Threshold` | `DECIMAL(18,2)` | `Allow Withdraw = Yes` 時必填 | 空 | 每日出款門檻。必須大於 0，最多兩位小數，不得大於 `9999999999999999.99`。金額禁用 float |
 | `Today Withdraw Amount` | `DECIMAL(18,2)` | 唯讀 | 0 | 今日從這個帳號轉出的金額合計（第 9 節） |
 | `Allow Withdraw Over Threshold` | Yes／No | `Allow Withdraw = Yes` 時必填 | No | 最後一筆能不能讓今日出款累計超過門檻（第 6 節） |
@@ -58,69 +59,78 @@
 
 現有 17 個欄位的順序不變：`ID`、`Sort`、`Payment Channel`、`Bank Name`、`Bank Branch Name`、`Account Name`、`Account No`、`Operator Fee`、`Min. Deposit (Fiat)`、`Max. Deposit (Fiat)`、`Deposit Player Fee`、`Min Deposit (Crypto)`、`Max Deposit (Crypto)`、`Threshold`、`Allow Deposit Over Threshold`、`Payment Level`、`Image`。
 
-七個新欄位插在 `Allow Deposit Over Threshold` 與 `Payment Level` 之間，依序為：
+六個新欄位插在 `Allow Deposit Over Threshold` 與 `Payment Level` 之間，依序為：
 
-1. `Allow Deposit`
-2. `Allow Withdraw`
-3. `Withdraw Threshold`，欄位下方顯示 `Today Withdraw Amount: {金額}`，顯示方式與既有 `Threshold` 下方的 `Today Deposit Amount` 相同
-4. `Allow Withdraw Over Threshold`
-5. `Balance`（唯讀）
-6. `Account Code`
-7. `Account Group`
+1. `Allow Withdraw`
+2. `Withdraw Threshold`，欄位下方顯示 `Today Withdraw Amount: {金額}`，顯示方式與既有 `Threshold` 下方的 `Today Deposit Amount` 相同
+3. `Allow Withdraw Over Threshold`
+4. `Balance`（唯讀）
+5. `Account Code`
+6. `Account Group`
 
 新增頁（`Add`）的欄位與順序相同。
 
+帳號是 BANK-OFFLINE 帳號，且 Admin BO 的 `Payment Account Transactions` 設定為 `Enable`（13.4）時，前端顯示六個新欄位。其他情況前端不顯示這六個欄位。
+
 ### 3.3 欄位連動與驗證（前端＋後端都要擋）
 
-- `Payment Channel` 不是 `BANK-OFFLINE` 時，`Allow Deposit` 固定為 Yes、`Allow Withdraw` 固定為 No，兩個欄位都不可改，欄位下方各顯示 `Only available for BANK-OFFLINE accounts.`。在新增頁把 `Payment Channel` 改選為其他通道時，兩個欄位立即變成這兩個固定值。請求對其他通道的帳號帶了不同的值時，後端以固定值儲存。
+- `Payment Channel` 不是 `BANK-OFFLINE` 時，編輯頁與新增頁不顯示六個新欄位。在新增頁改選 `Payment Channel` 時，六個欄位跟著出現或消失。
+- 其他通道的帳號，不論請求帶了什麼值，後端都以下列值儲存：
+
+  | 欄位 | 儲存值 |
+  |---|---|
+  | `Allow Withdraw` | No |
+  | `Withdraw Threshold` | 空 |
+  | `Allow Withdraw Over Threshold` | No |
+  | `Account Code` | 空 |
+  | `Account Group` | 空 |
 - `Allow Withdraw = Yes` 時，`Withdraw Threshold` 留空或小於等於 0，回 `400 WITHDRAW_THRESHOLD_REQUIRED`，前端顯示 `Withdraw Threshold is required and must be greater than 0.`。
 - `Withdraw Threshold` 超過兩位小數，或大於 `9999999999999999.99`，回 `400 WITHDRAW_THRESHOLD_INVALID`，前端顯示 `Withdraw Threshold is out of range or has more than 2 decimal places.`。
 - `Allow Withdraw = No` 時，`Withdraw Threshold` 與 `Allow Withdraw Over Threshold` 不可編輯、不驗證，已存的值保留；之後改回 Yes 時帶出原值。
-- 新增 BANK-OFFLINE 帳號時 `Allow Withdraw` 預設 Yes，所以 `Withdraw Threshold` 必須填寫才能送出；不需要出款的帳號，把 `Allow Withdraw` 改成 No 即可。
-- `Payment Channel` 不是 `BANK-OFFLINE` 時，`Account Code` 與 `Account Group` 不可編輯且為空，欄位下方各顯示 `Only available for BANK-OFFLINE accounts.`；請求對其他通道的帳號帶了值時，後端以空值儲存。
+- Admin BO 設定為 `Enable` 時，新增 BANK-OFFLINE 帳號的 `Allow Withdraw` 預設 Yes，所以 `Withdraw Threshold` 必須填寫才能送出；不需要出款的帳號，把 `Allow Withdraw` 改成 No 即可。
 - `Account Code`、`Account Group` 超過 32 字，回 `400 ACCOUNT_CODE_INVALID`／`400 ACCOUNT_GROUP_INVALID`；前端以輸入長度上限擋住。儲存時去掉前後空白。
 - `Account Code` 與 `Account Group` 只是方便客戶管理帳號的標記，兩者互相獨立，系統不檢查它們是否對得上。不填不影響任何功能：出款核准、餘額、交易紀錄、手動單都照常運作，只是畫面上沒有代碼與分組可以顯示、搜尋或篩選。
 - `Account Group` 輸入時，欄位下方提示這個代理目前已有的分組（未刪除的 BANK-OFFLINE 帳號用到的分組），可以點選，也可以輸入新的。儲存時，輸入的值與既有分組只差大小寫的，改存成既有分組的寫法，不另成一組。分組沒有另外的管理清單；要改分組名稱，逐一修改帳號。
-- `Allow Deposit` 與 `Allow Withdraw` 可以同時為 No。
 - `Today Withdraw Amount` 與 `Balance` 不是設定值，新增與編輯的請求都不接受這兩個欄位。
 - 既有存款欄位的必填與驗證規則都不變。
 - 今日已有出款累計後把 `Withdraw Threshold` 調低，或把 `Allow Withdraw Over Threshold` 由 Yes 改成 No，已有的累計不扣回；之後的轉出依新設定與第 6 節判定。
 
-### 3.4 `Allow Deposit` 對存款的影響
+### 3.4 存款
 
-只有 BANK-OFFLINE 帳號可以設成 No。其他通道的帳號固定為 Yes，派收款帳號的行為與現況相同。
-
-- 派收款帳號給玩家時，排除 `Allow Deposit = No` 的帳號。
-- 既有規則「通道底下沒有可用的收款帳號時，前台不顯示該存款通道」判斷時，`Allow Deposit = No` 的帳號視為不可用。
-- 已經建立的存款單不受影響，它記錄的收款帳號不變。
+所有帳號都可以收玩家存款。派收款帳號給玩家的行為與現況相同，本次不改動。
 
 ### 3.5 列表
 
 現有 30 欄的順序不變：`Actions`、`Sort`、`Payment Channel`、`Bank Name`、`Bank Branch Name`、`Account Name`、`Bank Account No`、`Wallet Address`、`Status`、`Reconcile Server`、`Operator Fee`、`Player Fee`、`Min Deposit Amount`、`Max Deposit Amount`、`Deposit Player Fee Type`、`Deposit Player Fee Fixed`、`Deposit Player Fee Perc`、`Min Deposit Player Fee`、`Max Deposit Player Fee`、`Minimum Deposit Crypto`、`Maximum Deposit Crypto`、`Agent Payment Level IDs`、`Threshold`、`Deposit Amount`、`Created By`、`Created Date`、`Updated By`、`Updated Time`、`Image`、`Allow Deposit Over Threshold`。
 
-七個新欄位接在最後一欄之後：
+六個新欄位接在最後一欄之後：
 
 | 欄位序 | 欄名 | 內容 |
 |---|---|---|
-| 31 | `Allow Deposit` | `true`／`false`。其他通道的帳號固定 `true` |
-| 32 | `Allow Withdraw` | `true`／`false`。其他通道的帳號固定 `false` |
-| 33 | `Withdraw Threshold` | `今日出款累計 / 門檻`，格式與既有的 `Threshold` 欄相同（例：`0.00 / 50,000.00`）。`Allow Withdraw = false` 時顯示 `-` |
-| 34 | `Allow Withdraw Over Threshold` | `true`／`false`。`Allow Withdraw = false` 時顯示 `-` |
-| 35 | `Balance` | 餘額。不是 BANK-OFFLINE 帳號時顯示 `-` |
-| 36 | `Account Code` | 代碼。不是 BANK-OFFLINE 帳號時顯示 `-` |
-| 37 | `Account Group` | 分組。沒有分組或不是 BANK-OFFLINE 帳號時顯示 `-` |
+| 31 | `Allow Withdraw` | `true`／`false`。其他通道的帳號固定 `false` |
+| 32 | `Withdraw Threshold` | `今日出款累計 / 門檻`，格式與既有的 `Threshold` 欄相同（例：`0.00 / 50,000.00`）。`Allow Withdraw = false` 時顯示 `-` |
+| 33 | `Allow Withdraw Over Threshold` | `true`／`false`。`Allow Withdraw = false` 時顯示 `-` |
+| 34 | `Balance` | 餘額。不是 BANK-OFFLINE 帳號時顯示 `-` |
+| 35 | `Account Code` | 代碼。不是 BANK-OFFLINE 帳號時顯示 `-` |
+| 36 | `Account Group` | 分組。沒有分組或不是 BANK-OFFLINE 帳號時顯示 `-` |
 
 - `Export CSV` 的欄位順序相同。
 - **篩選**：篩選區在 `Bank Name` 之前加兩個條件：
   - `Account Code`：文字，部分比對，不分大小寫。
   - `Account Group`：下拉，單選，預設 `Account Group: All`。選項依序是 `No Group`，以及目前已有的分組（同 3.3 的提示範圍），依名稱排序，不分大小寫。選 `No Group` 列出沒有分組的 BANK-OFFLINE 帳號；選了 `No Group` 或任何分組時，其他通道的帳號不列出。比對不分大小寫。
-- **Columns Settings**：七個新欄位加入 `Columns Settings`，預設顯示。上表是預設順序，也就是按 `Reset` 之後的順序。已經儲存過自訂欄位順序的使用者，新欄位接在他目前順序的最後面並顯示，不改動他原本的排列。
-- **進度條**：BANK-OFFLINE 帳號的 `Threshold`（第 23 欄，既有）與 `Withdraw Threshold`（第 33 欄）兩欄，在數字下方加一條進度條，顯示今日累計佔門檻的比例：未達 80% 綠色、80% 以上未達 100% 橘色、100% 以上紅色。既有 `Threshold` 欄的數字與格式不變，只加進度條。其他通道的帳號不加進度條，`Threshold` 欄與現況相同。
+- **Columns Settings**：六個新欄位加入 `Columns Settings`，預設顯示。上表是預設順序，也就是按 `Reset` 之後的順序。已經儲存過自訂欄位順序的使用者，新欄位接在他目前順序的最後面並顯示，不改動他原本的排列。
+- **進度條**：BANK-OFFLINE 帳號的 `Threshold`（第 23 欄，既有）與 `Withdraw Threshold`（第 32 欄）兩欄，在數字下方加一條進度條，顯示今日累計佔門檻的比例：未達 80% 綠色、80% 以上未達 100% 橘色、100% 以上紅色。既有 `Threshold` 欄的數字與格式不變，只加進度條。其他通道的帳號不加進度條，`Threshold` 欄與現況相同。
 - **`Transactions` 按鈕**：`Actions` 欄在既有的編輯、刪除按鈕之後，BANK-OFFLINE 帳號多一個 `Transactions` 按鈕，點了跳到 `3.11` 並以這個帳號篩選（11.6）。登入者沒有 `3.11` 的 `VIEW` 權限時不顯示；其他通道的帳號不顯示。
+- **Admin BO 設定為 `Deny` 時**（13.4）：
+  - 六個新欄位（第 31–36 欄）不顯示，不列在 `Columns Settings`，`Export CSV` 不帶出。
+  - `Account Code`、`Account Group` 兩個篩選不顯示。
+  - 使用者已儲存的欄位順序保留；改回 `Enable` 後，六個欄位依儲存的順序顯示。
+  - 使用者在 `Deny` 期間按 `Reset` 並儲存時，全部欄位回到預設順序並顯示，六個新欄位也一樣。
+  - 既有 `Threshold` 欄的進度條照常顯示。
 
 ### 3.6 變更紀錄
 
-六個可編輯的新欄位（`Allow Deposit`、`Allow Withdraw`、`Withdraw Threshold`、`Allow Withdraw Over Threshold`、`Account Code`、`Account Group`）的修改，與 `3.7` 既有欄位一樣寫入 `11.9 Change Log`。`Today Withdraw Amount` 與 `Balance` 的變動不寫入 `11.9 Change Log`；餘額的每一次變動記在 `3.11`。
+五個可編輯的新欄位（`Allow Withdraw`、`Withdraw Threshold`、`Allow Withdraw Over Threshold`、`Account Code`、`Account Group`）的修改，與 `3.7` 既有欄位一樣寫入 `11.9 Change Log`。`Today Withdraw Amount` 與 `Balance` 的變動不寫入 `11.9 Change Log`；餘額的每一次變動記在 `3.11`。
 
 ### 3.7 通道不可搬移；停用與刪除
 
@@ -195,7 +205,7 @@
 | `Withdraw No` | 唯讀 | 不變 |
 | `Amount` | 無 | 新增。唯讀，顯示出款單的 `Amount` 與幣別（例：`1,500.00 THB`） |
 | `Payment Channel` | 必填，選項依玩家的綁定帳號類型過濾 | 不變 |
-| `Payment Account` | 無 | 新增。所選通道是 `BANK-OFFLINE` 時才顯示。兩個選項：`Not specified`（預設）、`Specify account` |
+| `Payment Account` | 無 | 新增。所選通道是 `BANK-OFFLINE`，且 Admin BO 的 `Payment Account Transactions` 設定為 `Enable`（13.4）時才顯示。兩個選項：`Not specified`（預設）、`Specify account` |
 | `Tx ID` | 選填 | 不變 |
 
 ### 5.3 `Payment Account` 選項的行為
@@ -203,6 +213,7 @@
 | 狀態 | 行為 |
 |---|---|
 | 未選通道，或選了 `BANK-OFFLINE` 以外的通道 | 不顯示 `Payment Account` 這一列，行為與現況相同 |
+| Admin BO 設定為 `Deny`，選了 `BANK-OFFLINE` | 不顯示 `Payment Account` 這一列。送出的結果與 `Not specified` 相同 |
 | `BANK-OFFLINE` ＋ `Not specified` | 不顯示帳號清單。可直接送出。這張單沒有出款帳號，不扣任何帳號的餘額，不計入任何帳號的今日出款累計 |
 | `BANK-OFFLINE` ＋ `Specify account` | 對話框變寬，展開帳號清單（5.4）。必須選一個帳號才能送出；沒選時 `Submit` 不可按，並顯示 `Select a payment account, or choose "Not specified".` |
 
@@ -228,10 +239,35 @@
 | `Account Name` 文字欄位（placeholder：`Account Name`） | 部分比對 `Account Name`，不分大小寫 |
 | `Account No` 文字欄位（placeholder：`Account No`） | 部分比對 `Bank Account No` |
 | `Bank` 下拉 | 預設 `Bank: All`。選項是可用帳號用到的銀行 |
+| `Min Balance` 金額欄位（欄位左邊顯示標籤 `Min Balance`） | 只列 `Balance` 大於等於輸入值的帳號。開啟清單時自動帶入這張單的 `Amount`，財務可以修改。規則見表格下方 |
 | 排序下拉 | `Sort: Default`（依 `3.7` 的 `Sort` 由小到大，相同時依 ID 由小到大）、`Sort: Withdraw remaining (high to low)`（門檻減今日出款累計）、`Sort: Today withdraw (low to high)`、`Sort: Balance (high to low)` |
 | 筆數 | `{符合目前搜尋與篩選的筆數} of {這張單可用的帳號總數} accounts` |
 
-三個文字欄位與 `Bank` 下拉之間是「而且」的關係。文字欄位留空表示不套用該條件。
+三個文字欄位、`Bank` 下拉與 `Min Balance` 之間是「而且」的關係。文字欄位留空表示不套用該條件。
+
+`Min Balance` 的規則：
+
+- 型別 `DECIMAL(18,2)`。有效值大於等於 0，不得大於 `9999999999999999.99`，最多兩位小數。
+- 前端顯示時加千分位。前端送給後端的值不含千分位。
+- 開啟帳號清單時，前端把 `Min Balance` 設為這張單的 `Amount`。財務可以修改這個值。
+- 切換 `Payment Channel` 時，前端把 `Min Balance` 設回這張單的 `Amount`。
+- 由 `Not specified` 切到 `Specify account` 時，前端把 `Min Balance` 設回這張單的 `Amount`。
+- 財務改了 `Min Balance` 時，清單回到第 1 頁。
+- 輸入不是有效值時，前端把欄位標紅。
+- 輸入不是有效值時，前端以上一次的有效值查詢，其他條件照常套用。
+- 後端收到不是有效值的 `minBalance` 時，回 `400 MIN_BALANCE_INVALID`。
+- 上方「列出哪些帳號」的四個條件不變。後端不列出餘額小於 `Amount` 的帳號。
+- 清空時，前端不帶 `minBalance`。
+- 筆數的「可用的帳號總數」，後端不套用 `Min Balance` 計算。
+
+`Min Balance` 輸入值與清單結果（出款單 `Amount = 1,500.00`）：
+
+| 輸入 | 列出的帳號 |
+|---|---|
+| `1,500.00`（預設） | 可用的帳號 |
+| `60,000.00` | 可用的帳號中，餘額大於等於 60,000.00 的帳號 |
+| `500.00` | 與輸入 `1,500.00` 相同 |
+| 空 | 與輸入 `1,500.00` 相同 |
 
 **表格欄位**：
 
@@ -243,7 +279,7 @@
 | `Account Name` | 戶名 |
 | `Account No` | `Bank Account No` |
 | `Balance` | 帳號目前的餘額 |
-| `Today Deposit / Threshold` | `3.7` 既有的 `Today Deposit Amount` 與 `Threshold`，下方一條進度條。`Allow Deposit = No` 的帳號加標籤 `Deposit off` |
+| `Today Deposit / Threshold` | `3.7` 既有的 `Today Deposit Amount` 與 `Threshold`，下方一條進度條 |
 | `Today Withdraw / Threshold` | `Today Withdraw Amount` 與 `Withdraw Threshold`，下方一條進度條，其中藍色區段是這張單會增加的量。`Allow Withdraw Over Threshold = Yes` 的帳號加標籤 `Over-threshold allowed` |
 | `After This Withdrawal` | 今日出款累計加上這張單的 `Amount` |
 
@@ -388,6 +424,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 - 沒有出款帳號的單，四欄都顯示 `—`。
 - 既有的 `Bank Name`、`Account Name`、`Bank Account No`、`Wallet Address` 仍然是玩家收款帳號，內容與位置都不變。
 - `Columns Settings`：兩張表各有自己的 `Columns Settings`，都可以拖曳調整順序並儲存。處理方式與 3.5 相同：四個新欄位加入兩張表的 `Columns Settings` 並預設顯示；上表是預設順序；已儲存自訂順序的使用者，新欄位接在他目前順序的最後面。
+- Admin BO 設定為 `Deny` 時（13.4），兩張表都不顯示四個新欄位，也不列在 `Columns Settings`。使用者已儲存的欄位順序保留。
 
 ### 10.2 篩選
 
@@ -399,10 +436,11 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 - 必須從候選中選取才算設定了條件；只輸入文字、沒有選取就按 `Search`，不套用這個條件並清空輸入。
 - 條件：`paymentAccountId` 等於所選帳號。因為比對的是 ID，帳號在 `3.7` 改過戶名或號碼後，仍查得到改之前核准的單。
 - 這個條件同時套用到 `Pending Requests` 表、主表、上方的統計列與 `Export CSV`，方式與其他篩選條件相同。
+- Admin BO 設定為 `Deny` 時（13.4），篩選區不顯示 `Payment Account`。
 
 ### 10.3 匯出
 
-`Export CSV` 在 `Payment Channel` 之後帶出 10.1 的四欄，一欄一個值，欄名與畫面相同。`paymentAccountId` 不匯出。
+`Export CSV` 在 `Payment Channel` 之後帶出 10.1 的四欄，一欄一個值，欄名與畫面相同。`paymentAccountId` 不匯出。Admin BO 設定為 `Deny` 時，`Export CSV` 不帶出這四欄。
 
 ---
 
@@ -506,7 +544,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 |---|---|
 | `Payment Account` | `{帳號標示}` 與 `Status` 標籤（`ACTIVE`／`INACTIVE`） |
 | `Balance` | 目前的餘額 |
-| `Today Deposit / Threshold` | `Today Deposit Amount` 與 `Threshold`，下方一條進度條。`Allow Deposit = No` 時加標籤 `Deposit off` |
+| `Today Deposit / Threshold` | `Today Deposit Amount` 與 `Threshold`，下方一條進度條 |
 | `Today Withdraw / Threshold` | `Today Withdraw Amount` 與 `Withdraw Threshold`，下方一條進度條。`Allow Withdraw = No` 時改為只顯示標籤 `Allow Withdraw: No` |
 
 進度條顏色與 3.5 相同。
@@ -690,10 +728,12 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 |---|---|
 | 在核准對話框選 `Payment Account`、取得帳號清單（含 `Balance` 欄） | 能執行 Finance Approval 的 Approve，判斷方式與現況相同 |
 | 看 `3.7` 的新欄位，含 `Today Withdraw Amount` 與 `Balance`；用 `Account Code`、`Account Group` 篩選 `3.7` 列表；取得分組選項 | `3.7 Payment Account` 既有的檢視權限 |
-| 新增帳號時設定 `3.7` 的六個可編輯新欄位 | `3.7 Payment Account` 既有的新增權限 |
-| 修改 `3.7` 的六個可編輯新欄位 | `3.7 Payment Account` 既有的編輯權限 |
+| 新增帳號時設定 `3.7` 的五個可編輯新欄位 | `3.7 Payment Account` 既有的新增權限 |
+| 修改 `3.7` 的五個可編輯新欄位 | `3.7 Payment Account` 既有的編輯權限 |
 | 看 `3.2` 的四個新欄位、用 `Payment Account` 篩選、取得這個篩選的候選帳號 | `3.2 Withdraw List` 既有的檢視權限 |
 | `3.2` 的 `Export CSV` 帶出新欄位 | `3.2 Withdraw List` 既有的匯出權限 |
+
+上表的動作另外受 13.4 的 Admin BO 設定控制。
 
 後端依每一個查詢或動作各自驗證上表與 13.1 的權限，不接受由前端傳入用途來決定要驗哪一個權限。
 
@@ -701,7 +741,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 所有帳號清單、下拉選單、篩選候選、交易紀錄，都只包含登入者所屬代理的帳號，與 `3.7` 列表的資料範圍相同。請求裡帶了不屬於自己代理的帳號 ID 或出款單 ID，一律拒絕。
 
-### 13.4 Admin BO：每個 Agent 能不能使用 `3.11`
+### 13.4 Admin BO：每個 Agent 能不能使用本次的功能
 
 位置：Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting` 分頁。這個分頁現有 `Free Spin`、`Free Spin Report` 兩列，每列是 `Enable`／`Deny` 單選與右側的 `updated :`。
 
@@ -721,11 +761,24 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 設定 | Agent BO 的結果 |
 |---|---|
 | `Enable` | `11.2 Role Setting` 出現群組 `Payment Account Transactions` 與 13.1 的五個節點，由 Agent 自己開給角色 |
-| `Deny` | `11.2 Role Setting` 不顯示群組 `Payment Account Transactions` 與五個節點；所有帳號的選單都不顯示 `3.11`；`3.7` 列表不顯示 `Transactions` 按鈕；`3.11` 的所有查詢與動作（交易紀錄、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）後端一律回 `403` |
+| `Deny` | 見下方「`Deny` 時的 Agent BO」 |
+
+`Deny` 時的 Agent BO：
+
+| 位置 | 前端 | 後端 |
+|---|---|---|
+| `11.2 Role Setting` | 不顯示群組 `Payment Account Transactions` 與五個節點 | — |
+| `3.11` | 所有帳號的選單都不顯示 `3.11` | `3.11` 的所有查詢與動作（交易紀錄、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）回 `403` |
+| `3.2` 核准對話框 | 不顯示 `Payment Account` 這一列（5.3） | 取得帳號清單回 `403`。<br>核准請求帶了出款帳號 ID 時回 `403`，不核准 |
+| `3.2` 列表 | 兩張表不顯示四個出款帳號欄位。<br>篩選區不顯示 `Payment Account`。<br>`Export CSV` 不帶出四欄（第 10 節） | 列表的回應不含四個欄位。<br>匯出的檔案不含四個欄位。<br>查詢帶了 `paymentAccountId` 條件時回 `403`。<br>呼叫 `Payment Account` 篩選的候選帳號時回 `403` |
+| `3.7` 編輯頁、新增頁 | 不顯示六個新欄位（3.2） | 單筆讀取的回應不含 `todayWithdrawAmount`、`balance` 與五個可編輯新欄位。<br>請求帶了五個可編輯新欄位時，後端忽略它們。<br>編輯時，已存的值不變。<br>新增時，後端以 `Allow Withdraw = No`、`Withdraw Threshold` 為空、`Allow Withdraw Over Threshold = No`、`Account Code` 與 `Account Group` 為空儲存 |
+| `3.7` 列表 | 不顯示六個新欄位。<br>不顯示 `Account Code` 與 `Account Group` 篩選。<br>不顯示 `Transactions` 按鈕（3.5） | 列表的回應不含 `todayWithdrawAmount`、`balance` 與五個可編輯新欄位。<br>匯出的檔案不含這六欄。<br>查詢帶了 `accountCode` 或 `accountGroup` 條件時回 `403`。<br>呼叫分組選項時回 `403` |
 
 - 由 `Enable` 改成 `Deny`，儲存後立即生效。角色已勾選的五個節點保留不清除，但不生效；改回 `Enable` 後恢復生效。
-- `Deny` 期間，帳號的餘額與交易紀錄都保留，玩家存款與指定帳號的出款照常產生交易紀錄並變動餘額（第 4 節）。
-- 這個設定只控制 `3.11`。`3.2` 核准對話框的 `Payment Account` 選項、`3.7` 的新欄位不受它控制。
+- `Deny` 期間，資料都保留：`3.7` 五個可編輯新欄位已存的值、帳號的餘額與交易紀錄、出款單上記錄的出款帳號。改回 `Enable` 後照原值顯示。
+- `Deny` 期間，玩家存款照常產生 `DEPOSIT` 並增加餘額（第 4 節）。
+- `Deny` 期間不能指定出款帳號，所以不會產生 `WITHDRAW`。
+- `3.2`、`3.7` 其他既有的欄位與功能不受這個設定影響。
 
 ---
 
@@ -735,9 +788,9 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 **取得核准對話框的帳號清單**（新增，讀取）
 
-- 請求：出款單 ID、所選通道 ID、`Account Code`、`Account Name`、`Account No` 三個搜尋文字（比對方式見 5.4）、`Bank Name`、排序方式、頁碼、每頁筆數。
+- 請求：出款單 ID、所選通道 ID、`Account Code`、`Account Name`、`Account No` 三個搜尋文字（比對方式見 5.4）、`Bank Name`、`minBalance`（`DECIMAL(18,2)`，選填）、排序方式、頁碼、每頁筆數。
 - 後端自己讀出款單的金額來判定，不採用前端傳入的金額。出款單必須在登入者依既有規則可以存取的範圍內，否則拒絕，不回傳清單。
-- 回應：符合 5.4 條件的帳號陣列與總筆數、這張單可用的帳號總數、可用帳號用到的銀行清單。每筆帳號包含：帳號 ID、`accountCode`、`bankName`、`accountName`、`accountNo`、`balance`、`allowDeposit`、`depositThreshold`、`todayDepositAmount`、`withdrawThreshold`、`todayWithdrawAmount`、`allowWithdrawOverThreshold`。
+- 回應：符合 5.4 條件的帳號陣列與總筆數、這張單可用的帳號總數、可用帳號用到的銀行清單。每筆帳號包含：帳號 ID、`accountCode`、`bankName`、`accountName`、`accountNo`、`balance`、`depositThreshold`、`todayDepositAmount`、`withdrawThreshold`、`todayWithdrawAmount`、`allowWithdrawOverThreshold`。
 
 **Finance Approval 核准**（既有）
 
@@ -745,13 +798,14 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 **`3.7` 新增、編輯、列表**（既有）
 
-- 新增與編輯的請求增加 `allowDeposit`、`allowWithdraw`、`withdrawThreshold`、`allowWithdrawOverThreshold`、`accountCode`、`accountGroup`。
+- 新增與編輯的請求增加 `allowWithdraw`、`withdrawThreshold`、`allowWithdrawOverThreshold`、`accountCode`、`accountGroup`。
 - 列表與單筆讀取的回應另外增加 `todayWithdrawAmount`、`balance`。
 - 列表的查詢條件增加 `accountCode`、`accountGroup`（分組名稱，或代表 `No Group` 的值）。
 
 **分組選項**（新增，讀取；供 `3.7` 編輯頁的提示、`3.7` 與 `3.11` 的 `Account Group` 篩選使用）
 
 - 需要 `3.7 Payment Account` 既有的檢視權限，或 `3.11` 的 `VIEW`。
+- Admin BO 設定為 `Deny` 時回 `403`（13.4）。
 - 回應：`groupOptions`，登入者所屬代理、未刪除的 BANK-OFFLINE 帳號用到的分組名稱，不分大小寫去除重複，依名稱排序。
 
 **`3.2` 列表**（既有）
@@ -768,7 +822,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 - 需要 `3.11` 的 `VIEW` 權限。
 - 請求：搜尋文字、是否只要 `ACTIVE`；或指定一個帳號 ID。
-- 回應：未刪除的 BANK-OFFLINE 帳號。每筆包含：帳號 ID、`accountCode`、`accountGroup`、`bankName`、`accountName`、`accountNo`、`status`、`balance`、`allowDeposit`、`depositThreshold`、`todayDepositAmount`、`allowWithdraw`、`withdrawThreshold`、`todayWithdrawAmount`。
+- 回應：未刪除的 BANK-OFFLINE 帳號。每筆包含：帳號 ID、`accountCode`、`accountGroup`、`bankName`、`accountName`、`accountNo`、`status`、`balance`、`depositThreshold`、`todayDepositAmount`、`allowWithdraw`、`withdrawThreshold`、`todayWithdrawAmount`。
 
 **`3.11` 的 `Bank` 篩選選項**（新增，讀取）
 
@@ -797,7 +851,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 - 目標 Agent 的識別方式、路徑與權限沿用既有的讀取與儲存。
 - 讀取的回應增加這個 Agent 的 `paymentAccountTransactions` 設定（布林值：`true` 是 `Enable`，`false` 是 `Deny`），以及這一列 `updated :` 要顯示的資料，內容與既有兩列相同。
 - 儲存的請求增加 `paymentAccountTransactions`；回應帶回已儲存的值與更新後的 `updated :` 資料。
-- Agent BO 判斷 13.4 的 `403` 與 `11.2 Role Setting` 要不要顯示 `3.11` 的節點，讀的是同一個已儲存的設定。
+- Agent BO 判斷 13.4 的每一項顯示與 `403`，讀的是同一個已儲存的設定。
 
 **建立手動單**（新增，三個動作）
 
@@ -813,14 +867,14 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 | 對象 | 處理 |
 |---|---|
-| 既有的 `3.7` 帳號 | `Allow Deposit = Yes`、`Allow Withdraw = No`、`Withdraw Threshold` 為空、`Allow Withdraw Over Threshold = No`、`Account Code` 與 `Account Group` 為空。存款行為與上線前完全相同 |
+| 既有的 `3.7` 帳號 | `Allow Withdraw = No`、`Withdraw Threshold` 為空、`Allow Withdraw Over Threshold = No`、`Account Code` 與 `Account Group` 為空。存款行為與上線前完全相同 |
 | BANK-OFFLINE 帳號的餘額 | 全部是 0，沒有任何交易紀錄。上線前的存款與出款不回補成交易紀錄 |
 | 既有的出款單 | 第 8 節的五個欄位為空。上線前已核准的單不回補 |
 | 權限 | 五個新節點，所有角色預設不勾選 |
 | Admin BO 的 `Payment Account Transactions` | 所有 Agent 都是 `Deny`（13.4） |
 | `Columns Settings` | 依 3.5、10.1 處理 |
 
-上線時所有 BANK-OFFLINE 帳號的餘額是 0、`Allow Withdraw` 是 No，所以核准對話框的帳號清單一開始是空的；財務仍可用 `Not specified` 照常核准出款。客戶要開始使用指定帳號出款與手動單時，做下列設定：
+上線時所有 Agent 都是 `Deny`，`3.2`、`3.7`、`3.11` 的新功能都不顯示，出款核准與現況相同。客戶要開始使用指定帳號出款與手動單時，做下列設定：
 
 1. 由 Admin BO 把這個 Agent 的 `Payment Account Transactions` 設成 `Enable`（13.4），再由 Agent 在 `11.2 Role Setting` 把 `3.11` 的權限開給負責的角色。
 2. 在 `3.11` 用 `Adjust Balance` 的 `Set balance to` 登記每個帳號的實際金額。
