@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.28（2026-10-13）
+- 版本：v0.29（2026-10-14）
 
 ---
 
@@ -453,7 +453,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 ### 11.4 列表欄位
 
-一列是一筆交易紀錄，依 `Completed Time` 由新到舊排列，每頁 10 筆。
+一列是一筆交易紀錄，依 `Completed Time` 由新到舊排列。分頁與 `Columns Settings` 見 11.8。
 
 | 欄位序 | 欄名 | 內容 |
 |---|---|---|
@@ -539,12 +539,25 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 14 | `Adjust Out` | `ADJUST OUT` 的金額合計 |
 
 - 第 8–14 欄皆為 `DECIMAL(18,2)` 的加總，由後端計算，都是大於等於 0 的數。
-- 排序：`Account Group`、`Account Code`、帳號 ID，皆由小到大，分組不分大小寫；沒有分組的帳號排在最後。每頁 10 筆。
+- 排序：`Account Group`、`Account Code`、帳號 ID，皆由小到大，分組不分大小寫；沒有分組的帳號排在最後。分頁與 `Columns Settings` 見 11.8。
 - 表格最下面一列 `Total`：第 8–14 欄各自對全部列（不只本頁）加總。合計可能超過單筆金額上限，回應要完整表示，不得截斷（4.2）。
 - 已刪除的帳號在條件範圍內有交易時，仍列出一列：第 1、3、4、5 欄用該帳號在範圍內最新一筆交易當下的值，第 2 欄顯示 `-`，`Status` 與 `Balance` 顯示 `-`。
 - 列表下方的 `Total In`、`Total Out` 與 `Transactions` 檢視相同。
 - 在這個檢視按 `Export CSV`，匯出上表 14 欄、目前條件下的全部列，不含 `Total` 列；金額不加千分位。
 - 資料範圍與 11.4 相同。
+
+### 11.8 分頁列與 `Columns Settings`
+
+`Transactions` 與 `Summary by Account` 兩種檢視的表格下方都有分頁列。分頁列與 `Columns Settings` 都使用 BO 既有的共用元件，行為與 `3.7` 列表相同。
+
+- 分頁列左邊是 `Columns Settings` 按鈕。右邊依序是 `Page`、`Items per page`、`{起} - {迄} of {總數}`、第一頁、上一頁、下一頁、最後一頁。
+- `Page`：輸入頁碼，跳到該頁。
+- `Items per page`：選項是 `10`、`20`、`50`、`100`，預設 `10`。
+- 兩種檢視各自記住目前的頁碼與每頁筆數。
+- 按 `Columns Settings` 時，表格的位置換成欄位設定面板。面板每一列是一個欄位，可以拖曳調整順序，可以用開關設定顯示或隱藏。
+- 面板下方有 `Cancel`、`Reset`、`Save` 三個按鈕，行為與 `3.7` 既有的 `Columns Settings` 相同。
+- 兩種檢視各有一份欄位設定。預設全部顯示；預設順序是 11.4 與 11.7 表格的欄位序。
+- `Columns Settings` 只改變畫面上的欄位。`Export CSV` 的欄位與順序不受影響。
 
 ---
 

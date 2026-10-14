@@ -43,6 +43,22 @@
   .flt>input[type=text],.flt>select{width:210px}
   .flt .grow{flex:1;min-width:300px;position:relative}
   .pg{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 2px 0;font-size:12.5px;color:#444}
+  .pgx{justify-content:space-between;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+  .pgx .r{display:flex;align-items:center;gap:10px}
+  .pgx .r b{font-weight:600}
+  .pgx input.pgin{width:64px;text-align:center;padding:5px 6px}
+  .pgx select{width:auto;padding:5px 6px}
+  .pgx .nav{border:0;background:none;font-size:16px;color:#555;cursor:pointer;padding:2px 6px}
+  .pgx .nav:disabled{color:#c6cbd1;cursor:not-allowed}
+  .colp{display:none;max-width:680px;margin:6px auto 4px}
+  .colp.on{display:block}
+  .colp h2{text-align:center;margin:6px 0 14px}
+  .crow{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:5px;padding:12px 18px;margin-bottom:10px;background:#fff}
+  .crow .hdl{cursor:grab;color:#333;font-size:16px;letter-spacing:-2px;user-select:none}
+  .crow .nm{flex:1;text-align:center}
+  .crow.drag{opacity:.4}
+  .crow.over{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+  .colp .foot{padding:4px 0 6px}
   .tot{text-align:right;font-size:13.5px;padding:8px 4px 0;line-height:1.7}
   .empty{padding:26px;text-align:center;color:var(--mute);white-space:normal}
   .uinote{font-size:12.5px;color:#555;background:#f3f6f9;border-radius:5px;padding:7px 10px;margin-top:10px}
@@ -233,15 +249,17 @@
         </div>
         <div class="card">
           <div class="rd-note" style="margin-top:0"><b>DEMO：</b>列表照現況畫出全部 30 欄，七個新欄位排在最右邊，要往右捲才看得到。 <button class="btn s" id="j37">捲到新欄位</button></div>
+          <div class="colp" id="cp37"><h2>Columns Settings</h2><div id="cl37"></div><div class="foot"><button class="btn" id="cc37">&#10005; Cancel</button><button class="btn" id="cr37" style="color:var(--red)">&#8635; Reset</button><button class="btn p" id="cs37">&#10003; Save</button></div></div>
           <div class="wrap" id="w37"><table id="t37">
             <thead><tr><th>Actions</th><th>Sort</th><th>Payment Channel</th><th>Bank Name</th><th>Bank Branch Name</th><th>Account Name</th><th>Bank Account No</th><th>Wallet Address</th><th>Status</th><th>Reconcile Server</th><th>Operator Fee</th><th>Player Fee</th><th>Min Deposit Amount</th><th>Max Deposit Amount</th><th>Deposit Player Fee Type</th><th>Deposit Player Fee Fixed</th><th>Deposit Player Fee Perc</th><th>Min Deposit Player Fee</th><th>Max Deposit Player Fee</th><th>Minimum Deposit Crypto</th><th>Maximum Deposit Crypto</th><th>Agent Payment Level IDs</th><th>Threshold</th><th>Deposit Amount</th><th>Created By</th><th>Created Date</th><th>Updated By</th><th>Updated Time</th><th>Image</th><th>Allow Deposit Over Threshold</th><th class="newcol">Allow Deposit<span class="pill-new">NEW</span></th><th class="newcol">Allow Withdraw<span class="pill-new">NEW</span></th><th class="newcol">Withdraw Threshold<span class="pill-new">NEW</span></th><th class="newcol">Allow Withdraw Over Threshold<span class="pill-new">NEW</span></th><th class="newcol num">Balance<span class="pill-new">NEW</span></th><th class="newcol">Account Code<span class="pill-new">NEW</span></th><th class="newcol">Account Group<span class="pill-new">NEW</span></th></tr></thead>
             <tbody></tbody>
           </table></div>
-          <div class="pg"><span id="i37"></span><button class="btn s" id="p37Prev">‹</button><button class="btn s" id="p37Next">›</button></div>
+          <div class="pg pgx"><button class="btn s" id="c37">&#9776; Columns Settings</button><div class="r"><b>Page</b><input type="text" class="pgin" id="g37" inputmode="numeric"><b>Items per page</b><select id="z37"><option>10</option><option>20</option><option>50</option><option>100</option></select><span id="i37"></span><button class="nav" id="p37First" title="First page">&#8676;</button><button class="nav" id="p37Prev" title="Previous page">&#8249;</button><button class="nav" id="p37Next" title="Next page">&#8250;</button><button class="nav" id="p37Last" title="Last page">&#8677;</button></div></div>
           <div class="rd-note">
             <b>新欄位的位置</b>：現有 30 欄的順序不變。七個新欄位接在最後一欄 <code>Allow Deposit Over Threshold</code>（第 30 欄）之後，依序為第 31 欄 <code>Allow Deposit</code>、第 32 欄 <code>Allow Withdraw</code>、第 33 欄 <code>Withdraw Threshold</code>、第 34 欄 <code>Allow Withdraw Over Threshold</code>、第 35 欄 <code>Balance</code>、第 36 欄 <code>Account Code</code>、第 37 欄 <code>Account Group</code>。<code>Export CSV</code> 的欄位順序相同。<br>
             <b>Balance</b>：<code>DECIMAL(18,2)</code>，系統記錄的帳號目前餘額，唯讀。只有 <code>BANK-OFFLINE</code> 的帳號有值，其他通道的帳號顯示 <code>-</code>。有 <code>3.7</code> 檢視權限就看得到。算法見編輯頁的註記。<br>
             <b>Columns Settings</b>：現況可以拖曳調整欄位順序並儲存，有 <code>Reset</code>。七個新欄位加入 <code>Columns Settings</code>，預設顯示。上面說的是預設順序，也就是按 <code>Reset</code> 之後的順序。已經儲存過自訂順序的使用者，新欄位接在他目前順序的最後面並顯示，不打亂他原本的排列。<br>
+            <b>分頁列與 Columns Settings 的畫面</b>：照現況呈現，本需求不改動。列表下方左邊是 <code>Columns Settings</code> 按鈕，右邊是 <code>Page</code>（輸入頁碼跳頁）、<code>Items per page</code>（<code>10</code>／<code>20</code>／<code>50</code>／<code>100</code>，預設 <code>10</code>）、筆數與四個換頁按鈕。按 <code>Columns Settings</code> 時，列表的位置換成欄位設定面板：每一列是一個欄位，可以拖曳調整順序，可以用開關顯示或隱藏。<code>Actions</code> 欄固定在最前面，不在面板裡。面板下方有 <code>Cancel</code>、<code>Reset</code>、<code>Save</code>。<b>DEMO：</b>mockup 的 <code>Reset</code> 只把面板改回預設，按 <code>Save</code> 才生效；實作沿用 BO 現有的行為。mockup 的設定重新整理就還原。<br>
             <b>即時狀態</b><span class="pill-new">NEW</span>：<code>BANK-OFFLINE</code> 帳號的 <code>Threshold</code> 與 <code>Withdraw Threshold</code> 兩欄在數字下方加一條進度條（其他通道的帳號不加，<code>Threshold</code> 欄維持現況），顯示今日累計佔門檻的比例，呈現方式與 <code>3.2</code> 核准對話框的帳號清單相同：未達 80% 綠色、80% 以上橘色、已達門檻紅色。既有的 <code>Threshold</code> 欄只加進度條，數字與格式不變。<br>
             <b>Withdraw Threshold</b>：格式 <code>今日出款累計 / 門檻</code>，與既有的 <code>Threshold</code> 欄相同。<code>Allow Withdraw = false</code> 時，<code>Withdraw Threshold</code> 與 <code>Allow Withdraw Over Threshold</code> 顯示 <code>-</code>。<br>
             <b>Transactions 按鈕</b><span class="pill-new">NEW</span>：<code>Actions</code> 欄在既有的編輯、刪除按鈕之後，<code>BANK-OFFLINE</code> 帳號多一個 <code>Transactions</code> 按鈕，點了跳到 <code>3.11</code> 並以這個帳號篩選。需要 <code>3.11 › VIEW</code> 權限，沒有權限時不顯示；其他通道的帳號也不顯示。<br>
@@ -365,6 +383,7 @@
       <div class="card">
         <div id="t11Card" class="acard"></div>
         <div class="acts" style="margin-bottom:10px"><button class="btn s p" id="v11Tx">Transactions</button><button class="btn s" id="v11Sum">Summary by Account</button></div>
+        <div class="colp" id="cp11"><h2>Columns Settings</h2><div id="cl11"></div><div class="foot"><button class="btn" id="cc11">&#10005; Cancel</button><button class="btn" id="cr11" style="color:var(--red)">&#8635; Reset</button><button class="btn p" id="cs11">&#10003; Save</button></div></div>
         <div class="wrap" id="t11sw" style="display:none"><table id="t11s">
           <thead><tr><th>Account Code</th><th>Account Group</th><th>Bank Name</th><th>Account Name</th><th>Account No</th><th>Status</th><th class="num">Balance</th><th class="num">Deposit</th><th class="num">Withdraw</th><th class="num">Internal Out</th><th class="num">Internal In</th><th class="num">Loan Out</th><th class="num">Adjust In</th><th class="num">Adjust Out</th></tr></thead>
           <tbody></tbody><tfoot></tfoot>
@@ -374,13 +393,14 @@
           <tbody></tbody>
         </table></div>
         <div class="tot" id="t11Tot"></div>
-        <div class="pg"><span id="i11"></span><button class="btn s" id="p11Prev">‹</button><button class="btn s" id="p11Next">›</button></div>
+        <div class="pg pgx"><button class="btn s" id="c11">&#9776; Columns Settings</button><div class="r"><b>Page</b><input type="text" class="pgin" id="g11" inputmode="numeric"><b>Items per page</b><select id="z11"><option>10</option><option>20</option><option>50</option><option>100</option></select><span id="i11"></span><button class="nav" id="p11First" title="First page">&#8676;</button><button class="nav" id="p11Prev" title="Previous page">&#8249;</button><button class="nav" id="p11Next" title="Next page">&#8250;</button><button class="nav" id="p11Last" title="Last page">&#8677;</button></div></div>
         <div class="rd-note">
           <b>摘要卡</b><span class="pill-new">NEW</span>：列表上方固定有一張摘要卡，顯示的是目前的值，不隨日期區間與其他篩選條件改變。<br>
           ・沒有選定 <code>Payment Account</code> 時（直接進入這一頁的預設狀態）：顯示全部 <code>BANK-OFFLINE</code> 帳號的總覽——帳號數（含 <code>INACTIVE</code>，不含已刪除）、<code>Total Balance</code>（全部帳號的餘額合計）、<code>Today Deposit</code>（今日存款累計合計）、<code>Today Withdraw</code>（今日出款累計合計）。金額皆為 <code>DECIMAL(18,2)</code> 的加總，由後端計算。<br>
           ・篩選選定了某一個 <code>Payment Account</code> 時：改顯示這個帳號的狀態——銀行、戶名、帳號號碼、<code>Status</code>、<code>Balance</code>、今日存款累計／存款門檻、今日出款累計／出款門檻（附進度條，顏色規則同 <code>3.7</code> 列表）。<br>
           <b>兩種檢視</b><span class="pill-new">NEW</span>：摘要卡下方有 <code>Transactions</code>（預設）與 <code>Summary by Account</code> 兩個切換按鈕，兩種檢視共用上面的篩選條件與日期區間，同樣需要 <code>3.11 › VIEW</code>，不另設權限。<code>Export CSV</code> 匯出目前所在檢視的內容。<br>
-          <b>Summary by Account</b><span class="pill-new">NEW</span>：把目前篩選條件下的交易紀錄依帳號加總，每個帳號一列；條件範圍內沒有交易的帳號不列出。欄位共 14 欄：<code>Account Code</code>、<code>Account Group</code>、<code>Bank Name</code>、<code>Account Name</code>、<code>Account No</code>、<code>Status</code>、<code>Balance</code>（這七欄是帳號目前的資料，不隨日期區間改變），接著七個金額欄。<code>Deposit</code>、<code>Withdraw</code>、<code>Internal Out</code>、<code>Internal In</code>、<code>Loan Out</code> 是同名類型的金額合計；<code>Adjust In</code> 是 <code>ADJUST IN</code> 的金額合計，<code>Adjust Out</code> 是 <code>ADJUST OUT</code> 的金額合計。七個金額欄都是大於等於 0 的數；沒有該類型的交易時顯示 <code>0.00</code>。金額皆為 <code>DECIMAL(18,2)</code> 的加總，由後端計算。依 <code>Account Group</code>、<code>Account Code</code> 排序（沒有分組的帳號排在最後，分組顯示 <code>-</code>），每頁 10 筆；表格最下面一列 <code>Total</code> 是全部列（不只本頁）的合計。已刪除的帳號若在條件範圍內有交易，仍列出一列：<code>Account Code</code>、<code>Bank Name</code>、<code>Account Name</code>、<code>Account No</code> 用條件範圍內最新一筆交易當下的值，<code>Account Group</code>、<code>Status</code>、<code>Balance</code> 顯示 <code>-</code>。<br>
+          <b>Summary by Account</b><span class="pill-new">NEW</span>：把目前篩選條件下的交易紀錄依帳號加總，每個帳號一列；條件範圍內沒有交易的帳號不列出。欄位共 14 欄：<code>Account Code</code>、<code>Account Group</code>、<code>Bank Name</code>、<code>Account Name</code>、<code>Account No</code>、<code>Status</code>、<code>Balance</code>（這七欄是帳號目前的資料，不隨日期區間改變），接著七個金額欄。<code>Deposit</code>、<code>Withdraw</code>、<code>Internal Out</code>、<code>Internal In</code>、<code>Loan Out</code> 是同名類型的金額合計；<code>Adjust In</code> 是 <code>ADJUST IN</code> 的金額合計，<code>Adjust Out</code> 是 <code>ADJUST OUT</code> 的金額合計。七個金額欄都是大於等於 0 的數；沒有該類型的交易時顯示 <code>0.00</code>。金額皆為 <code>DECIMAL(18,2)</code> 的加總，由後端計算。依 <code>Account Group</code>、<code>Account Code</code> 排序（沒有分組的帳號排在最後，分組顯示 <code>-</code>），每頁預設 10 筆；表格最下面一列 <code>Total</code> 是全部列（不只本頁）的合計。已刪除的帳號若在條件範圍內有交易，仍列出一列：<code>Account Code</code>、<code>Bank Name</code>、<code>Account Name</code>、<code>Account No</code> 用條件範圍內最新一筆交易當下的值，<code>Account Group</code>、<code>Status</code>、<code>Balance</code> 顯示 <code>-</code>。<br>
+          <b>分頁列與 Columns Settings</b><span class="pill-new">NEW</span>：兩種檢視的表格下方都有分頁列，使用 BO 既有的共用元件，行為與 <code>3.7</code> 列表相同。左邊是 <code>Columns Settings</code>，右邊是 <code>Page</code>、<code>Items per page</code>（<code>10</code>／<code>20</code>／<code>50</code>／<code>100</code>，預設 <code>10</code>）、筆數與四個換頁按鈕。兩種檢視各自記住頁碼與每頁筆數，也各有一份欄位設定。欄位設定預設全部顯示，預設順序就是表頭目前的順序。<code>Columns Settings</code> 只改變畫面上的欄位，<code>Export CSV</code> 的欄位與順序不受影響。<br>
           <b>一列是一筆會改變帳號餘額的交易</b>，建立後不可修改或刪除。依 <code>Completed Time</code> 由新到舊排列。<code>Completed Time</code> 是這筆交易生效的時間：<code>DEPOSIT</code>、<code>WITHDRAW</code> 是存款單、出款單核准成功的時間，手動單是建單成功的時間。<code>Account Name</code> 是純文字，不提供點擊篩選。<br>
           <b>Type 共七種</b>：<br>
           ・<code>DEPOSIT</code>（＋）：玩家存款核准時，收款帳號產生一筆。只有收款帳號是 <code>BANK-OFFLINE</code> 帳號的存款才會產生。<br>
@@ -663,6 +683,7 @@ function pager(list,st,infoId,prevId,nextId){
   var pages=Math.max(1,Math.ceil(list.length/st.size));if(st.page>pages)st.page=pages;if(st.page<1)st.page=1;
   $(infoId).textContent=list.length?((st.page-1)*st.size+1)+' - '+Math.min(st.page*st.size,list.length)+' of '+list.length:'0 of 0';
   $(prevId).disabled=st.page<=1;$(nextId).disabled=st.page>=pages;
+  var k=infoId.slice(1);if($('g'+k)){$('g'+k).value=st.page;$('z'+k).value=String(st.size);$('p'+k+'First').disabled=st.page<=1;$('p'+k+'Last').disabled=st.page>=pages}
   return list.slice((st.page-1)*st.size,st.page*st.size);
 }
 function radio(name,val){if(val===undefined){var r=document.querySelector('input[name='+name+']:checked');return r?r.value==='yes':null}
@@ -689,6 +710,7 @@ function accInfo(a){return 'Balance: '+money(a.balance)+' · '+(a.allowWithdraw?
 // ---------- 導覽 ----------
 var TITLES={'32':'3.2 Withdraw List','37':'3.7 Payment Account','311':'3.11 Payment Account Transactions','112':'11.2 Role Setting'};
 function show(p){
+  colClose('37');colClose('11');
   ['32','37','311','112'].forEach(function(x){$('pg-'+x).classList.toggle('on',x===p)});
   Array.prototype.forEach.call(document.querySelectorAll('.side [data-nav]'),function(e){e.classList.toggle('on',e.dataset.nav===p)});
   $('h1').textContent=TITLES[p];
@@ -743,6 +765,7 @@ function render37(){
       '<td class="newcol">'+(a.allowWithdraw?money(a.wdToday)+' / '+money(a.wdThreshold)+bar(a.wdToday,a.wdThreshold):'-')+'</td><td class="newcol">'+(a.allowWithdraw?a.allowOver:'-')+'</td>'+
       '<td class="newcol num">'+(isBO(a)?money(a.balance):'-')+'</td><td class="newcol">'+(isBO(a)?esc(a.code||''):'-')+'</td><td class="newcol">'+(isBO(a)?esc(a.group||'-'):'-')+'</td></tr>';
   }).join('')||'<tr><td colspan="37" class="empty">No Data</td></tr>';
+  applyCols('t37');
 }
 function close37(){$('v37list').style.display='';$('v37edit').style.display='none';S37.editId=null;S37.isNew=false}
 function sync37(){
@@ -823,19 +846,20 @@ function renderSum(all){
   $('t11s').tBodies[0].innerHTML=rows.map(function(r){
     return '<tr><td>'+esc(r.code)+'</td><td>'+esc(r.group||'-')+'</td><td>'+esc(r.bank)+'</td><td>'+esc(r.name)+'</td><td>'+r.no+'</td><td>'+(r.live?'<span class="tag '+(r.status==='ACTIVE'?'g':'n')+'">'+r.status+'</span>':'-')+'</td><td class="num">'+(r.live?money(r.balance):'-')+'</td>'+SUMCOLS.map(function(k){return '<td class="num">'+sgn(r[k])+'</td>'}).join('')+'</tr>';
   }).join('')||'<tr><td colspan="14" class="empty">No Data</td></tr>';
-  $('t11s').tFoot.innerHTML=list.length?'<tr><td colspan="7"><b>Total</b></td>'+SUMCOLS.map(function(k){return '<td class="num"><b>'+sgn(tot[k])+'</b></td>'}).join('')+'</tr>':'';
+  $('t11s').tFoot.innerHTML=list.length?'<tr><td class="tl0"></td><td></td><td></td><td></td><td></td><td></td><td></td>'+SUMCOLS.map(function(k){return '<td class="num"><b>'+sgn(tot[k])+'</b></td>'}).join('')+'</tr>':'';
 }
-function setView(v){T11.view=v;T11.page=1;T11S.page=1}
+function setView(v){colClose('11');T11.view=v;T11.page=1;T11S.page=1}
 function render311(){
   grpSelect('t11Grp','Account Group');
   var all=filtered311(),sum=T11.view==='sum';
   $('t11w').style.display=sum?'none':'';$('t11sw').style.display=sum?'':'none';
   $('v11Tx').classList.toggle('p',!sum);$('v11Sum').classList.toggle('p',sum);
-  if(sum)renderSum(all);
+  if(sum){renderSum(all);applyCols('t11s')}
   var rows=sum?[]:pager(all,T11,'i11','p11Prev','p11Next');
   $('t11').tBodies[0].innerHTML=rows.map(function(e){var inn=isIn(e.type);
     return '<tr><td>'+e.time+'</td><td>'+esc(e.channel)+'</td><td>'+esc(e.code)+'</td><td>'+esc((accById(e.accId)||{}).group||'-')+'</td><td>'+esc(e.bank)+'</td><td>'+esc(e.name)+'</td><td>'+(e.no||esc(e.wallet))+'</td><td><span class="tag '+(inn?'g':'a')+'">'+e.type+'</span></td><td class="num">'+(inn?'+':'-')+money(e.amount)+'</td><td class="num">'+money(e.before)+'</td><td class="num">'+money(e.after)+'</td><td>'+e.ref+'</td><td>'+esc(det(e))+'</td><td>'+e.by+'</td></tr>';
   }).join('')||'<tr><td colspan="14" class="empty">No Data</td></tr>';
+  if(!sum)applyCols('t11');
   var tin=0,tout=0;all.forEach(function(e){if(isIn(e.type))tin+=e.amount;else tout+=e.amount});
   $('t11Tot').innerHTML='Total In : '+money(tin)+'<br>Total Out : '+money(tout);
   var bs=[],bsel=$('t11Bank').value;LEDGER.forEach(function(e){if(e.bank&&bs.indexOf(e.bank)<0)bs.push(e.bank)});bs.sort();   // 選項來自交易紀錄當下的銀行，含已改銀行、已刪除的帳號
@@ -1050,6 +1074,46 @@ $('p11Prev').addEventListener('click',function(){if(T11.view==='sum')T11S.page--
 $('v11Tx').addEventListener('click',function(){setView('tx');render311()});
 $('v11Sum').addEventListener('click',function(){setView('sum');render311()});
 $('p11Next').addEventListener('click',function(){if(T11.view==='sum')T11S.page++;else T11.page++;render311()});
+// 分頁列：第一頁／最後一頁、輸入頁碼跳頁、每頁筆數（BO 共用元件）
+function pgBind(k,st,render){
+  $('p'+k+'First').addEventListener('click',function(){st().page=1;render()});
+  $('p'+k+'Last').addEventListener('click',function(){st().page=1e9;render()});
+  function jump(){var n=parseInt($('g'+k).value,10);if(n>0)st().page=n;render()}
+  $('g'+k).addEventListener('change',jump);$('g'+k).addEventListener('keydown',function(e){if(e.key==='Enter')jump()});
+  $('z'+k).addEventListener('change',function(){st().size=Number(this.value);st().page=1;render()});
+}
+pgBind('37',function(){return S37},render37);
+// ---------- Columns Settings（BO 共用元件；每張表各自一份設定）----------
+var COLS={},CEDIT=null;
+function colInit(tid,fixed){var hs=Array.prototype.map.call($(tid).tHead.rows[0].cells,function(th){return th.childNodes[0].textContent.trim()});
+  COLS[tid]={th:Array.prototype.slice.call($(tid).tHead.rows[0].cells),names:hs,fixed:fixed,def:hs.map(function(_,i){return i}).filter(function(i){return i>=fixed}),order:null,hidden:{}};COLS[tid].order=COLS[tid].def.slice()}
+function applyCols(tid){var c=COLS[tid];if(!c)return;var t=$(tid),n=c.names.length;
+  [t.tHead,t.tBodies[0],t.tFoot].forEach(function(sec){if(!sec)return;Array.prototype.forEach.call(sec.rows,function(tr){
+    var cells=sec===t.tHead?c.th:Array.prototype.slice.call(tr.cells);if(cells.length!==n)return;   // 表頭不重畫，用原始順序的儲存格排
+    c.order.forEach(function(i){tr.appendChild(cells[i]);cells[i].style.display=c.hidden[i]?'none':''})})});
+  if(t.tFoot&&t.tFoot.rows[0]){var f=Array.prototype.slice.call(t.tFoot.rows[0].cells),lab=f.filter(function(x){return x.style.display!=='none'&&!x.classList.contains('num')})[0];f.forEach(function(x){if(!x.classList.contains('num'))x.innerHTML=''});if(lab)lab.innerHTML='<b>Total</b>'}}
+function cTid(k){return k==='37'?'t37':(T11.view==='sum'?'t11s':'t11')}
+function colOpen(k){var tid=cTid(k),c=COLS[tid];CEDIT={k:k,tid:tid,order:c.order.slice(),hidden:JSON.parse(JSON.stringify(c.hidden))};colList();colShow(k,true)}
+function colShow(k,on){$('cp'+k).classList.toggle('on',on);var hide=k==='37'?['w37']:[T11.view==='sum'?'t11sw':'t11w','t11Tot'];
+  hide.forEach(function(i){$(i).style.display=on?'none':''});if(!on&&k==='11')(T11.view==='sum'?$('t11w'):$('t11sw')).style.display='none';
+  Array.prototype.forEach.call(document.querySelectorAll('#pg-'+(k==='37'?'37':'311')+' .pgx'),function(x){x.style.display=on?'none':''})}
+function colClose(k){if(CEDIT&&CEDIT.k===k){CEDIT=null;colShow(k,false)}}
+function colList(){var e=CEDIT,c=COLS[e.tid];
+  $('cl'+e.k).innerHTML=e.order.map(function(i){return '<div class="crow" draggable="true" data-ci="'+i+'"><span class="hdl">&#8942;&#8942;</span><span class="nm">'+esc(c.names[i])+'</span><label class="tgl"><input type="checkbox" data-cv="'+i+'"'+(e.hidden[i]?'':' checked')+'><span></span></label></div>'}).join('')}
+['37','11'].forEach(function(k){
+  $('c'+k).addEventListener('click',function(){colOpen(k)});
+  $('cc'+k).addEventListener('click',function(){CEDIT=null;colShow(k,false)});
+  $('cr'+k).addEventListener('click',function(){CEDIT.order=COLS[CEDIT.tid].def.slice();CEDIT.hidden={};colList()});   // Reset：面板回到預設順序、全部顯示；按 Save 才生效
+  $('cs'+k).addEventListener('click',function(){var c=COLS[CEDIT.tid];c.order=CEDIT.order;c.hidden=CEDIT.hidden;CEDIT=null;colShow(k,false);if(k==='37')render37();else render311();toast('Saved')});
+  var box=$('cl'+k),dragI=null;
+  box.addEventListener('change',function(ev){var i=ev.target.dataset.cv;if(i==null)return;if(ev.target.checked)delete CEDIT.hidden[i];else CEDIT.hidden[i]=true});
+  box.addEventListener('dragstart',function(ev){var r=ev.target.closest('.crow');if(!r)return;dragI=Number(r.dataset.ci);r.classList.add('drag');ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',String(dragI))});
+  box.addEventListener('dragover',function(ev){var r=ev.target.closest('.crow');if(!r)return;ev.preventDefault();Array.prototype.forEach.call(box.children,function(x){x.classList.toggle('over',x===r)})});
+  box.addEventListener('drop',function(ev){var r=ev.target.closest('.crow');if(!r||dragI==null)return;ev.preventDefault();var o=CEDIT.order,ti=o.indexOf(Number(r.dataset.ci));o.splice(o.indexOf(dragI),1);o.splice(ti,0,dragI);dragI=null;colList()});
+  box.addEventListener('dragend',function(){dragI=null;Array.prototype.forEach.call(box.children,function(x){x.classList.remove('drag','over')})});
+});
+colInit('t37',1);colInit('t11',0);colInit('t11s',0);
+pgBind('11',function(){return T11.view==='sum'?T11S:T11},render311);
 function csv311(){
   function q(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
   if(T11.view==='sum'){var rs=[['Account Code','Account Group','Bank Name','Account Name','Account No','Status','Balance','Deposit','Withdraw','Internal Out','Internal In','Loan Out','Adjust In','Adjust Out']];

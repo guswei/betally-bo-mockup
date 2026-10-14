@@ -1,8 +1,8 @@
 # PRD：Payment Account 管理（出款指定帳號、帳號餘額與手動單）
 
-**版本**：v1.6（2026-10-13）　**類型**：新功能＋功能變更　**負責**：PM
+**版本**：v1.7（2026-10-14）　**類型**：新功能＋功能變更　**負責**：PM
 **Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)、[操作示範影片（約 2 分鐘）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_demo.mp4)。兩份 mockup 都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`
-**相關**：RD Spec `withdraw_payment_account_spec.md` v0.28（欄位、錯誤碼、介面欄位的完整定義）
+**相關**：RD Spec `withdraw_payment_account_spec.md` v0.29（欄位、錯誤碼、介面欄位的完整定義）
 
 ## 1. 需求背景
 客戶在 `BANK-OFFLINE` 通道底下有兩百多個公司銀行帳號，同時用來收玩家存款與付玩家出款。現在財務在 `3.2 Withdraw List` 核准出款時只能選通道，不能指定由哪個帳號付款；系統也不知道每個帳號裡還有多少錢。客戶目前用 Excel 逐筆記錄每個帳號的存款、出款、內部調撥、銀行手續費、利息、未認領的入帳與借貸，每天人工對帳。
@@ -40,7 +40,7 @@
 - **`3.2` 列表**：`Payment Channel` 之後新增 `Payment Account Bank`、`Payment Account Name`、`Payment Account No`、`Payment Account Wallet Address` 四欄，沒有出款帳號顯示 `—`。篩選區新增 `Payment Account`（輸入後搜尋，最多 8 筆候選）。
 - **`3.7` 列表**：現有 30 欄之後依序新增 `Allow Deposit`、`Allow Withdraw`、`Withdraw Threshold`、`Allow Withdraw Over Threshold`、`Balance`、`Account Code`、`Account Group`（第 31–37 欄），加入 `Columns Settings` 並預設顯示。篩選區新增 `Account Code`、`Account Group`。
 - **`3.7` 編輯頁與新增頁**：七個新欄位插在 `Allow Deposit Over Threshold` 與 `Payment Level` 之間。其他通道的帳號，出款相關欄位與代碼、分組不可編輯並顯示 `Only available for BANK-OFFLINE accounts.`。編輯 `BANK-OFFLINE` 帳號時 `Payment Channel` 唯讀。
-- **`3.11`**：上方篩選區與三個建單按鈕、`Export CSV`；中間摘要卡；下方 `Transactions`／`Summary by Account` 兩種檢視。交易列表 14 欄，`Details(Remark)` 欄合併顯示玩家帳號、對方帳號與備註。`Account Name` 是純文字，不提供點擊篩選。
+- **`3.11`**：上方篩選區與三個建單按鈕、`Export CSV`；中間摘要卡；下方 `Transactions`／`Summary by Account` 兩種檢視。交易列表 14 欄，`Details(Remark)` 欄合併顯示玩家帳號、對方帳號與備註。`Account Name` 是純文字，不提供點擊篩選。兩種檢視的表格下方都有分頁列：左邊是 `Columns Settings`，可調整欄位順序與顯示；右邊是 `Page`、`Items per page`（`10`／`20`／`50`／`100`，預設 `10`）與換頁按鈕。兩者都使用 BO 既有的共用元件。
 - **三張手動單表單**：帳號欄位是可輸入縮小範圍的下拉選單（提示文字 `Select or type to search`），只能從選項選取；選取後顯示餘額與今日出款。`Adjust Balance` 選 `Set balance to` 時即時顯示目前餘額與差額。
 - **Admin BO `Role Setting`**：`Free Spin Report` 之後新增 `Payment Account Transactions` 一列，改選後出現 `SAVE` 按鈕，按了才儲存。
 
@@ -187,7 +187,7 @@ Agent BO 新增 `3.11` 一個選單項；`3.2`、`3.7` 沿用現有選單。Admi
 | AC-24（負向） | FR-8 | `Allow Withdraw = No` 的帳號不出現在核准清單、不能做內部轉帳的轉出與轉到外部（回 `409 WITHDRAW_NOT_ALLOWED`），但可以做內部轉入與調整餘額。同一帳號同時發生兩個轉出時，後完成的依前一個完成後的餘額與累計判定，餘額不會小於 0；以 AC-23 的條件同時送出兩筆 3,000：`Allow Withdraw Over Threshold = Yes` 時第一筆成功（累計 51,000）、第二筆被拒；`= No` 時兩筆都被拒。 |
 | AC-25 | FR-8 | 內部轉入 1,000 後，轉入帳號的 `Today Deposit Amount` 增加 1,000；轉入本身不受存款門檻限制；累計因此達到 `Threshold` 的帳號，不再被派給玩家存款。調整餘額不改變任何累計。今日累計在既有的切日時刻歸零。 |
 | AC-26 | FR-8 | 昨天建立、今天核准的出款單，計入今天的 `Today Withdraw Amount`；計入的是交易金額本身，不扣手續費；之後這張出款單的狀態再有變化，已計入的累計不扣回。 |
-| AC-27 | FR-9 | Agent 開關為 `Enable`、有 `3.11 › VIEW` 的使用者直接進入 `3.11`：日期區間預設為今日累計這一期（最近一次歸零到下一次歸零前一秒），摘要卡顯示全部帳號總覽（帳號數、餘額合計、今日存款合計、今日出款合計），列表依 `Completed Time` 由新到舊、每頁 10 筆；選了帳號後摘要卡改顯示該帳號狀態。 |
+| AC-27 | FR-9 | Agent 開關為 `Enable`、有 `3.11 › VIEW` 的使用者直接進入 `3.11`：日期區間預設為今日累計這一期（最近一次歸零到下一次歸零前一秒），摘要卡顯示全部帳號總覽（帳號數、餘額合計、今日存款合計、今日出款合計），列表依 `Completed Time` 由新到舊、每頁預設 10 筆；選了帳號後摘要卡改顯示該帳號狀態。 |
 | AC-28（負向） | FR-9、FR-10 | 日期區間超過 31 天時前端不可查詢並顯示 `Date range cannot exceed 31 days.`；直接呼叫後端回 `400 DATE_RANGE_TOO_LONG`。交易列表、`Summary by Account` 的查詢與兩種匯出都受此限制。 |
 | AC-29 | FR-9 | 篩選條件同時套用到列表、`Total In`／`Total Out` 與 `Export CSV`；`Bank` 選項含已改銀行或已刪除帳號的歷史銀行；`Export CSV` 匯出全部符合的紀錄（不只本頁）共 16 欄；`Amount` 不加千分位，減少的金額前面加 `-`，增加的金額不加符號。交易列表的 `Account Name` 是純文字，點了不改變篩選條件。`Details(Remark)` 條件填 `rent`：只列出玩家帳號、對方帳號或 `Remark` 含有 `rent` 的紀錄，不分大小寫。`Details(Remark)` 條件填 `Player:`：畫面上的 `Player:` 前綴不算符合，三項資料本身都不含 `Player:` 的紀錄不列出。 |
 | AC-30 | FR-10 | 切到 `Summary by Account`：每個有交易的帳號一列，各金額欄等於該帳號在條件範圍內對應類型的合計，`Adjust In` 是 `ADJUST IN` 的合計、`Adjust Out` 是 `ADJUST OUT` 的合計；`Total` 列等於全部列（不只本頁）合計；`Account Name` 是純文字，點了仍停在合計表。已刪除帳號仍列出一列並計入 `Total`：代碼、銀行、戶名、帳號用範圍內最新一筆交易當下的值，`Account Group`、`Status`、`Balance` 顯示 `-`。匯出 14 欄、全部列，不含 `Total` 列。 |
