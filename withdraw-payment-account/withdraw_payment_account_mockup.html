@@ -202,7 +202,7 @@
           <button class="btn" id="l32Reset">Reset</button>
         </div>
         <div class="rd-note">
-          <b>Payment Account 篩選（新增）</b>：單選，可清除。帳號數量多，做成輸入後搜尋的欄位，不用一次載入全部選項的下拉。輸入文字後，部分比對 <code>Account Code</code>、<code>Bank Name</code>、<code>Account Name</code>、<code>Bank Account No</code>，不分大小寫，最多顯示 8 筆候選，由後端查詢。<br>
+          <b>Payment Account 篩選（新增）</b>：單選，可清除。帳號數量多，做成輸入後搜尋的欄位，不用一次載入全部選項的下拉。輸入文字後，部分比對 <code>Account Code</code>、<code>Bank Name</code>、<code>Account Name</code>、<code>Bank Account No</code>，不分大小寫，由後端查詢。候選筆數有上限，上限由 RD 決定；mockup 以 8 筆示意。<br>
           <b>候選範圍</b>：掛在 <code>BANK-OFFLINE</code> 通道底下、未刪除的 <code>3.7</code> 帳號，含 <code>ACTIVE</code> 與 <code>INACTIVE</code>，也含 <code>Allow Withdraw = No</code> 的帳號。<br>
           <b>條件</b>：出款單記錄的出款帳號 ID 等於所選帳號。按 <code>Search</code> 後套用到兩張表、統計列與 <code>Export CSV</code>。篩選用的是帳號 ID，所以帳號在 <code>3.7</code> 改過戶名或號碼後，仍查得到改之前核准的單。<br>
           <b>Admin BO 設為 Deny 時</b><span class="pill-new">NEW</span>：篩選區不顯示 <code>Payment Account</code>。後端收到 <code>paymentAccountId</code> 條件、或候選帳號的查詢時，回 <code>403</code>。

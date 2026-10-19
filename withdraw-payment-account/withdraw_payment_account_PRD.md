@@ -1,8 +1,8 @@
 # PRD：Payment Account 管理（出款指定帳號、帳號餘額與手動單）
 
-**版本**：v1.9（2026-10-14）　**類型**：新功能＋功能變更　**負責**：PM
+**版本**：v1.10（2026-10-19）　**類型**：新功能＋功能變更　**負責**：PM
 **Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)、[操作示範影片（約 2 分鐘）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_demo.mp4)。兩份 mockup 都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`；Agent BO 的 mockup 也可切換 Admin BO 設定，看 `Deny` 時的畫面
-**相關**：RD Spec `withdraw_payment_account_spec.md` v0.31（欄位、錯誤碼、介面欄位的完整定義）
+**相關**：RD Spec `withdraw_payment_account_spec.md` v0.32（欄位、錯誤碼、介面欄位的完整定義）
 
 ## 1. 需求背景
 客戶在 `BANK-OFFLINE` 通道底下有兩百多個公司銀行帳號，同時用來收玩家存款與付玩家出款。現在財務在 `3.2 Withdraw List` 核准出款時只能選通道，不能指定由哪個帳號付款；系統也不知道每個帳號裡還有多少錢。客戶目前用 Excel 逐筆記錄每個帳號的存款、出款、內部調撥、銀行手續費、利息、未認領的入帳與借貸，每天人工對帳。
@@ -37,7 +37,7 @@
 ## 3. 介面設計
 畫面見表頭的 Mockup 連結。重點：
 - **`3.2` 核准對話框**：新增唯讀 `Amount`；選 `BANK-OFFLINE` 後出現 `Payment Account` 選項。`Specify account` 時對話框變寬，清單欄位為 `Code`、`Bank`、`Account Name`、`Account No`、`Balance`、`Today Deposit / Threshold`、`Today Withdraw / Threshold`（藍色區段是這張單會增加的量）、`After This Withdrawal`，每頁 10 筆。清單上方有 `Account Code`、`Account Name`、`Account No` 三個文字搜尋欄位、`Bank` 下拉、排序下拉，以及 `Min Balance`（預設帶入這張單的 `Amount`，可修改）。Admin BO 設定為 `Deny` 時不顯示 `Payment Account`，財務不帶出款帳號核准，結果與 `Not specified` 相同。選 `Specify account` 而沒選帳號時，`Submit` 不可按。後端拒絕時，對話框保持開啟並重新載入清單。
-- **`3.2` 列表**：`Payment Channel` 之後新增 `Payment Account Bank`、`Payment Account Name`、`Payment Account No`、`Payment Account Wallet Address` 四欄，沒有出款帳號顯示 `—`。篩選區新增 `Payment Account`（輸入後搜尋，最多 8 筆候選）。Admin BO 設定為 `Deny` 時，四欄與篩選都不顯示。
+- **`3.2` 列表**：`Payment Channel` 之後新增 `Payment Account Bank`、`Payment Account Name`、`Payment Account No`、`Payment Account Wallet Address` 四欄，沒有出款帳號顯示 `—`。篩選區新增 `Payment Account`（輸入後搜尋，候選筆數上限由 RD 決定）。Admin BO 設定為 `Deny` 時，四欄與篩選都不顯示。
 - **`3.7` 列表**：現有 30 欄之後依序新增 `Allow Withdraw`、`Withdraw Threshold`、`Allow Withdraw Over Threshold`、`Balance`、`Account Code`、`Account Group`（第 31–36 欄），加入 `Columns Settings` 並預設顯示。篩選區新增 `Account Code`、`Account Group`。Admin BO 設定為 `Deny` 時，六欄與兩個篩選都不顯示。
 - **`3.7` 編輯頁與新增頁**：六個新欄位插在 `Allow Deposit Over Threshold` 與 `Payment Level` 之間。其他通道的帳號不顯示這六個欄位；新增頁改選通道時，欄位跟著出現或消失。Admin BO 設定為 `Deny` 時也不顯示。編輯 `BANK-OFFLINE` 帳號時 `Payment Channel` 唯讀。
 - **`3.11`**：上方篩選區與三個建單按鈕、`Export CSV`；中間摘要卡；下方 `Transactions`／`Summary by Account` 兩種檢視。交易列表 14 欄，`Details(Remark)` 欄合併顯示玩家帳號、對方帳號與備註。`Account Name` 是純文字，不提供點擊篩選。兩種檢視的表格下方都有分頁列：左邊是 `Columns Settings`，可調整欄位順序與顯示；右邊是 `Page`、`Items per page`（`10`／`20`／`50`／`100`，預設 `10`）與換頁按鈕。兩者都使用 BO 既有的共用元件。

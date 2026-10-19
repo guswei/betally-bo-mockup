@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.31（2026-10-14）
+- 版本：v0.32（2026-10-19）
 
 ---
 
@@ -430,7 +430,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 篩選區加一個 `Payment Account` 欄位（placeholder：`Payment Account: search bank, account name or account no`），單選，可清除。
 
-- 輸入文字後才查詢候選，部分比對 `Account Code`、`Bank Name`、`Account Name`、`Bank Account No`，不分大小寫。最多顯示 8 筆候選；超過時在最後顯示 `{N} more. Keep typing to narrow down.`；沒有符合時顯示 `No matching payment account.`。
+- 輸入文字後才查詢候選，部分比對 `Account Code`、`Bank Name`、`Account Name`、`Bank Account No`，不分大小寫。候選筆數有上限，上限由 RD 決定；超過上限時在最後顯示 `{N} more. Keep typing to narrow down.`；沒有符合時顯示 `No matching payment account.`。
 - 候選範圍：未被刪除的 BANK-OFFLINE 帳號，含 `ACTIVE` 與 `INACTIVE`，也含 `Allow Withdraw = No` 的帳號。只包含登入者所屬代理的帳號。`INACTIVE` 的帳號加標籤 `INACTIVE`。
 - 候選顯示 `{帳號標示}`。
 - 必須從候選中選取才算設定了條件；只輸入文字、沒有選取就按 `Search`，不套用這個條件並清空輸入。
