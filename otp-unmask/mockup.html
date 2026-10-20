@@ -90,9 +90,16 @@
     <label class="toggle"><input type="checkbox" id="noteSw" checked onchange="document.body.classList.toggle('shownotes',this.checked)"> 顯示 RD 註記</label>
     <div class="rolebox">
       <span>OTP 明碼檢視權限<span class="demo-tag">DEMO</span></span>
-      <select id="permSel" onchange="render()">
+      <select id="permSel" onchange="revealed={}; render()">
         <option value="granted" selected>有此權限</option>
         <option value="denied">無此權限</option>
+      </select>
+    </div>
+    <div class="rolebox">
+      <span>伺服器時間<span class="demo-tag">DEMO</span></span>
+      <select id="skewSel">
+        <option value="0" selected>與電腦一致</option>
+        <option value="15000">比電腦慢 15 秒</option>
       </select>
     </div>
     <div class="spacer"></div>
@@ -143,6 +150,15 @@
         <code>Status</code> 下拉的選項沿用既有值域，本次不變更。此處的 <code>VERIFIED</code>／<code>EXPIRED</code> 為 demo 合成值。
       </div>
 
+      <div class="rd-note">
+        <b>仍有效時的倒數</b>：圖示下方的 <code>{N}</code> 是 <code>Expiry</code> 減目前時間的秒數，無條件進位到整秒。還沒晚於 <code>Expiry</code> 時最小顯示 1。前端每秒更新。目前時間晚於 <code>Expiry</code> 時，圖示改成可點擊，不需要重新查詢；等於 <code>Expiry</code> 時仍是 <code>disabled</code>，與後端判定相同。<br>
+        前端計算前，先把 <code>Expiry</code> 換算成與目前時間相同的時區基準。<br>
+        前端用操作者電腦的時間計算倒數。電腦時間與伺服器時間不同時，後端的判定結果為準。<br>
+        <b>前端已可點擊、後端仍回 <code>409 OTP_STILL_VALID</code></b>（電腦時間比伺服器快）：前端以 toast 顯示 <code>The code is still valid. Try again later.</code>。該列 <code>Verify Code</code> 維持 <code>XXXXXX</code>。眼睛圖示設為 <code>disabled</code>。圖示下方只顯示 <code>The code can be revealed after it expires or is used.</code>，不顯示秒數。操作者執行查詢、重設篩選或換頁後，前端依新的列表資料重新判定該列。<br>
+        分頁<span class="demo-tag">DEMO</span>：合成資料只有一頁，改頁碼或每頁筆數只示範「換頁後回到遮罩並重新判定」，不切換資料。<br>
+        上方「伺服器時間」切到「比電腦慢 15 秒」，等 <code>IDRplayer21</code> 那列圖示變成可點擊後點擊，可以看到這個情況。
+      </div>
+
       <div class="searchbar">
         <button class="btn-search" onclick="doSearch()">Search</button>
         <button class="btn-icon" onclick="doReset()">↻</button>
@@ -166,8 +182,8 @@
       <div class="foot">
         <button class="btn-cols">⚙ Columns Settings</button>
         <div class="spacer"></div>
-        <span>Page <input value="1" style="width:46px;padding:4px;border:1px solid #cbd3da;border-radius:4px;text-align:center"></span>
-        <span>Items per page <select style="padding:4px;border:1px solid #cbd3da;border-radius:4px"><option>10</option><option>25</option></select></span>
+        <span>Page <input value="1" onchange="doPage()" style="width:46px;padding:4px;border:1px solid #cbd3da;border-radius:4px;text-align:center"></span>
+        <span>Items per page <select onchange="doPage()" style="padding:4px;border:1px solid #cbd3da;border-radius:4px"><option>10</option><option>25</option></select></span>
         <span id="cnt"></span>
       </div>
     </div>
@@ -177,7 +193,7 @@
     <b>後端紅線（前端擋不算數）</b>
     <ul style="margin:6px 0 0;padding-left:18px">
       <li>列表 API 的回應<b>不得</b>包含明碼，不論操作者權限。否則開發者工具就能繞過遮罩。</li>
-      <li>解遮罩走獨立 endpoint <code>POST /otp-report/{id}/reveal</code>，回單筆明碼。用 POST 不用 GET：要寫審計，且不該被快取或讓 id 出現在存取 log 的 URL。</li>
+      <li>解遮罩走獨立 endpoint <code>POST /otp-report/{id}/reveal</code>，回單筆明碼。用 POST 不用 GET：這個操作會寫審計。回應標頭加 <code>Cache-Control: no-store</code>，反向代理不得快取此端點。</li>
       <li>後端一律重驗：權限 → <code>403</code>；OTP 仍有效 → <code>409 OTP_STILL_VALID</code>；非 <code>FORGET_PASSWORD</code> → <code>409 OTP_PROCESS_NOT_ELIGIBLE</code>；不存在 → <code>404</code>。</li>
     </ul>
   </div>
@@ -188,21 +204,23 @@
 <script>
 // ===== demo data (合成資料，非真實 OTP) =====
 const now = Date.now();
-const fmt = t => { const d=new Date(t); const p=n=>String(n).padStart(2,'0');
-  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); };
+// 合成資料的時間一律以 GMT+07:00 解析與顯示，不受操作者電腦時區影響
+const TZ = 7*3600000;
+const fmt = t => { const d=new Date(t+TZ); const p=n=>String(n).padStart(2,'0');
+  return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate())+' '+p(d.getUTCHours())+':'+p(d.getUTCMinutes())+':'+p(d.getUTCSeconds()); };
 
 const rows = [
-  {id:'OTP001', created:'2026-02-19 17:04:56', expiry:Date.parse('2026-02-19T17:06:56'), user:'IDRtest88',
+  {id:'OTP001', created:'2026-02-19 17:04:56', expiry:Date.parse('2026-02-19T17:06:56+07:00'), user:'IDRtest88',
    vtype:'MAIL',  dname:'',          proc:'FORGET_PASSWORD', contact:'idrtest88@gmail.com', code:'481923', vtime:'', status:'GET_CODE'},
-  {id:'OTP002', created:'2026-02-19 16:39:56', expiry:Date.parse('2026-02-19T16:41:56'), user:'IDRtest88',
+  {id:'OTP002', created:'2026-02-19 16:39:56', expiry:Date.parse('2026-02-19T16:41:56+07:00'), user:'IDRtest88',
    vtype:'PHONE', dname:'SMS OTP 2', proc:'FORGET_PASSWORD', contact:'+62855757575', code:'305774', vtime:'', status:'GET_CODE'},
   {id:'OTP003', created:fmt(now), expiry:now+120000, user:'IDRplayer21',
    vtype:'PHONE', dname:'SMS OTP 2', proc:'FORGET_PASSWORD', contact:'+6281234567890', code:'662108', vtime:'', status:'GET_CODE'},
   {id:'OTP004', created:fmt(now), expiry:now+120000, user:'IDRwin7',
    vtype:'MAIL',  dname:'',          proc:'FORGET_PASSWORD', contact:'idrwin7@gmail.com', code:'914250', vtime:fmt(now+30000), status:'VERIFIED'},
-  {id:'OTP005', created:'2026-02-19 14:10:00', expiry:Date.parse('2026-02-19T14:12:00'), user:'IDRnew01',
+  {id:'OTP005', created:'2026-02-19 14:10:00', expiry:Date.parse('2026-02-19T14:12:00+07:00'), user:'IDRnew01',
    vtype:'PHONE', dname:'SMS OTP 1', proc:'REGISTER',        contact:'+628119900123', code:'220418', vtime:'', status:'GET_CODE'},
-  {id:'OTP006', created:'2026-02-19 14:03:11', expiry:Date.parse('2026-02-19T14:05:11'), user:'IDRtest88',
+  {id:'OTP006', created:'2026-02-19 14:03:11', expiry:Date.parse('2026-02-19T14:05:11+07:00'), user:'IDRtest88',
    vtype:'PHONE', dname:'SMS OTP 2', proc:'WITHDRAWAL',      contact:'+62855757575', code:'771602', vtime:'2026-02-19 14:04:02', status:'VERIFIED'},
 ];
 
@@ -216,6 +234,9 @@ const isUsed    = r => !!r.vtime;
 const eligible  = r => r.proc === 'FORGET_PASSWORD' && (isExpired(r) || isUsed(r));
 
 let revealed = {};   // id -> true
+let held = {};       // id -> true：後端回 409 OTP_STILL_VALID 後鎖住；查詢、重設篩選或換頁後重新判定
+// demo：模擬伺服器時間比電腦慢，後端以伺服器時間判定是否過期
+const serverEligible = r => r.proc === 'FORGET_PASSWORD' && (isUsed(r) || Date.now() - Number(document.getElementById('skewSel').value) > r.expiry);
 let auditLog = [];   // demo 用，實際寫後端
 
 function badge(s){
@@ -232,12 +253,17 @@ function codeCell(r){
 
   // 檢查順序固定為 權限 → Verify Proc → 有效性，與 spec 第 2 節一致
   // 權限不足：隱藏，不是 disable（BO 既有慣例）
-  if (!canReveal(perm)) return '<div class="codecell">'+val+'</div>';
+  if (!canReveal(perm)) return '<div class="codecell"><span class="masked" data-mask="'+r.id+'">XXXXXX</span></div>';
   // 非 FORGET_PASSWORD：不出現眼睛圖示（範圍外）
-  if (r.proc !== 'FORGET_PASSWORD') return '<div class="codecell">'+val+'</div>';
+  if (r.proc !== 'FORGET_PASSWORD') return '<div class="codecell"><span class="masked" data-mask="'+r.id+'">XXXXXX</span></div>';
 
+  if (held[r.id]){
+    return '<div class="codecell">'+val+
+      '<button class="eye" id="eye-'+r.id+'" disabled title="Code is still valid">👁</button></div>'+
+      '<div class="hint">The code can be revealed after it expires or is used.</div>';
+  }
   if (!eligible(r)){
-    const left = Math.max(0, Math.ceil((r.expiry - Date.now())/1000));
+    const left = Math.max(1, Math.ceil((r.expiry - Date.now())/1000));   // 還沒晚於 Expiry 時最小顯示 1
     return '<div class="codecell">'+val+
       '<button class="eye" id="eye-'+r.id+'" disabled title="Code is still valid">👁</button></div>'+
       '<div class="hint">Still valid for '+left+'s. The code can be revealed after it expires or is used.</div>';
@@ -271,11 +297,13 @@ function toggle(id){
   // 後端會重驗一次；前端這層只是先擋
   if (!canReveal(document.getElementById('permSel').value)){ toast('403 FORBIDDEN'); return; }
   if (r.proc !== 'FORGET_PASSWORD'){ toast('409 OTP_PROCESS_NOT_ELIGIBLE'); return; }
-  if (!eligible(r)){ toast('409 OTP_STILL_VALID'); return; }
+  if (!eligible(r)){ toast('409 OTP_STILL_VALID'); return; }   // 只有用開發者工具點 disabled 圖示才會到這行；正常操作不會出現
 
   if (revealed[id]){
     delete revealed[id];           // 重新遮罩不寫審計，不更新計數
   } else {
+    // 模擬呼叫 reveal API：後端回 409 OTP_STILL_VALID 時一律走 spec 3.1.2（toast＋鎖住該列）
+    if (!serverEligible(r)){ held[id] = true; toast('The code is still valid. Try again later.'); render(); return; }
     revealed[id] = true;
     auditLog.push({at:fmt(Date.now()), otp:id, user:r.user});
     toast('Code revealed. This action has been logged.');
@@ -284,14 +312,15 @@ function toggle(id){
   render();
 }
 
-function doSearch(){ revealed = {}; render(); toast('Search complete. Revealed codes are masked again.'); }
+function doSearch(){ revealed = {}; held = {}; render(); toast('Search complete. Revealed codes are masked again.'); }
 function doReset(){
   ['f_data','f_user','f_time'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('f_type').value='All';
   document.getElementById('f_status').value='All';
   document.getElementById('f_proc').value='FORGET_PASSWORD';
-  revealed = {}; render();
+  revealed = {}; held = {}; render();
 }
+function doPage(){ revealed = {}; held = {}; render(); toast('Revealed codes are masked again.'); }
 function exportCsv(){ toast('CSV exported. Verify Code is always masked.'); }
 
 let tid=null;

@@ -1,6 +1,6 @@
 # PRD：OTP Verify Code 解遮罩
 
-**版本**：v1.0（2026-09-22）　**類型**：功能變更　**負責**：PM
+**版本**：v1.3（2026-10-20）　**類型**：功能變更　**負責**：PM
 **Mockup**：https://guswei.github.io/betally-bo-mockup/otp-unmask/mockup.html
 **相關**：[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/otp-unmask/otp_unmask_spec.md)
 
@@ -16,7 +16,7 @@
 
 | # | 變更 (FR) | 說明 |
 |---|---|---|
-| FR-1 | `Verify Code` 逐列解遮罩 | 儲存格內新增眼睛圖示，點擊後只解開該列。再次點擊回到遮罩；查詢、重設或換頁後一律回到遮罩 |
+| FR-1 | `Verify Code` 逐列解遮罩 | 儲存格內新增眼睛圖示，點擊後只解開該列。再次點擊回到遮罩；查詢、重設篩選或換頁後一律回到遮罩 |
 | FR-2 | 解遮罩資格限制 | 僅 `Verify Proc` 為 `FORGET_PASSWORD` 且已失效（已過期或 `verify_time` 有值）的驗證碼可解遮罩 |
 | FR-3 | 新增權限節點 | 新增獨立的 OTP 明碼檢視權限，掛於 `Role Setting`，不綁定 4-tier 層級 |
 | FR-4 | 解遮罩審計 | 每次成功解遮罩寫入一筆紀錄，含操作者、時間、OTP 記錄 `id`、玩家 `username` |
@@ -30,6 +30,11 @@
 
 - `Verify Code` 儲存格內新增眼睛圖示，依資格呈現三種狀態：可點擊、`disabled` 並附英文說明、完全不顯示。
 - 權限不足時圖示隱藏，不使用 `disabled`。因業務規則而不可操作（驗證碼仍有效）採 `disabled` 並說明原因與可以做什麼。
+- 驗證碼仍有效時，前端在圖示下方顯示剩餘秒數。
+- 驗證碼仍有效時，前端每秒更新剩餘秒數。
+- 目前時間晚於 `Expiry` 時，前端把圖示改成可點擊。
+- 前端用操作者電腦的時間計算倒數。
+- 電腦時間與伺服器時間不同時，後端的判定結果為準。
 - 遮罩態一律顯示六個 `X`，不反映實際碼長。
 - 既有欄位順序、篩選區、分頁與 `Columns Settings` 不變。
 
@@ -39,7 +44,7 @@
 |---|---|---|---|
 | `Verify Code`（遮罩態） | 顯示字串 | 是 | 固定六個 `X`，不反映實際碼長 |
 | `Verify Code`（明碼態） | 顯示字串 | 否 | 僅由 reveal API 取得。列表 API 與 CSV 不得包含此值 |
-| `Expiry` | `DATETIME` | 是 | 既有欄位。與目前時間比較判定是否已過期，時區 `GMT+07:00` |
+| `Expiry` | `DATETIME` | 是 | 既有欄位。與目前時間比較判定是否已過期，比較前先換算到同一時區基準（ASM-5） |
 | `verify_time` | `DATETIME` | 否 | 既有欄位。有值代表已完成驗證，該碼視為已使用 |
 | `Verify Proc` | enum | 是 | 既有欄位。僅 `FORGET_PASSWORD` 適用本次功能 |
 
@@ -72,17 +77,18 @@ flowchart TD
   D -->|是| F{已過期或已使用?}
   F -->|否 仍有效| G[眼睛圖示 disabled 並說明原因<br/>後端回 409 OTP_STILL_VALID]
   F -->|是| H[POST /otp-report/id/reveal]
-  H --> I[後端重驗權限與解遮罩資格]
-  I --> J[寫入審計<br/>操作者/時間/OTP id/玩家<br/>審計本身不存明碼]
+  H --> I{後端重驗權限與解遮罩資格<br/>通過?}
+  I -->|否| M[回 403 或 409<br/>不寫成功審計、不回明碼<br/>409 OTP_STILL_VALID 時前端提示並鎖住該列]
+  I -->|是| J[寫入審計<br/>操作者/時間/OTP id/玩家<br/>審計本身不存明碼]
   J --> K[只回傳該列明碼<br/>列表 API 與 Export CSV 維持遮罩]
-  K --> L[畫面只解開該列<br/>翻頁或重新查詢後回到遮罩]
+  K --> L[畫面只解開該列<br/>查詢、重設篩選或換頁後回到遮罩]
   classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
   classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
   classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
   classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
-  class A,H,I,J step
-  class B,D,F dec
-  class C,E,G stop
+  class A,H,J step
+  class B,D,F,I dec
+  class C,E,G,M stop
   class K,L done
 ```
 
@@ -113,14 +119,28 @@ flowchart TD
 | AC-11（負向） | FR-4 | 被 `403` 或 `409` 拒絕的 reveal 請求**不得**產生成功的解遮罩審計紀錄。 |
 | AC-12（負向） | FR-5 | `Export CSV` 輸出的 `Verify Code` 一律為 `XXXXXX`；持有解遮罩權限的操作者匯出時亦同。 |
 | AC-13 | FR-3 | 新權限節點可在 `Role Setting` 指派給角色，指派後該角色的操作者即可見眼睛圖示。 |
+| AC-14 | FR-2 | 仍有效的 `FORGET_PASSWORD` 記錄，圖示下方顯示 `Still valid for {N}s. The code can be revealed after it expires or is used.`。 |
+| AC-14a | FR-2 | `{N}` 等於 `Expiry` 減目前時間的秒數，無條件進位到整秒，最小為 1。 |
+| AC-14b | FR-2 | `{N}` 每秒更新，不需重新查詢。 |
+| AC-14c | FR-2 | 目前時間晚於 `Expiry` 時，前端把圖示改成可點擊，不需重新查詢。 |
+| AC-14d | FR-2 | 目前時間等於 `Expiry` 時，圖示仍為 `disabled`。 |
+| AC-15（負向） | FR-2 | 前端已把圖示改成可點擊、後端仍判定有效時，reveal API 回 `409 OTP_STILL_VALID`，回應**不得**包含明碼。 |
+| AC-15a | FR-2 | 收到 AC-15 的 `409` 時，畫面以 toast 顯示 `The code is still valid. Try again later.`。 |
+| AC-15b | FR-2 | 收到 AC-15 的 `409` 時，前端讓該列 `Verify Code` 維持 `XXXXXX`。 |
+| AC-15c | FR-2 | 收到 AC-15 的 `409` 時，前端把該列眼睛圖示設為 `disabled`。 |
+| AC-15d | FR-2 | 收到 AC-15 的 `409` 時，前端在圖示下方顯示 `The code can be revealed after it expires or is used.`，不顯示秒數。 |
+| AC-15e | FR-2 | AC-15 鎖住的列，在操作者執行查詢、重設篩選或換頁之前維持 `disabled`。 |
+| AC-15f | FR-2 | 操作者執行查詢、重設篩選或換頁後，前端依新的列表資料重新判定 AC-15 鎖住的列。 |
+| AC-16 | FR-1 | reveal API 的回應標頭含 `Cache-Control: no-store`。 |
+| AC-17（負向） | FR-1 | 反向代理**不得**快取 reveal API 的回應。 |
 
 ## 8. 非功能需求（NFR）
 
 | NFR-ID | 類別 | 需求 |
 |---|---|---|
 | NFR-REL | 可靠性 | 既有的篩選、分頁、`Columns Settings` 與 `Export CSV` 其他欄位的行為不得改變。OTP 的產生、發送、驗證流程與有效期長度不得受影響。 |
-| NFR-DATA | 金額/資料精度 | 本案不新增金額欄位，既有金額欄位的 `DECIMAL(18,2)` 精度不受本案影響。遮罩字串固定為六個 `X`，不因實際碼長變動；時間欄位一律以 `GMT+07:00` 判讀。 |
-| NFR-SEC | 安全 | 驗證碼明碼只經由 reveal API 回傳單筆，列表 API、`Export CSV` 與審計紀錄皆不得包含明碼。後端一律重新驗證權限與解遮罩資格，不接受前端送來的資格判定。 |
+| NFR-DATA | 金額/資料精度 | 本案不新增金額欄位，既有金額欄位的 `DECIMAL(18,2)` 精度不受本案影響。遮罩字串固定為六個 `X`，不因實際碼長變動；時間欄位比較前先換算到同一時區基準，基準見 ASM-5。 |
+| NFR-SEC | 安全 | 驗證碼明碼只經由 reveal API 回傳單筆，列表 API、`Export CSV` 與審計紀錄皆不得包含明碼。後端一律重新驗證權限與解遮罩資格，不接受前端送來的資格判定。reveal 回應帶 `Cache-Control: no-store`，反向代理不得快取。 |
 
 ## 9. 假設與限制（ASM / CST）
 

@@ -64,10 +64,32 @@
 | 情境 | 圖示 | 儲存格內容 |
 |---|---|---|
 | 三個條件全部成立 | 顯示且可點擊 | 點擊後切換為明碼 |
-| 條件 3 不成立（仍有效） | 顯示但 `disabled` | `XXXXXX`，圖示下方顯示英文說明 |
+| 條件 3 不成立（仍有效） | 顯示但 `disabled` | `XXXXXX`，圖示下方顯示倒數秒數與英文說明（3.1.1） |
 | 條件 1 或條件 2 不成立 | 不顯示 | `XXXXXX` |
 
 權限不足時圖示直接隱藏，不使用 `disabled`。這是本 BO 的既有慣例。因業務規則而不可操作的情況（驗證碼仍有效）採 `disabled` 並附說明文字，讓操作員知道原因與可以做什麼。
+
+#### 3.1.1 仍有效時的倒數
+
+驗證碼仍有效時，圖示下方顯示：`Still valid for {N}s. The code can be revealed after it expires or is used.`
+
+- `{N}` 是剩餘秒數：`Expiry` 減目前時間，無條件進位到整秒。
+- 前端每秒更新 `{N}`，不需要重新查詢。
+- 前端計算 `{N}` 前，依 2.1 的規則把 `Expiry` 換算成與目前時間相同的時區基準。
+- 目前時間還沒晚於 `Expiry` 時，前端顯示的 `{N}` 最小為 1。
+- 目前時間晚於 `Expiry` 時，前端把圖示改成可點擊，不需要重新查詢。這個端點與 2.1 的後端判定相同。
+- 前端用操作者電腦的時間計算倒數。
+- 電腦時間與伺服器時間不同時，後端的判定結果為準。
+
+#### 3.1.2 倒數已到但後端回 `409 OTP_STILL_VALID`
+
+操作者電腦的時間比伺服器快時，前端已把圖示改成可點擊，後端仍可能回 `409 OTP_STILL_VALID`。收到 `409 OTP_STILL_VALID` 時：
+
+1. 前端以 toast 顯示 `The code is still valid. Try again later.`。
+2. 前端讓該列的 `Verify Code` 維持 `XXXXXX`。
+3. 前端把該列的眼睛圖示設為 `disabled`。
+4. 前端在圖示下方顯示 `The code can be revealed after it expires or is used.`，不顯示秒數。
+5. 操作者執行查詢、重設篩選或換頁後，前端依新的列表資料重新判定該列。
 
 ### 3.2 解遮罩後的行為
 
@@ -85,7 +107,11 @@
 |---|---|
 | `POST /otp-report/{id}/reveal` | 取得單筆的 `Verify Code` 明碼 |
 
-採 `POST` 而非 `GET`：此操作要寫入審計紀錄，且不應被瀏覽器或反向代理快取，記錄 `id` 也不應出現在存取紀錄的 URL 中。
+採 `POST` 而非 `GET`：此操作會寫入審計紀錄，是有副作用的操作。
+
+後端在 reveal 回應的標頭加上 `Cache-Control: no-store`。
+
+反向代理不得快取此端點的回應。
 
 操作對象為單筆，以 OTP 記錄的 `id` 指定，不接受批次。
 
@@ -173,16 +199,17 @@ flowchart TD
   D -->|是| F{已過期或已使用?}
   F -->|否 仍有效| G[眼睛圖示 disabled 並說明原因<br/>後端回 409 OTP_STILL_VALID]
   F -->|是| H[POST /otp-report/id/reveal]
-  H --> I[後端重驗權限與解遮罩資格]
-  I --> J[寫入審計<br/>操作者/時間/OTP id/玩家<br/>審計本身不存明碼]
+  H --> I{後端重驗權限與解遮罩資格<br/>通過?}
+  I -->|否| M[回 403 或 409<br/>不寫成功審計、不回明碼<br/>409 OTP_STILL_VALID 時前端提示並鎖住該列]
+  I -->|是| J[寫入審計<br/>操作者/時間/OTP id/玩家<br/>審計本身不存明碼]
   J --> K[只回傳該列明碼<br/>列表 API 與 Export CSV 維持遮罩]
-  K --> L[畫面只解開該列<br/>翻頁或重新查詢後回到遮罩]
+  K --> L[畫面只解開該列<br/>查詢、重設篩選或換頁後回到遮罩]
   classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
   classDef dec  fill:#fef3c7,stroke:#d97706,color:#78350f
   classDef stop fill:#fdecea,stroke:#c0392b,color:#7f1d1d
   classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
-  class A,H,I,J step
-  class B,D,F dec
-  class C,E,G stop
+  class A,H,J step
+  class B,D,F,I dec
+  class C,E,G,M stop
   class K,L done
 ```
