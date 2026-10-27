@@ -26,6 +26,10 @@ table{border-collapse:collapse;width:100%;min-width:900px}th{background:var(--gr
 .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.box{background:#fff;border-radius:9px;width:min(720px,100%);max-height:90vh;overflow:auto}.mhead{background:var(--green);color:#fff;padding:15px 18px;display:flex;justify-content:space-between;font-weight:700}.mbody{padding:18px}.mbody h3{margin:0 0 8px}
 pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:auto;line-height:1.5;margin:0 0 14px}pre .nw{color:#8fc6ff}.mfoot{text-align:right;padding:13px 18px;border-top:1px solid var(--line)}
 .view-pane{display:none}.view-pane.on{display:block}
+.note-top{background:var(--note);border:1px solid var(--noteb);color:var(--notec);border-radius:6px;padding:8px 12px;margin-bottom:12px}
+.gloss table.gt{min-width:640px}.gloss .gt td{white-space:normal;vertical-align:top;line-height:1.55}.gloss .gt td:first-child{white-space:nowrap;font-weight:700}
+.gh{font-size:14px;margin:16px 0 8px}.gnote{color:var(--notec);background:var(--note);border-radius:5px;padding:6px 10px;margin-top:8px;font-size:12px}
+.flow{margin:0;padding-left:20px;line-height:1.8}.gp{margin:14px 0 6px}.gloss .ab td:first-child{font-family:monospace}code{font-family:monospace}
 @media(max-width:760px){.side{display:none}.row{grid-template-columns:1fr}}
 </style>
 </head>
@@ -41,6 +45,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
   <div class="mockbar"><b>Mockup view：</b>
     <button class="tab on" id="tAgent">Admin BO · Agent Accounts › Edit</button>
     <button class="tab" id="tReport">Admin BO · Marketing Event Delivery Report</button>
+    <button class="tab" id="tGloss">名詞與欄位來源（RD 參考）</button>
     <label><input type="checkbox" id="rdToggle" checked> RD 註記</label>
     <span>此列只供驗收切換，不屬於正式 BO UI。</span></div>
 
@@ -78,6 +83,138 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
     <div class="card" style="padding:0;margin-top:10px"><div class="scroll"><table>
       <thead><tr><th>Sent Date</th><th>Prefix</th><th>Username</th><th>Provider</th><th>User Behavior</th><th>Provider Event</th><th>Status</th><th>Amount</th><th>Transaction ID</th><th>Details</th></tr></thead>
       <tbody id="rows"></tbody></table></div></div>
+  </section>
+
+  <!-- View 3：名詞與欄位來源（RD 參考頁，不屬於正式 BO UI） -->
+  <section class="view-pane gloss" id="vGloss">
+    <h1>名詞與欄位來源</h1>
+    <div class="note-top">本頁是給 RD 的參考說明，不屬於正式 BO 畫面。</div>
+
+    <div class="card">
+      <div class="sect">1. 名詞</div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>名詞</th><th>是什麼</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td>Meta Pixel</td><td>裝在前台網頁的 Meta 追蹤程式碼</td><td>從瀏覽器把事件送給 Meta</td></tr>
+          <tr><td>CAPI（Conversions API）</td><td>後端呼叫的 Meta API</td><td>從伺服器把事件送給 Meta</td></tr>
+          <tr><td>sender</td><td>後端送出 CAPI 事件的程式</td><td>入款成功、註冊成功時組 payload 並送出</td></tr>
+          <tr><td><code>fbclid</code></td><td>玩家點 Facebook 廣告時，Meta 加在網址上的參數，例如 <code>?fbclid=IwAR2xYz</code></td><td>代表一次廣告點擊</td></tr>
+          <tr><td><code>fbc</code></td><td>由 <code>fbclid</code> 組成的字串，格式 <code>fb.1.&lt;建立毫秒&gt;.&lt;fbclid&gt;</code></td><td>Meta 用它把轉換對回廣告點擊</td></tr>
+          <tr><td><code>fbp</code></td><td>Pixel 寫在 <code>_fbp</code> cookie 的值，格式 <code>fb.1.&lt;建立毫秒&gt;.&lt;隨機數&gt;</code></td><td>代表一個瀏覽器</td></tr>
+          <tr><td><code>_fbc</code>、<code>_fbp</code> cookie</td><td>Pixel 寫在瀏覽器的兩個 cookie</td><td>前端取得 <code>fbc</code>、<code>fbp</code> 的來源</td></tr>
+          <tr><td><code>external_id</code>（雜湊 ID）</td><td>玩家內部 ID 經 SHA-256 雜湊後的小寫 16 進位字串</td><td>讓 Meta 把同一位玩家的事件串在一起</td></tr>
+          <tr><td><code>client_ip_address</code></td><td>玩家的 IP</td><td>Meta 用它輔助比對玩家</td></tr>
+          <tr><td><code>client_user_agent</code></td><td>玩家瀏覽器的 User-Agent</td><td>Meta 用它輔助比對玩家</td></tr>
+          <tr><td><code>event_source_url</code></td><td>事件發生時玩家所在頁面的完整網址</td><td>Meta 用它判斷事件發生的頁面。本案沒有值時，sender 不帶這個欄位，事件照送</td></tr>
+          <tr><td><code>event_id</code></td><td>事件的唯一編號</td><td>Pixel 與 CAPI 送同一事件時，Meta 用它去重</td></tr>
+          <tr><td><code>action_source</code></td><td>事件發生的來源</td><td>Meta 用它區分網站、App 等來源。本案開關 <code>Enable</code> 時，sender 送 <code>website</code></td></tr>
+          <tr><td>比對參數</td><td><code>fbc</code>、<code>fbp</code>、<code>client_ip_address</code>、<code>client_user_agent</code> 四個欄位的合稱</td><td>sender 放進 <code>user_data</code></td></tr>
+          <tr><td><code>meta_match</code></td><td>前端存在 <code>localStorage</code> 的 key</td><td>保存 <code>fbc</code>、<code>fbp</code>，期限 7 天</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">2. BO 欄位表：每個欄位怎麼取得</div>
+      <h3 class="gh">2.1 Admin BO 設定</h3>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>欄位</th><th>怎麼取得</th><th>負責端</th></tr></thead>
+        <tbody>
+          <tr><td><code>Meta CAPI Customer Matching</code></td><td>Admin 在 <code>Agent Accounts › Edit › System Config</code> 選 <code>Enable</code> 或 <code>Deny</code>。預設 <code>Deny</code></td><td>後端（API）存設定；畫面待技術主管指派</td></tr>
+        </tbody></table></div>
+
+      <h3 class="gh">2.2 前端送給後端的 request 欄位</h3>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>欄位</th><th>型別</th><th>必填</th><th>怎麼取得</th><th>哪些 API 帶</th><th>負責端</th></tr></thead>
+        <tbody>
+          <tr><td><code>meta_fbc</code></td><td>string，長度上限 500</td><td>否</td><td>取自 <code>meta_match</code> 的 <code>fbc</code>。<code>fbc</code> 依下方表 A 決定</td><td>註冊、登入、發起存款</td><td>前端（Web/H5）</td></tr>
+          <tr><td><code>meta_fbp</code></td><td>string，長度上限 255</td><td>否</td><td>取自 <code>meta_match</code> 的 <code>fbp</code>。<code>fbp</code> 依下方表 B 決定。前端不自行產生 <code>fbp</code></td><td>註冊、登入、發起存款</td><td>前端（Web/H5）</td></tr>
+          <tr><td><code>meta_event_source_url</code></td><td>string，長度上限 2048</td><td>否</td><td>玩家當下所在頁面的完整網址</td><td>註冊、發起存款。登入不帶</td><td>前端（Web/H5）</td></tr>
+        </tbody></table></div>
+      <div class="gnote">
+        前端組 request 前檢查 <code>ts</code>。已過期的參數，前端不帶。<br>
+        <code>meta_match</code> 沒有某個值時，前端不帶該欄位，不送空字串。<br>
+        欄位缺少時，後端照常處理註冊、登入、存款，不回錯誤。<br>
+        欄位長度等於上限時，後端照常保存。<br>
+        欄位超過長度上限時，後端把該欄位當成沒帶。<br>
+        欄位超過長度上限時，後端不保存該值。<br>
+        欄位超過長度上限時，sender 不使用該值。<br>
+        欄位超過長度上限時，後端照常處理請求，不回錯誤。<br>
+        前端不送 IP 與 User-Agent。<br>
+        註冊成功與登入成功時，後端從 request 讀取 IP 與 User-Agent，覆蓋玩家資料的 <code>client_ip_address</code>、<code>client_user_agent</code>。<br>
+        發起存款時，後端從 request 讀取 IP 與 User-Agent，記在該筆存款單上。<br>
+        註冊成功與登入成功時，request 的 <code>meta_fbc</code> 有值，後端用它覆蓋玩家資料的 <code>fbc</code>；<code>meta_fbc</code> 沒有值時，後端保留玩家資料的 <code>fbc</code>。<br>
+        註冊成功與登入成功時，request 的 <code>meta_fbp</code> 有值，後端用它覆蓋玩家資料的 <code>fbp</code>；<code>meta_fbp</code> 沒有值時，後端保留玩家資料的 <code>fbp</code>。
+      </div>
+
+      <h3 class="gh">2.2.1 前端每次載入頁面時，<code>meta_match</code> 怎麼更新</h3>
+      <div class="gnote">
+        前端用 <code>localStorage</code> 的 key <code>meta_match</code> 保存 <code>fbc</code>、<code>fbp</code>，每個值各有取得時間 <code>ts</code>。<br>
+        未過期：<code>ts</code> 距今小於或等於 604,800,000 毫秒（7 天）。已過期：<code>ts</code> 距今大於 604,800,000 毫秒。<br>
+        尾段：<code>fbc</code> 第三個 <code>.</code> 之後的字串。建立時間：<code>fbc</code> 第二個 <code>.</code> 與第三個 <code>.</code> 之間的 Unix 毫秒數。<br>
+        網址的 <code>fbclid</code> 是空字串時，前端當成網址沒有 <code>fbclid</code>。<br>
+        前端照原樣使用 <code>fbclid</code>，不改大小寫，除了 URL decode 不做其他處理。<br>
+        前端不自行產生 <code>fbp</code>。<br>
+        <code>localStorage</code> 無法讀寫時，前端把結果存在本頁記憶體。
+      </div>
+      <p class="gp"><b>表 A：<code>fbc</code></b>。前端由上往下比對，用第一個符合的列。網址有 <code>fbclid</code> 時，前端不看 <code>_fbc</code> cookie。</p>
+      <div class="scroll"><table class="gt ab">
+        <thead><tr><th>列</th><th>網址 <code>fbclid</code></th><th>已保存的 <code>fbc</code></th><th><code>_fbc</code> cookie</th><th><code>fbc</code> 結果</th><th><code>ts</code> 結果</th></tr></thead>
+        <tbody>
+          <tr><td>A1</td><td>有</td><td>尾段等於 <code>fbclid</code>，未過期</td><td>不看</td><td>不改</td><td>不改</td></tr>
+          <tr><td>A2</td><td>有</td><td>尾段等於 <code>fbclid</code>，已過期</td><td>不看</td><td>不改</td><td>設為目前時間</td></tr>
+          <tr><td>A3</td><td>有</td><td>沒有，或尾段不等於 <code>fbclid</code></td><td>不看</td><td>設為 <code>fb.1.&lt;目前 Unix 毫秒&gt;.&lt;fbclid&gt;</code></td><td>設為目前時間</td></tr>
+          <tr><td>A4</td><td>沒有</td><td>未過期</td><td>有值，與已保存的不同，建立時間晚於已保存的</td><td>設為 cookie 的值</td><td>設為目前時間</td></tr>
+          <tr><td>A5</td><td>沒有</td><td>未過期</td><td>其他狀態</td><td>不改</td><td>不改</td></tr>
+          <tr><td>A6</td><td>沒有</td><td>沒有，或已過期</td><td>有值</td><td>設為 cookie 的值</td><td>設為目前時間</td></tr>
+          <tr><td>A7</td><td>沒有</td><td>沒有，或已過期</td><td>沒有值</td><td>刪除</td><td>刪除</td></tr>
+        </tbody></table></div>
+      <p class="gp"><b>表 B：<code>fbp</code></b>。前端由上往下比對，用第一個符合的列。</p>
+      <div class="scroll"><table class="gt ab">
+        <thead><tr><th>列</th><th><code>_fbp</code> cookie</th><th>已保存的 <code>fbp</code></th><th><code>fbp</code> 結果</th><th><code>ts</code> 結果</th></tr></thead>
+        <tbody>
+          <tr><td>B1</td><td>有值，與已保存的相同</td><td>未過期</td><td>不改</td><td>不改</td></tr>
+          <tr><td>B2</td><td>有值，與已保存的不同</td><td>未過期</td><td>設為 cookie 的值</td><td>設為目前時間</td></tr>
+          <tr><td>B3</td><td>有值</td><td>沒有，或已過期</td><td>設為 cookie 的值</td><td>設為目前時間</td></tr>
+          <tr><td>B4</td><td>沒有值</td><td>未過期</td><td>不改</td><td>不改</td></tr>
+          <tr><td>B5</td><td>沒有值</td><td>沒有，或已過期</td><td>刪除</td><td>刪除</td></tr>
+        </tbody></table></div>
+
+      <h3 class="gh">2.3 後端回給前端的 response 欄位</h3>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>欄位</th><th>型別</th><th>必填</th><th>怎麼取得</th><th>哪些 API 回傳</th><th>前端用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>meta_capi_enabled</code></td><td>boolean</td><td>是</td><td>後端查玩家所屬 Agent 的開關。<code>Enable</code> 時為 <code>true</code>，<code>Deny</code> 時為 <code>false</code></td><td>玩家資料、登入、註冊</td><td>前端用它決定 Pixel 帶不帶 <code>external_id</code>。註冊時，前端也用它決定 Pixel <code>CompleteRegistration</code> 是否帶 <code>eventID</code> 去重</td></tr>
+          <tr><td><code>meta_external_id</code></td><td>string，64 字小寫 16 進位</td><td>否</td><td>後端把玩家內部 ID 做 SHA-256，輸出小寫 16 進位字串。開關 <code>Deny</code> 時不回傳</td><td>玩家資料、登入、註冊</td><td>Pixel 帶上與 CAPI 相同的 <code>external_id</code>。前端不自行雜湊</td></tr>
+          <tr><td><code>meta_registration_event_id</code></td><td>string，格式 <code>reg_&lt;玩家內部 ID&gt;</code></td><td>否</td><td>後端組成 <code>reg_&lt;玩家內部 ID&gt;</code>。開關 <code>Deny</code> 時不回傳</td><td>註冊</td><td>當作 Pixel <code>CompleteRegistration</code> 的 <code>eventID</code>，與後端 CAPI 事件去重</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">3. 一筆存款的資料流</div>
+      <ol class="flow">
+        <li>玩家點 Facebook 廣告進站，網址帶 <code>fbclid</code>。</li>
+        <li>前端照表 A、表 B 更新 <code>meta_match</code>。</li>
+        <li>玩家發起存款。前端帶 <code>meta_fbc</code>、<code>meta_fbp</code>、<code>meta_event_source_url</code>。</li>
+        <li>後端從 request 讀取 IP 與 User-Agent。</li>
+        <li>後端把 <code>fbc</code>、<code>fbp</code>、IP、User-Agent、<code>event_source_url</code> 記在存款單上。</li>
+        <li>入款成功。開關 <code>Deny</code> 時，sender 送出的事件與現況完全相同，流程結束。</li>
+        <li>開關 <code>Enable</code> 時，sender 照下表取值，加進 CAPI payload 後送出事件。</li>
+        <li>開關 <code>Enable</code> 時，<code>Marketing Event Delivery Report</code> 的 Details 顯示 sender 實際送出的新增欄位。sender 沒有帶的欄位，Details 不顯示。</li>
+        <li>開關 <code>Enable</code> 時，後端把 <code>client_ip_address</code> 加進遮罩清單。Details 把 <code>client_ip_address</code> 顯示為 <code>***</code>。</li>
+      </ol>
+      <div class="scroll"><table class="gt" style="margin-top:10px">
+        <thead><tr><th>CAPI 欄位</th><th>值</th><th>取值順序</th></tr></thead>
+        <tbody>
+          <tr><td><code>event_id</code></td><td><code>Purchase</code>：<code>ftd_&lt;存款單號&gt;</code>；<code>AddToCart</code>：<code>dep_&lt;存款單號&gt;</code></td><td>—</td></tr>
+          <tr><td><code>action_source</code></td><td><code>website</code></td><td>—</td></tr>
+          <tr><td><code>event_source_url</code></td><td>存款單的值</td><td>只取存款單。存款單沒有值時，sender 不帶</td></tr>
+          <tr><td><code>user_data.external_id</code></td><td>雜湊 ID，由玩家內部 ID 計算</td><td>—</td></tr>
+          <tr><td><code>user_data.fbc</code>、<code>user_data.fbp</code>、<code>user_data.client_ip_address</code>、<code>user_data.client_user_agent</code></td><td>原值，不雜湊</td><td>存款單有值時用存款單；存款單沒有值時用玩家資料；兩處都沒有值時，sender 不帶</td></tr>
+          <tr><td><code>custom_data.currency</code></td><td>存款幣別，ISO 4217 大寫</td><td>—</td></tr>
+          <tr><td><code>custom_data.value</code></td><td>入款金額，<code>DECIMAL(18,2)</code> 轉 JSON 數字，不經 float</td><td>—</td></tr>
+        </tbody></table></div>
+
+    </div>
   </section>
 </div>
 </main>
@@ -120,9 +257,11 @@ function detail(i){const r=data[i];
  $('detail').innerHTML=`<h3>Request Properties (Sensitive values masked)</h3><pre>{\n${lines.join(',\n')}\n}</pre>${note}`;
  $('modal').classList.add('show')}
 function close(){$('modal').classList.remove('show')}
-function go(v){const a=v==='agent';$('vAgent').classList.toggle('on',a);$('vReport').classList.toggle('on',!a);$('tAgent').classList.toggle('on',a);$('tReport').classList.toggle('on',!a);
- $('mAgent').style.background=a?'#35aa00':'transparent';$('mAgent').style.color=a?'#fff':'#bdc4ca';$('mReport').style.background=a?'transparent':'#35aa00';$('mReport').style.color=a?'#bdc4ca':'#fff'}
-$('tAgent').onclick=()=>go('agent');$('tReport').onclick=()=>go('report');$('mAgent').onclick=()=>go('agent');$('mReport').onclick=()=>go('report');
+function go(v){const a=v==='agent',r=v==='report',g=v==='gloss';
+ $('vAgent').classList.toggle('on',a);$('vReport').classList.toggle('on',r);$('vGloss').classList.toggle('on',g);
+ $('tAgent').classList.toggle('on',a);$('tReport').classList.toggle('on',r);$('tGloss').classList.toggle('on',g);
+ $('mAgent').style.background=a?'#35aa00':'transparent';$('mAgent').style.color=a?'#fff':'#bdc4ca';$('mReport').style.background=r?'#35aa00':'transparent';$('mReport').style.color=r?'#fff':'#bdc4ca'}
+$('tAgent').onclick=()=>go('agent');$('tReport').onclick=()=>go('report');$('tGloss').onclick=()=>go('gloss');$('mAgent').onclick=()=>go('agent');$('mReport').onclick=()=>go('report');
 $('rdToggle').onchange=e=>document.body.classList.toggle('hide-rd',!e.target.checked);
 $('save').onclick=()=>{$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1500)};
 $('x').onclick=close;$('close').onclick=close;$('modal').onclick=e=>{if(e.target===$('modal'))close()};
