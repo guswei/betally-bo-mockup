@@ -36,15 +36,23 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
 <body>
 <div class="shell">
 <aside class="side"><div class="logo">◉ BET<b>ALLY</b></div>
+  <div id="menuAdmin">
   <div class="group active" data-go="agent">Agent-Setting　⌄</div><div class="item" id="mAgent">Agent Accounts</div>
   <div class="group active" data-go="report">System Report　⌄</div><div class="item" id="mReport" style="background:transparent;color:#bdc4ca">Marketing Event Delivery Report</div>
+  </div>
+  <div id="menuAg" style="display:none">
+  <div class="group">System Info</div><div class="group">Player Management　›</div>
+  <div class="group active">Report Management　⌄</div><div class="item" id="mReportAg">Marketing Event Delivery Report</div>
+  <div class="group">System Setting　›</div>
+  </div>
 </aside>
 <main class="main">
-<div class="top"><span>17:15, 27 Oct, 2026 · GMT+07:00</span><span>Admin</span></div>
+<div class="top"><span>17:15, 27 Oct, 2026 · GMT+07:00</span><span id="who">Admin</span></div>
 <div class="content">
   <div class="mockbar"><b>Mockup view：</b>
     <button class="tab on" id="tAgent">Admin BO · Agent Accounts › Edit</button>
     <button class="tab" id="tReport">Admin BO · Marketing Event Delivery Report</button>
+    <button class="tab" id="tReportAg">Agent BO · Marketing Event Delivery Report</button>
     <button class="tab" id="tGloss">名詞與欄位來源（RD 參考）</button>
     <label><input type="checkbox" id="rdToggle" checked> RD 註記</label>
     <span>此列只供驗收切換，不屬於正式 BO UI。</span></div>
@@ -83,6 +91,18 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
     <div class="card" style="padding:0;margin-top:10px"><div class="scroll"><table>
       <thead><tr><th>Sent Date</th><th>Prefix</th><th>Username</th><th>Provider</th><th>User Behavior</th><th>Provider Event</th><th>Status</th><th>Amount</th><th>Transaction ID</th><th>Details</th></tr></thead>
       <tbody id="rows"></tbody></table></div></div>
+  </section>
+
+  <!-- View 2b：Agent BO 的 Marketing Event Delivery Report -->
+  <section class="view-pane" id="vReportAg">
+    <h1>Marketing Event Delivery Report</h1>
+    <div style="color:#6b7280;font-size:13px">Agent view · AG001</div>
+    <div class="rd">Agent BO 版的篩選、欄位、匯出都不變（不顯示 Prefix 篩選）。後端只回傳登入 Agent 自己的資料，本例只有 AG001 的列。<br>
+      Agent BO 與 Admin BO 的 Details 顯示相同的新增欄位。<br>Agent BO 的 Details 同樣把 <code>client_ip_address</code> 顯示為 <code>***</code>。<br>
+      Agent BO 看不到 <code>Meta CAPI Customer Matching</code> 開關，只看得到開關為 <code>Enable</code> 時送出的新增欄位。</div>
+    <div class="card" style="padding:0;margin-top:10px"><div class="scroll"><table>
+      <thead><tr><th>Sent Date</th><th>Prefix</th><th>Username</th><th>Provider</th><th>User Behavior</th><th>Provider Event</th><th>Status</th><th>Amount</th><th>Transaction ID</th><th>Details</th></tr></thead>
+      <tbody id="rowsAg"></tbody></table></div></div>
   </section>
 
   <!-- View 3：名詞與欄位來源（RD 參考頁，不屬於正式 BO UI） -->
@@ -243,7 +263,9 @@ const data=[
 ];
 const NEW=['event_id','action_source','event_source_url','external_id','fbc','fbp','client_ip_address','client_user_agent','currency','value'];
 function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
-function render(){$('rows').innerHTML=data.map((r,i)=>`<tr><td>${r.date}</td><td><b>${r.prefix}</b></td><td>${r.user}</td><td>Meta</td><td>${r.behavior}</td><td>${r.event}</td><td><span class="pill">Success</span></td><td class="num">${r.amount}</td><td class="num">${r.tx}</td><td><button class="view" data-i="${i}">◉ View</button></td></tr>`).join('');
+function row(r,i){return `<tr><td>${r.date}</td><td><b>${r.prefix}</b></td><td>${r.user}</td><td>Meta</td><td>${r.behavior}</td><td>${r.event}</td><td><span class="pill">Success</span></td><td class="num">${r.amount}</td><td class="num">${r.tx}</td><td><button class="view" data-i="${i}">◉ View</button></td></tr>`}
+function render(){$('rows').innerHTML=data.map(row).join('');
+ $('rowsAg').innerHTML=data.map((r,i)=>r.prefix==='AG001'?row(r,i):'').join(''); // Agent BO 只列自己 Agent 的資料
  document.querySelectorAll('.view').forEach(b=>b.onclick=()=>detail(+b.dataset.i))}
 function detail(i){const r=data[i];
  const lines=Object.entries(r.props).map(([k,v])=>{const t=`  "${k}": ${JSON.stringify(v)}`;return NEW.includes(k)?`<span class="nw">${esc(t)}</span>`:esc(t)});
@@ -257,11 +279,12 @@ function detail(i){const r=data[i];
  $('detail').innerHTML=`<h3>Request Properties (Sensitive values masked)</h3><pre>{\n${lines.join(',\n')}\n}</pre>${note}`;
  $('modal').classList.add('show')}
 function close(){$('modal').classList.remove('show')}
-function go(v){const a=v==='agent',r=v==='report',g=v==='gloss';
- $('vAgent').classList.toggle('on',a);$('vReport').classList.toggle('on',r);$('vGloss').classList.toggle('on',g);
- $('tAgent').classList.toggle('on',a);$('tReport').classList.toggle('on',r);$('tGloss').classList.toggle('on',g);
+function go(v){const a=v==='agent',r=v==='report',ra=v==='reportAg',g=v==='gloss';
+ $('vAgent').classList.toggle('on',a);$('vReport').classList.toggle('on',r);$('vReportAg').classList.toggle('on',ra);$('vGloss').classList.toggle('on',g);
+ $('tAgent').classList.toggle('on',a);$('tReport').classList.toggle('on',r);$('tReportAg').classList.toggle('on',ra);$('tGloss').classList.toggle('on',g);
+ $('menuAdmin').style.display=ra?'none':'';$('menuAg').style.display=ra?'':'none';$('who').textContent=ra?'AG001':'Admin';
  $('mAgent').style.background=a?'#35aa00':'transparent';$('mAgent').style.color=a?'#fff':'#bdc4ca';$('mReport').style.background=r?'#35aa00':'transparent';$('mReport').style.color=r?'#fff':'#bdc4ca'}
-$('tAgent').onclick=()=>go('agent');$('tReport').onclick=()=>go('report');$('tGloss').onclick=()=>go('gloss');$('mAgent').onclick=()=>go('agent');$('mReport').onclick=()=>go('report');
+$('tAgent').onclick=()=>go('agent');$('tReport').onclick=()=>go('report');$('tReportAg').onclick=()=>go('reportAg');$('tGloss').onclick=()=>go('gloss');$('mAgent').onclick=()=>go('agent');$('mReport').onclick=()=>go('report');
 $('rdToggle').onchange=e=>document.body.classList.toggle('hide-rd',!e.target.checked);
 $('save').onclick=()=>{$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1500)};
 $('x').onclick=close;$('close').onclick=close;$('modal').onclick=e=>{if(e.target===$('modal'))close()};
