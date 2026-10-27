@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meta CAPI Customer Matching — Mockup</title>
+<style>
+:root{--green:#319b00;--green2:#c7e9cf;--dark:#20252a;--bg:#efefef;--line:#e0e4e7;--muted:#747d85;--note:#fff8d8;--noteb:#efd16b;--notec:#5c4700}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:13px Arial,sans-serif;color:#222}
+button,select{font:inherit}.shell{display:flex;min-height:100vh}.side{width:238px;background:var(--dark);color:#bdc4ca;padding:24px 12px;flex:none}
+.logo{font-size:20px;font-weight:900;color:#fff;margin:0 18px 30px}.logo b{color:#91c34a}.group{padding:13px 14px;font-weight:700;border-radius:7px;margin:3px 0;cursor:pointer}.group.active{color:#fff}.item{margin:2px 0 10px 18px;padding:12px 14px;border-radius:7px;background:#35aa00;color:#fff;font-weight:700}
+.main{flex:1;min-width:0}.top{height:58px;background:#f4f4f4;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-weight:700}
+.content{padding:18px}.mockbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:var(--note);border:1px solid var(--noteb);border-radius:6px;margin-bottom:12px;color:#745b00}
+.tab{border:1px solid #d5dbd5;background:#fff;border-radius:6px;padding:7px 12px;cursor:pointer}.tab.on{background:var(--green);color:#fff;border-color:var(--green)}
+h1{font-size:21px;margin:0 0 12px}.card{background:#fff;border-radius:6px;padding:18px;box-shadow:0 1px 2px #0000000d;margin-bottom:12px}
+.crumb{color:var(--muted);margin-bottom:8px}.sect{font-weight:700;font-size:15px;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:260px 1fr;gap:12px;align-items:start;padding:10px 0}.row label{font-weight:700;padding-top:8px}
+.row select{border:1px solid #d6dce0;border-radius:5px;padding:8px 10px;min-width:180px;background:#fff}
+.ghost{color:#aaa;font-style:italic;padding:10px 0}.pill-new{background:#e8f1ff;color:#1f4fae;border-radius:10px;padding:2px 7px;font-size:11px;font-weight:700;margin-left:6px}
+.btn{border:1px solid #d5dbd5;background:#fff;border-radius:6px;padding:9px 15px;cursor:pointer}.save{background:var(--green);color:#fff;border:0;font-weight:700;min-width:120px}
+.rd{background:var(--note);border:1px dashed var(--noteb);color:var(--notec);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.6;margin-top:6px}
+.rd b{color:#3d2f00}body.hide-rd .rd{display:none}
+.toast{position:fixed;right:18px;bottom:18px;background:#20252a;color:#fff;padding:10px 14px;border-radius:6px;display:none}.toast.show{display:block}
+table{border-collapse:collapse;width:100%;min-width:900px}th{background:var(--green2);color:#2d7445;padding:11px 12px;text-align:left;white-space:nowrap}td{padding:12px;border-bottom:1px solid #edf0f2;white-space:nowrap}.scroll{overflow:auto}
+.num{text-align:right;font-family:monospace}.pill{padding:4px 9px;border-radius:12px;font-size:11px;font-weight:700;background:#d9f6e2;color:#087a30}.view{border:1px solid #45a92c;color:#318b19;background:#fff;border-radius:5px;padding:5px 9px;cursor:pointer}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.box{background:#fff;border-radius:9px;width:min(720px,100%);max-height:90vh;overflow:auto}.mhead{background:var(--green);color:#fff;padding:15px 18px;display:flex;justify-content:space-between;font-weight:700}.mbody{padding:18px}.mbody h3{margin:0 0 8px}
+pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:auto;line-height:1.5;margin:0 0 14px}pre .nw{color:#8fc6ff}.mfoot{text-align:right;padding:13px 18px;border-top:1px solid var(--line)}
+.view-pane{display:none}.view-pane.on{display:block}
+@media(max-width:760px){.side{display:none}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side"><div class="logo">◉ BET<b>ALLY</b></div>
+  <div class="group active" data-go="agent">Agent-Setting　⌄</div><div class="item" id="mAgent">Agent Accounts</div>
+  <div class="group active" data-go="report">System Report　⌄</div><div class="item" id="mReport" style="background:transparent;color:#bdc4ca">Marketing Event Delivery Report</div>
+</aside>
+<main class="main">
+<div class="top"><span>17:15, 27 Oct, 2026 · GMT+07:00</span><span>Admin</span></div>
+<div class="content">
+  <div class="mockbar"><b>Mockup view：</b>
+    <button class="tab on" id="tAgent">Admin BO · Agent Accounts › Edit</button>
+    <button class="tab" id="tReport">Admin BO · Marketing Event Delivery Report</button>
+    <label><input type="checkbox" id="rdToggle" checked> RD 註記</label>
+    <span>此列只供驗收切換，不屬於正式 BO UI。</span></div>
+
+  <!-- View 1：Agent Accounts › Edit › System Config -->
+  <section class="view-pane on" id="vAgent">
+    <div class="crumb">Agent-Setting › Agent Accounts › Edit</div>
+    <h1>Edit Agent · <span id="agName">AG001</span></h1>
+    <div class="card">
+      <div class="sect">System Config</div>
+      <div class="ghost">⋯⋯ 既有 System Config 欄位（本圖省略）⋯⋯</div>
+      <div class="rd">本頁既有欄位未畫出，畫面只示意新增欄位。新增欄位放在 <b>System Config</b> 區塊內，位置由前端 RD 依既有排版決定。</div>
+      <div class="row">
+        <label for="capi">Meta CAPI Customer Matching<span class="pill-new">NEW</span></label>
+        <div>
+          <select id="capi"><option value="DENY">Deny</option><option value="ENABLE" selected>Enable</option></select>
+          <div class="rd">
+            <b>型別</b>：enum <code>Enable</code>／<code>Deny</code>，必填。<b>預設</b>：<code>Deny</code>（新建 Agent 與既有 Agent 上線時都是 <code>Deny</code>）。本畫面示意 AG001 已改成 <code>Enable</code>，與報表頁的示意資料一致。<br>
+            <b>層級</b>：每個 Agent 各自設定。<b>誰能改</b>：沿用本頁既有的編輯權限。<br>
+            Agent BO 不顯示此欄位。<br>Agent BO 帳號直接呼叫設定 API 修改此欄位時，後端不接受。<br>
+            <code>Enable</code>：sender 送出的 <code>Purchase</code>、<code>AddToCart</code>、<code>CompleteRegistration</code> 加比對參數；前台 Pixel 帶 <code>external_id</code>。<br>
+            <code>Deny</code>：sender 送出的事件與現況完全相同；前台 Pixel 不帶 <code>external_id</code>。<br>
+            兩個值下，前端都照常收集比對參數。<br>兩個值下，後端都照常保存比對參數。<br>改成 <code>Enable</code> 後，sender 之後送出的事件使用已保存的值。
+          </div>
+        </div>
+      </div>
+      <div class="ghost">⋯⋯ 既有 System Config 欄位（本圖省略）⋯⋯</div>
+      <div style="text-align:center;margin-top:12px"><button class="btn save" id="save">Save</button></div>
+    </div>
+  </section>
+
+  <!-- View 2：Marketing Event Delivery Report -->
+  <section class="view-pane" id="vReport">
+    <h1>Marketing Event Delivery Report</h1>
+    <div class="rd">本頁篩選、欄位、匯出都不變；只有 Meta <code>Purchase</code>、<code>AddToCart</code> 的 Details 多出新欄位。下列資料為示意：AG001 開關為 <code>Enable</code>，AG002 為 <code>Deny</code>。</div>
+    <div class="card" style="padding:0;margin-top:10px"><div class="scroll"><table>
+      <thead><tr><th>Sent Date</th><th>Prefix</th><th>Username</th><th>Provider</th><th>User Behavior</th><th>Provider Event</th><th>Status</th><th>Amount</th><th>Transaction ID</th><th>Details</th></tr></thead>
+      <tbody id="rows"></tbody></table></div></div>
+  </section>
+</div>
+</main>
+</div>
+
+<div class="modal" id="modal"><div class="box"><div class="mhead"><span>Event Delivery Details</span><button class="btn" id="x">✕</button></div><div class="mbody" id="detail"></div><div class="mfoot"><button class="btn save" id="close">Close</button></div></div></div>
+<div class="toast" id="toast">Saved.</div>
+
+<script>
+const $=id=>document.getElementById(id);
+// 示意資料：值皆為假資料
+const H3='6fe158d6ce513b111fa958f1cfa9537b7391792091058bf48e1169c7724bb4ac'; // demo_user03 的示意雜湊 ID
+const H='5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8';
+const UA='Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/129.0 Mobile Safari/537.36';
+const data=[
+ {date:'27/10/2026 15:42:18',prefix:'AG001',user:'demo_user01',behavior:'First Deposit',event:'Purchase',amount:'100.10',tx:'DEP261027000108',enabled:true,
+  props:{Username:'demo_user01',Amount:'100.10',Currency:'THB',Date:'2026-10-27 15:42:18',access_token:'***',
+   event_id:'ftd_DEP261027000108',action_source:'website',event_source_url:'https://gol7392.com/deposit',external_id:H,
+   fbc:'fb.1.1793070230123.AbC1',fbp:'fb.1.1793070100456.1234567890',client_ip_address:'***',client_user_agent:UA,currency:'THB',value:100.1}},
+ {date:'27/10/2026 15:36:40',prefix:'AG001',user:'demo_user03',behavior:'Deposit',event:'AddToCart',amount:'500.00',tx:'DEP261027000105',enabled:true,
+  props:{Username:'demo_user03',Amount:'500.00',Currency:'THB',Date:'2026-10-27 15:36:40',access_token:'***',
+   event_id:'dep_DEP261027000105',action_source:'website',event_source_url:'https://gol7392.com/deposit',external_id:H3,
+   fbp:'fb.1.1793069500789.9876543210',client_ip_address:'***',client_user_agent:UA,currency:'THB',value:500}},
+ {date:'27/10/2026 15:30:02',prefix:'AG002',user:'demo_user02',behavior:'Deposit',event:'AddToCart',amount:'250.00',tx:'DEP261027000102',enabled:false,
+  props:{Username:'demo_user02',Amount:'250.00',Currency:'THB',Date:'2026-10-27 15:30:02',access_token:'***'}}
+];
+const NEW=['event_id','action_source','event_source_url','external_id','fbc','fbp','client_ip_address','client_user_agent','currency','value'];
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function render(){$('rows').innerHTML=data.map((r,i)=>`<tr><td>${r.date}</td><td><b>${r.prefix}</b></td><td>${r.user}</td><td>Meta</td><td>${r.behavior}</td><td>${r.event}</td><td><span class="pill">Success</span></td><td class="num">${r.amount}</td><td class="num">${r.tx}</td><td><button class="view" data-i="${i}">◉ View</button></td></tr>`).join('');
+ document.querySelectorAll('.view').forEach(b=>b.onclick=()=>detail(+b.dataset.i))}
+function detail(i){const r=data[i];
+ const lines=Object.entries(r.props).map(([k,v])=>{const t=`  "${k}": ${JSON.stringify(v)}`;return NEW.includes(k)?`<span class="nw">${esc(t)}</span>`:esc(t)});
+ const note=r.enabled?
+  `<div class="rd">藍字是本案新增欄位（示意用色，正式畫面照既有樣式顯示，不另上色）。<br>
+   <b>client_ip_address</b>：後端加進遮罩清單，一律顯示 <code>***</code>；送給 Meta 的值是原值。<br>
+   <b>external_id</b>：顯示雜湊 ID（玩家內部 ID 的 SHA-256 小寫 16 進位字串）。<b>fbc</b>、<b>fbp</b>、<b>client_user_agent</b>、<b>event_source_url</b> 顯示原值，不可雜湊。<br>
+   <b>value</b>：由 <code>DECIMAL(18,2)</code> 的入款金額轉成 JSON 數字，不經 float；這筆入款 ${r.amount}，送出 <code>${r.props.value}</code>。<br>
+   存款單與玩家資料都沒有某個值時，sender 不帶該欄位，Details 也不顯示${r.props.fbc?'':'（這筆沒有 <code>fbc</code>）'}。</div>`:
+  `<div class="rd">AG002 開關為 <code>Deny</code>：sender 送出的事件與現況完全相同，Details 不出現新欄位。</div>`;
+ $('detail').innerHTML=`<h3>Request Properties (Sensitive values masked)</h3><pre>{\n${lines.join(',\n')}\n}</pre>${note}`;
+ $('modal').classList.add('show')}
+function close(){$('modal').classList.remove('show')}
+function go(v){const a=v==='agent';$('vAgent').classList.toggle('on',a);$('vReport').classList.toggle('on',!a);$('tAgent').classList.toggle('on',a);$('tReport').classList.toggle('on',!a);
+ $('mAgent').style.background=a?'#35aa00':'transparent';$('mAgent').style.color=a?'#fff':'#bdc4ca';$('mReport').style.background=a?'transparent':'#35aa00';$('mReport').style.color=a?'#bdc4ca':'#fff'}
+$('tAgent').onclick=()=>go('agent');$('tReport').onclick=()=>go('report');$('mAgent').onclick=()=>go('agent');$('mReport').onclick=()=>go('report');
+$('rdToggle').onchange=e=>document.body.classList.toggle('hide-rd',!e.target.checked);
+$('save').onclick=()=>{$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1500)};
+$('x').onclick=close;$('close').onclick=close;$('modal').onclick=e=>{if(e.target===$('modal'))close()};
+render();
+</script>
+</body>
+</html>
