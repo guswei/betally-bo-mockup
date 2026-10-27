@@ -1,6 +1,6 @@
 # PRD：Meta CAPI 事件加帶比對參數（BA032）
 
-**版本**：v1.0（2026-10-27）　**類型**：功能變更　**負責**：PM
+**版本**：v1.1（2026-10-27）　**類型**：功能變更　**負責**：PM
 **Mockup**：[mockup](https://guswei.github.io/betally-bo-mockup/meta-capi-match-params/mockup.html)
 **相關**：[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/meta-capi-match-params/meta_capi_match_params_spec.md)
 
@@ -14,7 +14,7 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 
 | # | 變更 (FR) | 說明 | 負責端 |
 |---|---|---|---|
-| FR-1 | Agent 層級開關 | Admin BO 新增 `Meta CAPI Customer Matching`，值 `Enable`／`Deny`，預設 `Deny` | 後端（API）；畫面待技術主管指派 |
+| FR-1 | Agent 層級開關 | Admin BO 新增 `Meta CAPI Customer Matching`，值 `Enable`／`Deny`，預設 `Deny` | 後端（API） |
 | FR-2 | 前台取得比對參數 | 落地時取得 `fbc`、`fbp`，存在瀏覽器 7 天；註冊、登入、發起存款時帶給後端 | 前端（Web/H5） |
 | FR-3 | 後端保存比對參數 | 註冊與登入時更新玩家資料；發起存款時記在存款單；IP 與 UA 由後端讀 request | 後端（API） |
 | FR-4 | `Purchase`、`AddToCart` 加欄位 | 開關 `Enable` 時加 `event_id`、`action_source`、`event_source_url`、`user_data`、`custom_data.currency`／`value` | 後端（API） |
@@ -174,7 +174,8 @@ flowchart TD
 | ID | 內容 |
 |---|---|
 | ASM-1 | 前端的 `fbp` 只來自 `_fbp` cookie 或保存期限內的副本。兩者都沒有時，前端不帶 `meta_fbp`。sender 照取值順序改用玩家資料的 `fbp`；存款單與玩家資料都沒有時，事件不帶 `fbp`，照常送出。 |
-| ASM-2 | FR-8 tracker link 轉址與 FR-1 的 Admin BO 畫面，負責端由技術主管指派。 |
+| ASM-2 | FR-8 tracker link 轉址的負責端由技術主管指派。 |
+| ASM-3 | 本案的落地、註冊、登入、發起存款頁面都在 `gol7392.com` 同一個 origin。`localStorage` 的 `meta_match` 依 origin 分開保存。前端在 `gol7392.com` 讀不到 `cin4.xyz` 與 tracker link 網域上的 cookie 與 `localStorage`。前端只能經由網址上的 `fbclid` 取得 `cin4.xyz` 帶來的廣告點擊（FR-8）。 |
 | CST-1 | 只處理 Web／H5 發起的註冊與存款；App 事件維持現況。 |
 | CST-2 | 不送 `em`、`ph`；不移除明文 `Username` 自訂參數。 |
 | CST-3 | 驗收只核對事件 payload，不核對 Ads Manager 的歸因成效。 |

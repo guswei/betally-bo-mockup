@@ -66,7 +66,7 @@ Agent BO 帳號直接呼叫設定 API 修改這個開關時，後端也不接受
 
 - **後端（API）**：Agent 設定新增開關欄位，預設 `Deny`。
 - **後端（API）**：玩家資料 API 回傳 `meta_capi_enabled`（見 7.2）。
-- **待技術主管指派**：Admin BO 畫面新增開關。畫面見 mockup。
+- **後端（API）**：Admin BO 畫面新增開關。畫面見 mockup。
 
 ## 4. 前端（Web/H5）：取得與送出比對參數
 
@@ -92,6 +92,18 @@ Agent BO 帳號直接呼叫設定 API 修改這個開關時，後端也不接受
 - 前端讀寫 `localStorage` 時攔截例外，頁面照常運作。
 - `localStorage` 無法讀寫時，前端把比對參數存在本頁記憶體。本頁發出的 request 照 4.3 帶上這些值。
 - 本頁記憶體裡的值在頁面關閉或換頁後消失。
+
+### 4.1.1 網域範圍
+
+- 本案的落地、註冊、登入、發起存款頁面都在 `gol7392.com` 同一個 origin。
+- 前端只在 `gol7392.com` 讀寫 `meta_match`、`_fbc` cookie、`_fbp` cookie。
+- 前端在 `gol7392.com` 讀不到 `cin4.xyz` 與 tracker link 網域上的 cookie。
+- 前端在 `gol7392.com` 讀不到 `cin4.xyz` 與 tracker link 網域上的 `localStorage`。
+- 本案經由網址上的 `fbclid`，把廣告點擊從 `cin4.xyz` 帶到 `gol7392.com`。轉址的要求見第 8 節。
+- 轉址後網址沒有 `fbclid` 時，前端照表 A 的 A4 到 A7 處理。
+- 前端的 `fbp` 照表 B 取得：來自 `gol7392.com` 的 `_fbp` cookie，或保存期限內的副本。
+- `localStorage` 依 origin 分開保存。
+- scheme、主機名稱、port 任一項不同時，前端讀不到另一個 origin 的 `meta_match`。
 
 ### 4.2 每次載入頁面時的處理步驟
 
@@ -341,7 +353,6 @@ request 沒有某個值時，存款單的該欄位為 NULL。
 | 項目 | 要求 |
 |---|---|
 | tracker link 轉址 | 玩家經 PWA `cin4.xyz` → tracker link → `gol7392.com` 時，負責轉址的服務在每一次轉址都保留網址上的 `fbclid`，不改動其值 |
-| Admin BO 開關畫面 | 依 3.1 新增開關，畫面見 mockup |
 
 ## 9. 範圍外
 

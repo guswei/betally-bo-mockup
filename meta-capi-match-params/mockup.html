@@ -64,7 +64,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
     <div class="card">
       <div class="sect">System Config</div>
       <div class="ghost">⋯⋯ 既有 System Config 欄位（本圖省略）⋯⋯</div>
-      <div class="rd">本頁既有欄位未畫出，畫面只示意新增欄位。新增欄位放在 <b>System Config</b> 區塊內，位置由前端 RD 依既有排版決定。</div>
+      <div class="rd">本頁既有欄位未畫出，畫面只示意新增欄位。新增欄位放在 <b>System Config</b> 區塊內，位置由後端（API）RD 依既有排版決定。</div>
       <div class="row">
         <label for="capi">Meta CAPI Customer Matching<span class="pill-new">NEW</span></label>
         <div>
@@ -139,7 +139,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
       <div class="scroll"><table class="gt">
         <thead><tr><th>欄位</th><th>怎麼取得</th><th>負責端</th></tr></thead>
         <tbody>
-          <tr><td><code>Meta CAPI Customer Matching</code></td><td>Admin 在 <code>Agent Accounts › Edit › System Config</code> 選 <code>Enable</code> 或 <code>Deny</code>。預設 <code>Deny</code></td><td>後端（API）存設定；畫面待技術主管指派</td></tr>
+          <tr><td><code>Meta CAPI Customer Matching</code></td><td>Admin 在 <code>Agent Accounts › Edit › System Config</code> 選 <code>Enable</code> 或 <code>Deny</code>。預設 <code>Deny</code></td><td>後端（API）</td></tr>
         </tbody></table></div>
 
       <h3 class="gh">2.2 前端送給後端的 request 欄位</h3>
@@ -174,7 +174,14 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
         網址的 <code>fbclid</code> 是空字串時，前端當成網址沒有 <code>fbclid</code>。<br>
         前端照原樣使用 <code>fbclid</code>，不改大小寫，除了 URL decode 不做其他處理。<br>
         前端不自行產生 <code>fbp</code>。<br>
-        <code>localStorage</code> 無法讀寫時，前端把結果存在本頁記憶體。
+        <code>localStorage</code> 無法讀寫時，前端把結果存在本頁記憶體。<br>
+        本案的落地、註冊、登入、發起存款頁面都在 <code>gol7392.com</code> 同一個 origin。<br>
+        前端只在 <code>gol7392.com</code> 讀寫 <code>meta_match</code>、<code>_fbc</code>、<code>_fbp</code>。<br>
+        前端在 <code>gol7392.com</code> 讀不到 <code>cin4.xyz</code> 與 tracker link 網域上的 cookie 與 <code>localStorage</code>。<br>
+        本案經由網址上的 <code>fbclid</code>，把廣告點擊從 <code>cin4.xyz</code> 帶到 <code>gol7392.com</code>。<br>
+        每次轉址時，負責轉址的服務保留網址上的 <code>fbclid</code> 原值。<br>
+        轉址後網址沒有 <code>fbclid</code> 時，前端照表 A 的 A4 到 A7 處理。<br>
+        <code>localStorage</code> 依 origin 分開保存。scheme、主機名稱、port 任一項不同時，前端讀不到另一個 origin 的 <code>meta_match</code>。
       </div>
       <p class="gp"><b>表 A：<code>fbc</code></b>。前端由上往下比對，用第一個符合的列。網址有 <code>fbclid</code> 時，前端不看 <code>_fbc</code> cookie。</p>
       <div class="scroll"><table class="gt ab">
