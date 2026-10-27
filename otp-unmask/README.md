@@ -1,8 +1,9 @@
 # OTP Verify Code 解遮罩
 
-GCP Agent BO：`OTP Report` 的 `Verify Code` 欄從全遮罩改為「符合資格時可逐列解遮罩」。
+GCP Agent BO：`OTP Report` 的 `Verify Code` 欄從全遮罩改為「有權限的操作者可逐列解遮罩忘記密碼流程的驗證碼」。
 
 - [Mockup](https://guswei.github.io/betally-bo-mockup/otp-unmask/mockup.html)
+- [操作示範影片（約 1 分鐘）](https://guswei.github.io/betally-bo-mockup/otp-unmask/otp_unmask_demo.mp4)
 - [PRD](https://github.com/guswei/betally-bo-mockup/blob/main/otp-unmask/otp_unmask_PRD.md)（開單用的 Textile 版以 Redmine 為準）
 - [RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/otp-unmask/otp_unmask_spec.md)
 - [Mermaid source](https://github.com/guswei/betally-bo-mockup/blob/main/otp-unmask/otp_unmask_flow.mmd)

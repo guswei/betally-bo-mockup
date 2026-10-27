@@ -29,7 +29,6 @@
   body.shownotes .rd-note{display:block}
   .rd-note b{color:#7a5d00}
   .rd-note code{background:#fff3c4;padding:0 4px;border-radius:3px;font-size:11px}
-  .pill-new{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--new);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
   .demo-tag{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#6b46c1;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
 
   /* ===== BO theme ===== */
@@ -63,9 +62,7 @@
   .masked{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:2px;color:#6d757d}
   .plain{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:2px;font-weight:700;color:#14532d;background:#dcfce7;border:1px solid #86c7a0;border-radius:4px;padding:1px 7px}
   .eye{background:#fff;border:1px solid #c3ccd5;border-radius:5px;width:26px;height:24px;line-height:1;cursor:pointer;font-size:13px;padding:0;display:inline-flex;align-items:center;justify-content:center}
-  .eye:hover:not(:disabled){background:#eef7f1;border-color:var(--bo-green)}
-  .eye:disabled{opacity:.4;cursor:not-allowed}
-  .hint{font-size:10.5px;color:var(--warn);margin-top:3px;white-space:normal;max-width:230px;line-height:1.45}
+  .eye:hover{background:#eef7f1;border-color:var(--bo-green)}
 
   .badge{display:inline-block;font-size:10.5px;font-weight:700;border-radius:4px;padding:2px 7px}
   .b-get{background:#e7edf3;color:#4a5761}
@@ -95,20 +92,14 @@
         <option value="denied">無此權限</option>
       </select>
     </div>
-    <div class="rolebox">
-      <span>伺服器時間<span class="demo-tag">DEMO</span></span>
-      <select id="skewSel">
-        <option value="0" selected>與電腦一致</option>
-        <option value="15000">比電腦慢 15 秒</option>
-      </select>
-    </div>
     <div class="spacer"></div>
   </div>
 
   <div class="rd-note">
     <b>本次變更範圍</b>：只有 <code>Verify Code</code> 欄新增逐列解遮罩。<code>Mobile or Email</code> 欄現況即為明文，<b>不在本次範圍</b>，不要順手改。<br>
     <b>只做 <code>FORGET_PASSWORD</code></b>：其他 <code>Verify Proc</code> 的列不得出現眼睛圖示，後端也不受理。<br>
-    <b>只開放已失效的碼</b>：<code>now &gt; expiry</code>（已過期）或 <code>verify_time</code> 有值（已使用），才准解。仍有效的碼前端 disable、後端回 <code>409</code>。
+    <b>有效期內的碼也可以解</b>：是否過期、是否已使用都不影響資格。前端與後端都不得檢查 <code>Expiry</code> 或 <code>verify_time</code> 來擋解遮罩。風險靠兩道控管：權限節點決定誰看得到圖示；每一次解遮罩都寫審計。<br>
+    <b>點擊即解</b>：不要求填寫原因，也不顯示確認視窗。
   </div>
 
   <div class="bo">
@@ -145,18 +136,10 @@
         <div style="flex:1"></div>
       </div>
 
-      <div class="rd-note">
-        <b>「已使用」以 <code>verify_time</code> 有值為準</b>，不看 <code>verify_status</code>。<code>verify_time</code> 有值代表玩家已完成驗證，該碼不可能再被使用，判定與 <code>verify_status</code> 的 enum 值域無關。<br>
-        <code>Status</code> 下拉的選項沿用既有值域，本次不變更。此處的 <code>VERIFIED</code>／<code>EXPIRED</code> 為 demo 合成值。
-      </div>
 
       <div class="rd-note">
-        <b>仍有效時的倒數</b>：圖示下方的 <code>{N}</code> 是 <code>Expiry</code> 減目前時間的秒數，無條件進位到整秒。還沒晚於 <code>Expiry</code> 時最小顯示 1。前端每秒更新。目前時間晚於 <code>Expiry</code> 時，圖示改成可點擊，不需要重新查詢；等於 <code>Expiry</code> 時仍是 <code>disabled</code>，與後端判定相同。<br>
-        前端計算前，先把 <code>Expiry</code> 換算成與目前時間相同的時區基準。<br>
-        前端用操作者電腦的時間計算倒數。電腦時間與伺服器時間不同時，後端的判定結果為準。<br>
-        <b>前端已可點擊、後端仍回 <code>409 OTP_STILL_VALID</code></b>（電腦時間比伺服器快）：前端以 toast 顯示 <code>The code is still valid. Try again later.</code>。該列 <code>Verify Code</code> 維持 <code>XXXXXX</code>。眼睛圖示設為 <code>disabled</code>。圖示下方只顯示 <code>The code can be revealed after it expires or is used.</code>，不顯示秒數。操作者執行查詢、重設篩選或換頁後，前端依新的列表資料重新判定該列。<br>
-        分頁<span class="demo-tag">DEMO</span>：合成資料只有一頁，改頁碼或每頁筆數只示範「換頁後回到遮罩並重新判定」，不切換資料。<br>
-        上方「伺服器時間」切到「比電腦慢 15 秒」，等 <code>IDRplayer21</code> 那列圖示變成可點擊後點擊，可以看到這個情況。
+        <code>Status</code> 下拉的選項沿用既有值域，本次不變更。此處的 <code>VERIFIED</code>／<code>EXPIRED</code> 為 demo 合成值。<br>
+        分頁<span class="demo-tag">DEMO</span>：合成資料只有一頁，改頁碼或每頁筆數只示範「換頁後回到遮罩」，不切換資料。
       </div>
 
       <div class="searchbar">
@@ -194,7 +177,7 @@
     <ul style="margin:6px 0 0;padding-left:18px">
       <li>列表 API 的回應<b>不得</b>包含明碼，不論操作者權限。否則開發者工具就能繞過遮罩。</li>
       <li>解遮罩走獨立 endpoint <code>POST /otp-report/{id}/reveal</code>，回單筆明碼。用 POST 不用 GET：這個操作會寫審計。回應標頭加 <code>Cache-Control: no-store</code>，反向代理不得快取此端點。</li>
-      <li>後端一律重驗：權限 → <code>403</code>；OTP 仍有效 → <code>409 OTP_STILL_VALID</code>；非 <code>FORGET_PASSWORD</code> → <code>409 OTP_PROCESS_NOT_ELIGIBLE</code>；不存在 → <code>404</code>。</li>
+      <li>後端一律重驗：權限不足 → <code>403 FORBIDDEN</code>；非 <code>FORGET_PASSWORD</code> → <code>409 OTP_PROCESS_NOT_ELIGIBLE</code>；不存在 → <code>404 OTP_RECORD_NOT_FOUND</code>。判定順序：權限 → 記錄存在 → <code>Verify Proc</code>。</li>
     </ul>
   </div>
 </div>
@@ -225,18 +208,10 @@ const rows = [
 ];
 
 // ===== 規則 =====
-// 權限：由後台權限節點控制，不綁 4-tier 層級（沿用綁定帳號啟停用的決議）
+// 權限：由後台權限節點控制，不綁 4-tier 層級
 const canReveal = p => p === 'granted';
-// 已使用：以 verify_time 有值為準，不依賴 verify_status 的 enum 值域
-const isExpired = r => Date.now() > r.expiry;
-const isUsed    = r => !!r.vtime;
-// 只有 FORGET_PASSWORD 且已失效（過期或已使用）才可解遮罩
-const eligible  = r => r.proc === 'FORGET_PASSWORD' && (isExpired(r) || isUsed(r));
-
+// 只有 FORGET_PASSWORD 可解遮罩；是否過期、是否已使用都不影響資格（判斷寫在 codeCell 與 toggle）
 let revealed = {};   // id -> true
-let held = {};       // id -> true：後端回 409 OTP_STILL_VALID 後鎖住；查詢、重設篩選或換頁後重新判定
-// demo：模擬伺服器時間比電腦慢，後端以伺服器時間判定是否過期
-const serverEligible = r => r.proc === 'FORGET_PASSWORD' && (isUsed(r) || Date.now() - Number(document.getElementById('skewSel').value) > r.expiry);
 let auditLog = [];   // demo 用，實際寫後端
 
 function badge(s){
@@ -251,23 +226,12 @@ function codeCell(r){
     ? '<span class="plain" data-code="'+r.id+'">'+r.code+'</span>'
     : '<span class="masked" data-mask="'+r.id+'">XXXXXX</span>';
 
-  // 檢查順序固定為 權限 → Verify Proc → 有效性，與 spec 第 2 節一致
+  // 檢查順序固定為 權限 → Verify Proc，與 spec 第 2 節一致
   // 權限不足：隱藏，不是 disable（BO 既有慣例）
   if (!canReveal(perm)) return '<div class="codecell"><span class="masked" data-mask="'+r.id+'">XXXXXX</span></div>';
   // 非 FORGET_PASSWORD：不出現眼睛圖示（範圍外）
   if (r.proc !== 'FORGET_PASSWORD') return '<div class="codecell"><span class="masked" data-mask="'+r.id+'">XXXXXX</span></div>';
 
-  if (held[r.id]){
-    return '<div class="codecell">'+val+
-      '<button class="eye" id="eye-'+r.id+'" disabled title="Code is still valid">👁</button></div>'+
-      '<div class="hint">The code can be revealed after it expires or is used.</div>';
-  }
-  if (!eligible(r)){
-    const left = Math.max(1, Math.ceil((r.expiry - Date.now())/1000));   // 還沒晚於 Expiry 時最小顯示 1
-    return '<div class="codecell">'+val+
-      '<button class="eye" id="eye-'+r.id+'" disabled title="Code is still valid">👁</button></div>'+
-      '<div class="hint">Still valid for '+left+'s. The code can be revealed after it expires or is used.</div>';
-  }
   return '<div class="codecell">'+val+
     '<button class="eye" id="eye-'+r.id+'" onclick="toggle(\''+r.id+'\')" title="'+(shown?'Hide code':'Reveal code')+'">'+(shown?'🙈':'👁')+'</button></div>';
 }
@@ -297,13 +261,10 @@ function toggle(id){
   // 後端會重驗一次；前端這層只是先擋
   if (!canReveal(document.getElementById('permSel').value)){ toast('403 FORBIDDEN'); return; }
   if (r.proc !== 'FORGET_PASSWORD'){ toast('409 OTP_PROCESS_NOT_ELIGIBLE'); return; }
-  if (!eligible(r)){ toast('409 OTP_STILL_VALID'); return; }   // 只有用開發者工具點 disabled 圖示才會到這行；正常操作不會出現
 
   if (revealed[id]){
     delete revealed[id];           // 重新遮罩不寫審計，不更新計數
   } else {
-    // 模擬呼叫 reveal API：後端回 409 OTP_STILL_VALID 時一律走 spec 3.1.2（toast＋鎖住該列）
-    if (!serverEligible(r)){ held[id] = true; toast('The code is still valid. Try again later.'); render(); return; }
     revealed[id] = true;
     auditLog.push({at:fmt(Date.now()), otp:id, user:r.user});
     toast('Code revealed. This action has been logged.');
@@ -312,15 +273,15 @@ function toggle(id){
   render();
 }
 
-function doSearch(){ revealed = {}; held = {}; render(); toast('Search complete. Revealed codes are masked again.'); }
+function doSearch(){ revealed = {}; render(); toast('Search complete. Revealed codes are masked again.'); }
 function doReset(){
   ['f_data','f_user','f_time'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('f_type').value='All';
   document.getElementById('f_status').value='All';
   document.getElementById('f_proc').value='FORGET_PASSWORD';
-  revealed = {}; held = {}; render();
+  revealed = {}; render();
 }
-function doPage(){ revealed = {}; held = {}; render(); toast('Revealed codes are masked again.'); }
+function doPage(){ revealed = {}; render(); toast('Revealed codes are masked again.'); }
 function exportCsv(){ toast('CSV exported. Verify Code is always masked.'); }
 
 let tid=null;
@@ -331,8 +292,6 @@ function toast(m){
 
 function renderAudit(){ document.getElementById('auditcnt').textContent = auditLog.length; }
 render(); renderAudit();
-// 倒數：OTP003 過期後眼睛圖示自動變為可用，示範「有效→失效」的分界
-setInterval(()=>{ if (rows.some(r=>r.proc==='FORGET_PASSWORD' && !isUsed(r) && Math.abs(Date.now()-r.expiry)<600000)) render(); }, 1000);
 </script>
 </body>
 </html>
