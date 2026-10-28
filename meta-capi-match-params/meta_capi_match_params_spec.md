@@ -30,7 +30,9 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 | 存款單 | 玩家發起存款時後端建立的紀錄 |
 | 雜湊 ID | 玩家內部 ID 以 SHA-256 雜湊後的小寫 16 進位字串 |
 | sender | 後端送出 Meta Conversions API 事件的程式 |
-| 落地 | 玩家從外部連結進入 `gol7392.com` 的第一個頁面 |
+| 前台網域 | BA032 玩家使用的前台網站網域。BA032 有多個前台網域，而且會變動 |
+| PWA 網域 | 玩家安裝的 PWA 所在網域 |
+| 落地 | 玩家從外部連結進入前台網域的第一個頁面 |
 
 ## 3. 開關
 
@@ -95,19 +97,21 @@ Agent BO 帳號直接呼叫設定 API 修改這個開關時，後端也不接受
 
 ### 4.1.1 網域範圍
 
-- 本案的落地、註冊、登入、發起存款頁面都在 `gol7392.com` 同一個 origin。
-- 前端只在 `gol7392.com` 讀寫 `meta_match`、`_fbc` cookie、`_fbp` cookie。
-- 前端在 `gol7392.com` 讀不到 `cin4.xyz` 與 tracker link 網域上的 cookie。
-- 前端在 `gol7392.com` 讀不到 `cin4.xyz` 與 tracker link 網域上的 `localStorage`。
-- 本案經由網址上的 `fbclid`，把廣告點擊從 `cin4.xyz` 帶到 `gol7392.com`。轉址的要求見第 8 節。
+- 前端不寫死前台網域。新增或更換前台網域時，前端不需要改程式。
+- 前端在當下頁面的 origin 讀寫 `meta_match`。
+- 前端從當下頁面的 `document.cookie` 讀取 `_fbc` cookie 與 `_fbp` cookie。
+- 前端不另外讀取 PWA 網域與 tracker link 網域上的 cookie。
+- 前端在前台網域讀不到 PWA 網域與 tracker link 網域上的 `localStorage`。
+- 本案經由網址上的 `fbclid`，把廣告點擊從 PWA 網域帶到前台網域。轉址的要求見第 8 節。
 - 轉址後網址沒有 `fbclid` 時，前端照表 A 的 A4 到 A7 處理。
-- 前端的 `fbp` 照表 B 取得：來自 `gol7392.com` 的 `_fbp` cookie，或保存期限內的副本。
+- 前端的 `fbp` 照表 B 取得：來自當下頁面的 `_fbp` cookie，或保存期限內的副本。
 - `localStorage` 依 origin 分開保存。
 - scheme、主機名稱、port 任一項不同時，前端讀不到另一個 origin 的 `meta_match`。
+- 玩家換到另一個 origin 時，前端讀取新 origin 的 `meta_match`，再照 4.2 重新決定 `fbc`、`fbp`。
 
 ### 4.2 每次載入頁面時的處理步驟
 
-玩家每次載入 `gol7392.com` 的任一頁面時，前端照下列順序執行：
+玩家每次載入前台網域的任一頁面時，前端照下列順序執行：
 
 1. 前端讀取 `meta_match`。
 2. 前端用 `URLSearchParams` 讀取目前網址的 `fbclid`。`fbclid` 是空字串時，前端當成網址沒有 `fbclid`。
@@ -352,7 +356,7 @@ request 沒有某個值時，存款單的該欄位為 NULL。
 
 | 項目 | 要求 |
 |---|---|
-| tracker link 轉址 | 玩家經 PWA `cin4.xyz` → tracker link → `gol7392.com` 時，負責轉址的服務在每一次轉址都保留網址上的 `fbclid`，不改動其值 |
+| tracker link 轉址 | 玩家經 PWA 網域 → tracker link → 前台網域時，負責轉址的服務在每一次轉址都保留網址上的 `fbclid`，不改動其值 |
 
 ## 9. 範圍外
 

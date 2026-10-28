@@ -1,6 +1,6 @@
 # PRD：Meta CAPI 事件加帶比對參數（BA032）
 
-**版本**：v1.1（2026-10-27）　**類型**：功能變更　**負責**：PM
+**版本**：v1.2（2026-10-28）　**類型**：功能變更　**負責**：PM
 **Mockup**：[mockup](https://guswei.github.io/betally-bo-mockup/meta-capi-match-params/mockup.html)
 **相關**：[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/meta-capi-match-params/meta_capi_match_params_spec.md)
 
@@ -21,7 +21,7 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 | FR-5 | `CompleteRegistration` 加欄位 | 開關 `Enable` 時，註冊成功送出的事件加 `event_id`、`action_source`、`event_source_url`、`user_data`；不加 `custom_data` | 後端（API） |
 | FR-6 | Pixel 帶 `external_id` | 開關 `Enable` 且玩家已登入時，Pixel 帶後端回傳的雜湊 ID；註冊成功時，Pixel 先帶註冊 API 回傳的雜湊 ID，再把註冊 API 回傳的 `meta_registration_event_id` 帶入 Pixel `CompleteRegistration` 的 `eventID` 去重 | 前端（Web/H5） |
 | FR-7 | 報表 Details 顯示新欄位 | `Marketing Event Delivery Report` 的 Details 顯示新欄位，`client_ip_address` 遮罩為 `***` | 後端（API） |
-| FR-8 | 轉址保留 `fbclid` | PWA `cin4.xyz` → tracker link → `gol7392.com` 每一次轉址都保留 `fbclid` | 待技術主管指派 |
+| FR-8 | 轉址保留 `fbclid` | PWA 網域 → tracker link → 前台網域，每一次轉址都保留 `fbclid` | 待技術主管指派 |
 
 範圍：Admin BO Agent 設定、Web／H5 前台、註冊／登入／存款 API、Meta sender、`Marketing Event Delivery Report` 的 Details。OUT：App 事件、`em`／`ph`、移除明文 `Username`、補送舊事件、Adjust 與 CleverTap、Meta 後台設定、Ads Manager 歸因成效。
 
@@ -136,7 +136,7 @@ flowchart TD
 | AC-26 | FR-6 | 開關 `Enable` 時，註冊成功送出的 Pixel `CompleteRegistration`，`eventID` 等於後端事件的 `event_id`。 |
 | AC-27 | FR-7 | 開關 `Enable` 的 Agent，Details 的 request properties 顯示該事件送出的 `event_id`、`action_source`、`event_source_url`、`external_id`、`fbc`、`fbp`、`client_user_agent`、`currency`、`value`。 |
 | AC-28（負向） | FR-7 | Details 的 `client_ip_address` **不得**顯示原值，一律顯示 `***`。 |
-| AC-29 | FR-8 | 以 `cin4.xyz?fbclid=AbC1` 進入並經 tracker link 轉址後，`gol7392.com` 的網址帶 `fbclid=AbC1`。 |
+| AC-29 | FR-8 | 從 PWA 網域帶 `?fbclid=AbC1` 進入並經 tracker link 轉址後，前台網域的網址帶 `fbclid=AbC1`。 |
 | AC-30（負向） | FR-1 | Agent BO 帳號直接呼叫設定 API 修改開關時，後端**不得**改變開關的值。 |
 | AC-31（負向） | FR-2 | 已保存 `fbc` 為 `fb.1.5000.NewB` 且 `ts` 未超過 7 天、`_fbc` cookie 為 `fb.1.2000.OldA` 時，前端**不得**把 `fbc` 改成 cookie 的值。 |
 | AC-32（負向） | FR-2 | 網址為 `?fbclid=`（空字串）時，前端**不得**把 `fbc` 設為以 `fb.1.<毫秒>.` 結尾、沒有 `fbclid` 的值。 |
@@ -175,7 +175,8 @@ flowchart TD
 |---|---|
 | ASM-1 | 前端的 `fbp` 只來自 `_fbp` cookie 或保存期限內的副本。兩者都沒有時，前端不帶 `meta_fbp`。sender 照取值順序改用玩家資料的 `fbp`；存款單與玩家資料都沒有時，事件不帶 `fbp`，照常送出。 |
 | ASM-2 | FR-8 tracker link 轉址的負責端由技術主管指派。 |
-| ASM-3 | 本案的落地、註冊、登入、發起存款頁面都在 `gol7392.com` 同一個 origin。`localStorage` 的 `meta_match` 依 origin 分開保存。前端在 `gol7392.com` 讀不到 `cin4.xyz` 與 tracker link 網域上的 cookie 與 `localStorage`。前端只能經由網址上的 `fbclid` 取得 `cin4.xyz` 帶來的廣告點擊（FR-8）。 |
+| ASM-3 | BA032 有多個前台網域，而且會變動。前端不寫死前台網域。前端在當下頁面的 origin 讀寫 `meta_match`。`localStorage` 依 origin 分開保存，前端讀不到 PWA 網域與 tracker link 網域上的 `localStorage`。本案經由轉址保留網址上的 `fbclid`，把 PWA 網域的廣告點擊帶到前台網域（FR-8）。 |
+| ASM-4 | 假設玩家從落地到註冊、登入、發起存款都在同一個 origin。玩家換到另一個 origin 時，前端讀不到原 origin 的 `meta_match`，改讀新 origin 的 `meta_match`，照表 A、表 B 處理。新 origin 沒有未過期的 `fbc`、網址沒有 `fbclid`、當下頁面也讀不到 `_fbc` cookie 時，前端這次取不到 `fbc`，request 不帶 `meta_fbc`。 |
 | CST-1 | 只處理 Web／H5 發起的註冊與存款；App 事件維持現況。 |
 | CST-2 | 不送 `em`、`ph`；不移除明文 `Username` 自訂參數。 |
 | CST-3 | 驗收只核對事件 payload，不核對 Ads Manager 的歸因成效。 |

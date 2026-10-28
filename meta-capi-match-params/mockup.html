@@ -119,6 +119,8 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
         <tbody>
           <tr><td>Meta Pixel</td><td>裝在前台網頁的 Meta 追蹤程式碼</td><td>從瀏覽器把事件送給 Meta</td></tr>
           <tr><td>CAPI（Conversions API）</td><td>後端呼叫的 Meta API</td><td>從伺服器把事件送給 Meta</td></tr>
+          <tr><td>前台網域</td><td>BA032 玩家使用的前台網站網域，有多個且會變動</td><td>前端不寫死前台網域</td></tr>
+          <tr><td>PWA 網域</td><td>玩家安裝的 PWA 所在網域</td><td>廣告點擊經 tracker link 從這裡轉到前台網域</td></tr>
           <tr><td>sender</td><td>後端送出 CAPI 事件的程式</td><td>入款成功、註冊成功時組 payload 並送出</td></tr>
           <tr><td><code>fbclid</code></td><td>玩家點 Facebook 廣告時，Meta 加在網址上的參數，例如 <code>?fbclid=IwAR2xYz</code></td><td>代表一次廣告點擊</td></tr>
           <tr><td><code>fbc</code></td><td>由 <code>fbclid</code> 組成的字串，格式 <code>fb.1.&lt;建立毫秒&gt;.&lt;fbclid&gt;</code></td><td>Meta 用它把轉換對回廣告點擊</td></tr>
@@ -177,13 +179,16 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
         前端照原樣使用 <code>fbclid</code>，不改大小寫，除了 URL decode 不做其他處理。<br>
         前端不自行產生 <code>fbp</code>。<br>
         <code>localStorage</code> 無法讀寫時，前端把結果存在本頁記憶體。<br>
-        本案的落地、註冊、登入、發起存款頁面都在 <code>gol7392.com</code> 同一個 origin。<br>
-        前端只在 <code>gol7392.com</code> 讀寫 <code>meta_match</code>、<code>_fbc</code>、<code>_fbp</code>。<br>
-        前端在 <code>gol7392.com</code> 讀不到 <code>cin4.xyz</code> 與 tracker link 網域上的 cookie 與 <code>localStorage</code>。<br>
-        本案經由網址上的 <code>fbclid</code>，把廣告點擊從 <code>cin4.xyz</code> 帶到 <code>gol7392.com</code>。<br>
+        BA032 有多個前台網域，而且會變動。前端不寫死前台網域。<br>
+        前端在當下頁面的 origin 讀寫 <code>meta_match</code>。<br>
+        前端從當下頁面的 <code>document.cookie</code> 讀取 <code>_fbc</code>、<code>_fbp</code> cookie。<br>
+        前端不另外讀取 PWA 網域與 tracker link 網域上的 cookie。<br>
+        前端在前台網域讀不到 PWA 網域與 tracker link 網域上的 <code>localStorage</code>。<br>
+        本案經由網址上的 <code>fbclid</code>，把廣告點擊從 PWA 網域帶到前台網域。<br>
         每次轉址時，負責轉址的服務保留網址上的 <code>fbclid</code> 原值。<br>
         轉址後網址沒有 <code>fbclid</code> 時，前端照表 A 的 A4 到 A7 處理。<br>
-        <code>localStorage</code> 依 origin 分開保存。scheme、主機名稱、port 任一項不同時，前端讀不到另一個 origin 的 <code>meta_match</code>。
+        <code>localStorage</code> 依 origin 分開保存。scheme、主機名稱、port 任一項不同時，前端讀不到另一個 origin 的 <code>meta_match</code>。<br>
+        玩家換到另一個 origin 時，前端讀取新 origin 的 <code>meta_match</code>，再照表 A、表 B 重新決定 <code>fbc</code>、<code>fbp</code>。
       </div>
       <p class="gp"><b>表 A：<code>fbc</code></b>。前端由上往下比對，用第一個符合的列。網址有 <code>fbclid</code> 時，前端不看 <code>_fbc</code> cookie。</p>
       <div class="scroll"><table class="gt ab">
@@ -260,7 +265,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
           <tr><td>F2</td><td>某個參數沒有值時，前端寫入的 JSON 不包含該參數。</td></tr>
           <tr><td>F3</td><td>前端讀寫 <code>localStorage</code> 時攔截例外，頁面照常運作。</td></tr>
           <tr><td>F4</td><td><code>localStorage</code> 無法讀寫時，前端把比對參數存在本頁記憶體。<code>localStorage</code> 無法讀寫時，前端依第 3 區規則，在本頁的 request 帶上本頁記憶體中的值。</td></tr>
-          <tr><td>F5</td><td>前端只在 <code>gol7392.com</code> 讀寫 <code>meta_match</code>。前端只在 <code>gol7392.com</code> 讀取 <code>_fbc</code>、<code>_fbp</code> cookie。</td></tr>
+          <tr><td>F5</td><td>前端不寫死前台網域。前端在當下頁面的 origin 讀寫 <code>meta_match</code>。前端從當下頁面的 <code>document.cookie</code> 讀取 <code>_fbc</code>、<code>_fbp</code> cookie。</td></tr>
         </tbody></table></div>
     </div>
 
@@ -479,11 +484,11 @@ const UA='Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/129.0 Mobile
 const data=[
  {date:'27/10/2026 15:42:18',prefix:'AG001',user:'demo_user01',behavior:'First Deposit',event:'Purchase',amount:'100.10',tx:'DEP261027000108',enabled:true,
   props:{Username:'demo_user01',Amount:'100.10',Currency:'THB',Date:'2026-10-27 15:42:18',access_token:'***',
-   event_id:'ftd_DEP261027000108',action_source:'website',event_source_url:'https://gol7392.com/deposit',external_id:H,
+   event_id:'ftd_DEP261027000108',action_source:'website',event_source_url:'https://<前台網域>/deposit',external_id:H,
    fbc:'fb.1.1793070230123.AbC1',fbp:'fb.1.1793070100456.1234567890',client_ip_address:'***',client_user_agent:UA,currency:'THB',value:100.1}},
  {date:'27/10/2026 15:36:40',prefix:'AG001',user:'demo_user03',behavior:'Deposit',event:'AddToCart',amount:'500.00',tx:'DEP261027000105',enabled:true,
   props:{Username:'demo_user03',Amount:'500.00',Currency:'THB',Date:'2026-10-27 15:36:40',access_token:'***',
-   event_id:'dep_DEP261027000105',action_source:'website',event_source_url:'https://gol7392.com/deposit',external_id:H3,
+   event_id:'dep_DEP261027000105',action_source:'website',event_source_url:'https://<前台網域>/deposit',external_id:H3,
    fbp:'fb.1.1793069500789.9876543210',client_ip_address:'***',client_user_agent:UA,currency:'THB',value:500}},
  {date:'27/10/2026 15:30:02',prefix:'AG002',user:'demo_user02',behavior:'Deposit',event:'AddToCart',amount:'250.00',tx:'DEP261027000102',enabled:false,
   props:{Username:'demo_user02',Amount:'250.00',Currency:'THB',Date:'2026-10-27 15:30:02',access_token:'***'}}
