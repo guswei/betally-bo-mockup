@@ -29,7 +29,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
 .note-top{background:var(--note);border:1px solid var(--noteb);color:var(--notec);border-radius:6px;padding:8px 12px;margin-bottom:12px}
 .gloss table.gt{min-width:640px}.gloss .gt td{white-space:normal;vertical-align:top;line-height:1.55}.gloss .gt td:first-child{white-space:nowrap;font-weight:700}
 .gh{font-size:14px;margin:16px 0 8px}.gnote{color:var(--notec);background:var(--note);border-radius:5px;padding:6px 10px;margin-top:8px;font-size:12px}
-.flow{margin:0;padding-left:20px;line-height:1.8}.gp{margin:14px 0 6px}.gloss .ab td:first-child{font-family:monospace}code{font-family:monospace}
+.gloss .scroll+.scroll{margin-top:12px}.flow{margin:0;padding-left:20px;line-height:1.8}.gp{margin:14px 0 6px}.gloss .ab td:first-child{font-family:monospace}code{font-family:monospace}
 @media(max-width:760px){.side{display:none}.row{grid-template-columns:1fr}}
 </style>
 </head>
@@ -54,6 +54,8 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
     <button class="tab" id="tReport">Admin BO · Marketing Event Delivery Report</button>
     <button class="tab" id="tReportAg">Agent BO · Marketing Event Delivery Report</button>
     <button class="tab" id="tGloss">名詞與欄位來源（RD 參考）</button>
+    <button class="tab" id="tFe">前端任務（RD 參考）</button>
+    <button class="tab" id="tBe">後端任務（RD 參考）</button>
     <label><input type="checkbox" id="rdToggle" checked> RD 註記</label>
     <span>此列只供驗收切換，不屬於正式 BO UI。</span></div>
 
@@ -243,6 +245,224 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
 
     </div>
   </section>
+
+  <!-- View 4：前端任務（RD 參考頁，不屬於正式 BO UI） -->
+  <section class="view-pane gloss" id="vFe">
+    <h1>前端任務：Web/H5</h1>
+    <div class="note-top">本頁列出前端（Web/H5）RD 的全部任務，不屬於正式 BO 畫面。欄位定義見「名詞與欄位來源」頁。</div>
+
+    <div class="card">
+      <div class="sect">1. 保存比對參數</div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>#</th><th>任務</th></tr></thead>
+        <tbody>
+          <tr><td>F1</td><td>前端用 <code>localStorage</code> 的 key <code>meta_match</code> 保存 <code>fbc</code>、<code>fbp</code>。value 是 JSON 字串，每個參數有 <code>value</code>（原值）與 <code>ts</code>（取得時間，Unix 毫秒）。</td></tr>
+          <tr><td>F2</td><td>某個參數沒有值時，前端寫入的 JSON 不包含該參數。</td></tr>
+          <tr><td>F3</td><td>前端讀寫 <code>localStorage</code> 時攔截例外，頁面照常運作。</td></tr>
+          <tr><td>F4</td><td><code>localStorage</code> 無法讀寫時，前端把比對參數存在本頁記憶體。<code>localStorage</code> 無法讀寫時，前端依第 3 區規則，在本頁的 request 帶上本頁記憶體中的值。</td></tr>
+          <tr><td>F5</td><td>前端只在 <code>gol7392.com</code> 讀寫 <code>meta_match</code>。前端只在 <code>gol7392.com</code> 讀取 <code>_fbc</code>、<code>_fbp</code> cookie。</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">2. 每次載入頁面時更新 <code>meta_match</code></div>
+      <ol class="flow">
+        <li>前端讀取 <code>meta_match</code>。</li>
+        <li>前端用 <code>URLSearchParams</code> 讀取網址的 <code>fbclid</code>。<code>fbclid</code> 是空字串時，前端當成網址沒有 <code>fbclid</code>。</li>
+        <li>前端從 <code>document.cookie</code> 讀取 <code>_fbc</code> 與 <code>_fbp</code>。</li>
+        <li>前端照表 A 決定 <code>fbc</code> 與它的 <code>ts</code>。</li>
+        <li>前端照表 B 決定 <code>fbp</code> 與它的 <code>ts</code>。</li>
+        <li>前端把結果寫回 <code>meta_match</code>。<code>localStorage</code> 無法讀寫時，前端把結果存在本頁記憶體。</li>
+      </ol>
+      <div class="gnote">表 A、表 B 在「名詞與欄位來源」頁 2.2.1。<code>fbclid</code> 照原樣使用，大小寫不可改動，除了 URL decode 不做其他處理。前端不自行產生 <code>fbp</code>。</div>
+    </div>
+
+    <div class="card">
+      <div class="sect">3. 註冊、登入、發起存款時送給後端</div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>API</th><th><code>meta_fbc</code></th><th><code>meta_fbp</code></th><th><code>meta_event_source_url</code></th></tr></thead>
+        <tbody>
+          <tr><td>註冊</td><td>帶</td><td>帶</td><td>帶</td></tr>
+          <tr><td>登入</td><td>帶</td><td>帶</td><td>不帶</td></tr>
+          <tr><td>發起存款</td><td>帶</td><td>帶</td><td>帶</td></tr>
+        </tbody></table></div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>#</th><th>任務</th></tr></thead>
+        <tbody>
+          <tr><td>F6</td><td>前端組 request 前再檢查一次 <code>ts</code>。已過期的參數，前端不帶。</td></tr>
+          <tr><td>F7</td><td><code>meta_match</code> 沒有某個值時，前端不帶該欄位，不送空字串。</td></tr>
+          <tr><td>F8</td><td>註冊與發起存款時，前端把 <code>meta_event_source_url</code> 設為玩家當下所在頁面的完整網址。</td></tr>
+          <tr><td>F9</td><td>不論開關是 <code>Enable</code> 或 <code>Deny</code>，前端都照本節送出。</td></tr>
+          <tr><td>F10</td><td>前端不送 IP 與 User-Agent。</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">4. Pixel 帶 <code>external_id</code></div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>情境</th><th>前端對 Pixel 使用者資料的動作</th></tr></thead>
+        <tbody>
+          <tr><td>API 回傳 <code>meta_capi_enabled</code> 為 <code>true</code></td><td>設為該回傳的 <code>meta_external_id</code></td></tr>
+          <tr><td>API 回傳 <code>meta_capi_enabled</code> 為 <code>false</code></td><td>移除 <code>external_id</code></td></tr>
+          <tr><td>登出</td><td>移除 <code>external_id</code></td></tr>
+          <tr><td>換成另一位玩家登入</td><td>依該玩家的登入回傳，照第一、二列處理</td></tr>
+        </tbody></table></div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>#</th><th>任務</th></tr></thead>
+        <tbody>
+          <tr><td>F11</td><td>玩家已登入且 <code>meta_capi_enabled</code> 為 <code>true</code> 時，前端初始化 Pixel 帶上 <code>external_id</code>，值為 <code>meta_external_id</code>。</td></tr>
+          <tr><td>F12</td><td>玩家未登入時，前端初始化 Pixel 不帶 <code>external_id</code>。</td></tr>
+          <tr><td>F13</td><td><code>meta_capi_enabled</code> 為 <code>false</code> 時，前端初始化 Pixel 不帶 <code>external_id</code>。</td></tr>
+          <tr><td>F14</td><td>上表的 API 指登入、註冊、玩家資料三支 API。</td></tr>
+          <tr><td>F15</td><td>F11 到 F13 與上表適用於 <code>PageView</code>、<code>CompleteRegistration</code>、<code>Lead</code> 三個 Pixel 事件。</td></tr>
+          <tr><td>F16</td><td>前端不自行雜湊 <code>external_id</code>。</td></tr>
+          <tr><td>F17</td><td>前端在送出下一個 Pixel 事件前，完成上表的動作。</td></tr>
+          <tr><td>F18</td><td>前端移除 <code>external_id</code> 後，之後送出的 Pixel 事件不帶 <code>external_id</code>。</td></tr>
+          <tr><td>F19</td><td>更新 Pixel 使用者資料的寫法，由前端 RD 依現有 Pixel 安裝方式決定。</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">5. Pixel <code>CompleteRegistration</code> 去重</div>
+      <ol class="flow">
+        <li>註冊成功時，前端讀取註冊 API 回傳的 <code>meta_capi_enabled</code>。</li>
+        <li><code>meta_capi_enabled</code> 為 <code>false</code> 時，前端照現況送 Pixel <code>CompleteRegistration</code>，流程結束。</li>
+        <li><code>meta_capi_enabled</code> 為 <code>true</code> 時，前端用回傳的 <code>meta_external_id</code> 更新 Pixel 使用者資料。</li>
+        <li>前端送 Pixel <code>CompleteRegistration</code>，<code>eventID</code> 用回傳的 <code>meta_registration_event_id</code>。</li>
+      </ol>
+      <div class="gnote">前端只送一次 Pixel <code>CompleteRegistration</code>。後端用同一個 <code>event_id</code>，Meta 以此去重。</div>
+    </div>
+  </section>
+
+  <!-- View 5：後端任務（RD 參考頁，不屬於正式 BO UI） -->
+  <section class="view-pane gloss" id="vBe">
+    <h1>後端任務：API</h1>
+    <div class="note-top">本頁列出後端（API）RD 的全部任務，不屬於正式 BO 畫面。欄位定義見「名詞與欄位來源」頁。</div>
+
+    <div class="card">
+      <div class="sect">1. 開關</div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>#</th><th>任務</th></tr></thead>
+        <tbody>
+          <tr><td>B1</td><td>後端在 Agent 設定新增欄位 <code>Meta CAPI Customer Matching</code>，值為 <code>Enable</code>、<code>Deny</code>，預設 <code>Deny</code>。</td></tr>
+          <tr><td>B2</td><td>Admin BO <code>Agent Accounts</code> › <code>Edit</code> › <code>System Config</code> 新增開關畫面。畫面見「Admin BO · Agent Accounts › Edit」分頁。</td></tr>
+          <tr><td>B3</td><td>Agent BO 不顯示這個開關。</td></tr>
+          <tr><td>B4</td><td>Agent BO 帳號呼叫設定 API 修改這個開關時，後端不接受。</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">2. 接收 request 欄位</div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>欄位</th><th>長度上限</th><th>註冊</th><th>登入</th><th>發起存款</th></tr></thead>
+        <tbody>
+          <tr><td><code>meta_fbc</code></td><td>500</td><td>帶</td><td>帶</td><td>帶</td></tr>
+          <tr><td><code>meta_fbp</code></td><td>255</td><td>帶</td><td>帶</td><td>帶</td></tr>
+          <tr><td><code>meta_event_source_url</code></td><td>2048</td><td>帶</td><td>不帶</td><td>帶</td></tr>
+        </tbody></table></div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>#</th><th>任務</th></tr></thead>
+        <tbody>
+          <tr><td>B5</td><td>後端從 request 讀取玩家的 IP 與 User-Agent。</td></tr>
+          <tr><td>B6</td><td>欄位缺少時，後端照常處理註冊、登入、存款，不回錯誤。</td></tr>
+          <tr><td>B7</td><td>欄位超過長度上限時，後端把該欄位當成這次 request 沒有帶。欄位超過長度上限時，後端不保存該欄位的值。欄位超過長度上限時，sender 不使用該欄位的值。</td></tr>
+          <tr><td>B8</td><td>欄位超過長度上限時，後端照常處理註冊、登入、存款，不回錯誤。</td></tr>
+          <tr><td>B9</td><td>長度剛好等於上限時，後端照常保存。</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">3. 保存比對參數</div>
+      <h3 class="gh">3.1 玩家資料：註冊成功與登入成功時更新</h3>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>欄位</th><th>型別</th><th>來源</th><th>更新規則</th></tr></thead>
+        <tbody>
+          <tr><td><code>fbc</code></td><td><code>VARCHAR(500)</code></td><td><code>meta_fbc</code></td><td>request 有值時覆蓋；沒有值時保留舊值</td></tr>
+          <tr><td><code>fbp</code></td><td><code>VARCHAR(255)</code></td><td><code>meta_fbp</code></td><td>request 有值時覆蓋；沒有值時保留舊值</td></tr>
+          <tr><td><code>client_ip_address</code></td><td><code>VARCHAR(45)</code></td><td>request 的 IP</td><td>每次覆蓋</td></tr>
+          <tr><td><code>client_user_agent</code></td><td><code>TEXT</code></td><td>request 的 User-Agent</td><td>每次覆蓋</td></tr>
+        </tbody></table></div>
+      <h3 class="gh">3.2 存款單：發起存款時記下</h3>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>欄位</th><th>型別</th><th>來源</th></tr></thead>
+        <tbody>
+          <tr><td><code>fbc</code></td><td><code>VARCHAR(500)</code></td><td><code>meta_fbc</code></td></tr>
+          <tr><td><code>fbp</code></td><td><code>VARCHAR(255)</code></td><td><code>meta_fbp</code></td></tr>
+          <tr><td><code>client_ip_address</code></td><td><code>VARCHAR(45)</code></td><td>request 的 IP</td></tr>
+          <tr><td><code>client_user_agent</code></td><td><code>TEXT</code></td><td>request 的 User-Agent</td></tr>
+          <tr><td><code>event_source_url</code></td><td><code>VARCHAR(2048)</code></td><td><code>meta_event_source_url</code></td></tr>
+        </tbody></table></div>
+      <div class="gnote">request 沒有某個值時，存款單的該欄位為 NULL。欄位名稱由後端 RD 依既有命名決定；型別照上表。<br>
+        不論開關是 <code>Enable</code> 或 <code>Deny</code>，後端都保存比對參數。</div>
+    </div>
+
+    <div class="card">
+      <div class="sect">4. 回給前端的 response 欄位</div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>欄位</th><th>型別</th><th>玩家資料</th><th>登入成功</th><th>註冊成功</th></tr></thead>
+        <tbody>
+          <tr><td><code>meta_capi_enabled</code></td><td>boolean</td><td>一律回</td><td>一律回</td><td>一律回</td></tr>
+          <tr><td><code>meta_external_id</code></td><td>string</td><td>開關 <code>Enable</code> 時回</td><td>開關 <code>Enable</code> 時回</td><td>開關 <code>Enable</code> 時回</td></tr>
+          <tr><td><code>meta_registration_event_id</code></td><td>string</td><td>不回</td><td>不回</td><td>開關 <code>Enable</code> 時回</td></tr>
+        </tbody></table></div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>#</th><th>任務</th></tr></thead>
+        <tbody>
+          <tr><td>B10</td><td>玩家所屬 Agent 的開關為 <code>Enable</code> 時，後端回傳 <code>meta_capi_enabled</code> 為 <code>true</code>。開關為 <code>Deny</code> 時，後端回傳 <code>meta_capi_enabled</code> 為 <code>false</code>。</td></tr>
+          <tr><td>B11</td><td><code>meta_capi_enabled</code> 為 <code>false</code> 時，後端不回傳 <code>meta_external_id</code> 與 <code>meta_registration_event_id</code>。</td></tr>
+          <tr><td>B12</td><td><code>meta_external_id</code> 是雜湊 ID：玩家內部 ID 的字串形式算 SHA-256，輸出小寫 16 進位字串。</td></tr>
+          <tr><td>B13</td><td>後端在 sender 與各 API 使用同一個雜湊 ID 計算方式。</td></tr>
+          <tr><td>B14</td><td>開關為 <code>Enable</code> 且註冊成功時，後端回傳 <code>meta_registration_event_id</code>，值為 <code>reg_&lt;玩家內部 ID&gt;</code>。</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">5. sender</div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>#</th><th>任務</th></tr></thead>
+        <tbody>
+          <tr><td>B15</td><td>開關為 <code>Deny</code> 時，sender 送出的事件與現況完全相同。</td></tr>
+          <tr><td>B16</td><td>開關為 <code>Enable</code> 時，sender 在 Web／H5 發起的 <code>Purchase</code>、<code>AddToCart</code>、<code>CompleteRegistration</code> 加上新增欄位。開關為 <code>Enable</code> 時，sender 對 App 發起的事件維持現況。</td></tr>
+          <tr><td>B17</td><td>以下適用 <code>Purchase</code>、<code>AddToCart</code> 的 <code>fbc</code>、<code>fbp</code>、<code>client_ip_address</code>、<code>client_user_agent</code>。存款單的該欄位有值時，sender 使用存款單的值。存款單的該欄位沒有值時，sender 使用玩家資料的值。</td></tr>
+          <tr><td>B18</td><td>sender 組 <code>Purchase</code>、<code>AddToCart</code> 的 <code>event_source_url</code> 時，只取存款單的值。</td></tr>
+          <tr><td>B19</td><td>sender 不在 <code>CompleteRegistration</code> 帶 <code>custom_data.currency</code>、<code>custom_data.value</code>。</td></tr>
+          <tr><td>B20</td><td>取不到某個欄位的值時，sender 不帶該欄位。取不到某個欄位的值時，sender 仍送出事件。</td></tr>
+          <tr><td>B21</td><td>sender 不雜湊 <code>fbc</code>、<code>fbp</code>、<code>client_ip_address</code>、<code>client_user_agent</code>。</td></tr>
+          <tr><td>B22</td><td>sender 把 <code>DECIMAL(18,2)</code> 的入款金額轉成 JSON 數字放進 <code>custom_data.value</code>。轉換過程不可使用 float。</td></tr>
+          <tr><td>B23</td><td>sender 照現況送出既有自訂參數 <code>Username</code>、<code>Amount</code>、<code>Currency</code>、<code>Date</code>。</td></tr>
+        </tbody></table></div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>欄位</th><th><code>Purchase</code></th><th><code>AddToCart</code></th><th><code>CompleteRegistration</code></th></tr></thead>
+        <tbody>
+          <tr><td><code>event_id</code></td><td><code>ftd_&lt;存款單號&gt;</code></td><td><code>dep_&lt;存款單號&gt;</code></td><td><code>reg_&lt;玩家內部 ID&gt;</code></td></tr>
+          <tr><td><code>action_source</code></td><td><code>website</code></td><td><code>website</code></td><td><code>website</code></td></tr>
+          <tr><td><code>event_source_url</code></td><td>存款單</td><td>存款單</td><td>註冊 request</td></tr>
+          <tr><td><code>user_data.external_id</code></td><td>雜湊 ID</td><td>雜湊 ID</td><td>雜湊 ID</td></tr>
+          <tr><td><code>user_data.fbc</code>、<code>user_data.fbp</code></td><td>存款單 → 玩家資料</td><td>存款單 → 玩家資料</td><td>註冊 request 的 <code>meta_fbc</code>、<code>meta_fbp</code></td></tr>
+          <tr><td><code>user_data.client_ip_address</code>、<code>user_data.client_user_agent</code></td><td>存款單 → 玩家資料</td><td>存款單 → 玩家資料</td><td>後端從註冊 request 讀取的 IP、User-Agent</td></tr>
+          <tr><td><code>custom_data.currency</code></td><td>存款幣別，ISO 4217 大寫</td><td>存款幣別，ISO 4217 大寫</td><td>不帶</td></tr>
+          <tr><td><code>custom_data.value</code></td><td>入款金額</td><td>入款金額</td><td>不帶</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">6. <code>Marketing Event Delivery Report</code></div>
+      <div class="scroll"><table class="gt">
+        <thead><tr><th>#</th><th>任務</th></tr></thead>
+        <tbody>
+          <tr><td>B24</td><td>開關為 <code>Enable</code> 時，<code>Purchase</code>、<code>AddToCart</code> 的 Details 顯示 sender 實際送出的新增欄位。開關為 <code>Enable</code> 且 sender 沒有帶某個欄位時，Details 不顯示該欄位。</td></tr>
+          <tr><td>B25</td><td>後端把 <code>client_ip_address</code> 加進遮罩清單。Details 把 <code>client_ip_address</code> 顯示為 <code>***</code>。</td></tr>
+          <tr><td>B26</td><td>Details 把 <code>external_id</code> 顯示為雜湊 ID。Details 把 <code>fbc</code>、<code>fbp</code>、<code>client_user_agent</code>、<code>event_source_url</code> 顯示原值。</td></tr>
+          <tr><td>B27</td><td>Agent BO 與 Admin BO 的 Details 顯示相同。</td></tr>
+          <tr><td>B28</td><td>後端不把 <code>CompleteRegistration</code> 寫進 <code>Marketing Event Delivery Report</code>。</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="sect">7. 不在後端範圍</div>
+      <div class="gnote">tracker link 每次轉址保留 <code>fbclid</code>，由技術主管指派負責端。</div>
+    </div>
+  </section>
 </div>
 </main>
 </div>
@@ -286,12 +506,13 @@ function detail(i){const r=data[i];
  $('detail').innerHTML=`<h3>Request Properties (Sensitive values masked)</h3><pre>{\n${lines.join(',\n')}\n}</pre>${note}`;
  $('modal').classList.add('show')}
 function close(){$('modal').classList.remove('show')}
-function go(v){const a=v==='agent',r=v==='report',ra=v==='reportAg',g=v==='gloss';
- $('vAgent').classList.toggle('on',a);$('vReport').classList.toggle('on',r);$('vReportAg').classList.toggle('on',ra);$('vGloss').classList.toggle('on',g);
- $('tAgent').classList.toggle('on',a);$('tReport').classList.toggle('on',r);$('tReportAg').classList.toggle('on',ra);$('tGloss').classList.toggle('on',g);
+function go(v){const a=v==='agent',r=v==='report',ra=v==='reportAg',g=v==='gloss',fe=v==='fe',be=v==='be';
+ $('vAgent').classList.toggle('on',a);$('vReport').classList.toggle('on',r);$('vReportAg').classList.toggle('on',ra);$('vGloss').classList.toggle('on',g);$('vFe').classList.toggle('on',fe);$('vBe').classList.toggle('on',be);
+ $('tAgent').classList.toggle('on',a);$('tReport').classList.toggle('on',r);$('tReportAg').classList.toggle('on',ra);$('tGloss').classList.toggle('on',g);$('tFe').classList.toggle('on',fe);$('tBe').classList.toggle('on',be);
+ if(g||fe||be)return; // RD 參考頁不切換身分與側欄
  $('menuAdmin').style.display=ra?'none':'';$('menuAg').style.display=ra?'':'none';$('who').textContent=ra?'AG001':'Admin';
  $('mAgent').style.background=a?'#35aa00':'transparent';$('mAgent').style.color=a?'#fff':'#bdc4ca';$('mReport').style.background=r?'#35aa00':'transparent';$('mReport').style.color=r?'#fff':'#bdc4ca'}
-$('tAgent').onclick=()=>go('agent');$('tReport').onclick=()=>go('report');$('tReportAg').onclick=()=>go('reportAg');$('tGloss').onclick=()=>go('gloss');$('mAgent').onclick=()=>go('agent');$('mReport').onclick=()=>go('report');
+$('tAgent').onclick=()=>go('agent');$('tReport').onclick=()=>go('report');$('tReportAg').onclick=()=>go('reportAg');$('tGloss').onclick=()=>go('gloss');$('tFe').onclick=()=>go('fe');$('tBe').onclick=()=>go('be');$('mAgent').onclick=()=>go('agent');$('mReport').onclick=()=>go('report');
 $('rdToggle').onchange=e=>document.body.classList.toggle('hide-rd',!e.target.checked);
 $('save').onclick=()=>{$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1500)};
 $('x').onclick=close;$('close').onclick=close;$('modal').onclick=e=>{if(e.target===$('modal'))close()};
