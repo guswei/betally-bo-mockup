@@ -1,7 +1,7 @@
 # Meta CAPI 事件加帶比對參數 — RD 開發 Spec
 
-- 對象站點：BA032（以 Agent 層級開關控制，其他站點維持現況）
-- 對象平台：Web／H5 前台、後端 API、Admin BO
+- 對象站點：所有已接入 Meta 的 Agent（含 BA032）
+- 對象平台：Web／H5 前台、後端 API
 - 涉及事件：Meta `Purchase`、`AddToCart`、`CompleteRegistration`
 
 ---
@@ -10,13 +10,14 @@
 
 BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄一致，Ads Manager 卻幾乎歸因不到廣告。現況事件的 `user_data` 沒有任何比對用欄位，Meta 無法把事件對回點過廣告的人。
 
-本次做五件事：
+本次做四件事：
 
-1. Admin BO 新增 Agent 層級開關 `Meta CAPI Customer Matching`。
-2. 前台在玩家落地時取得 Meta 比對參數，於註冊、登入、發起存款時交給後端。
-3. 後端把比對參數存到玩家資料與存款單。
-4. 開關為 `Enable` 時，後端送出的 `Purchase`、`AddToCart`、`CompleteRegistration` 帶上比對參數。
-5. 開關為 `Enable` 時，前台 Meta Pixel 帶上與後端相同的 `external_id`。
+1. 前台在玩家落地時取得 Meta 比對參數，於註冊、登入、發起存款時交給後端。
+2. 後端把比對參數存到玩家資料與存款單。
+3. 後端送出的 `Purchase`、`AddToCart`、`CompleteRegistration` 帶上比對參數。
+4. 前台 Meta Pixel 帶上與後端相同的 `external_id`。
+
+上線後，所有已接入 Meta 的 Agent 都套用本案。
 
 任務分三類標示：**前端（Web/H5）**、**後端（API）**、**待技術主管指派**。
 
@@ -24,51 +25,27 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 
 | 名詞 | 意思 |
 |---|---|
-| 開關 | Admin BO 的 `Meta CAPI Customer Matching` 設定，值為 `Enable` 或 `Deny` |
+| 已接入 Meta 的 Agent | Agent BO `System Config` 已設定 `Meta Access Token` 的 Agent |
 | 比對參數 | `fbc`、`fbp`、`client_ip_address`、`client_user_agent` |
 | 玩家資料 | 後端保存的玩家紀錄 |
 | 存款單 | 玩家發起存款時後端建立的紀錄 |
 | 雜湊 ID | 玩家內部 ID 以 SHA-256 雜湊後的小寫 16 進位字串 |
 | sender | 後端送出 Meta Conversions API 事件的程式 |
-| 前台網域 | BA032 玩家使用的前台網站網域。BA032 有多個前台網域，而且會變動 |
+| 前台網域 | 玩家使用的前台網站網域。一個 Agent 可以有多個前台網域，而且會變動 |
 | PWA 網域 | 玩家安裝的 PWA 所在網域 |
 | 落地 | 玩家從外部連結進入前台網域的第一個頁面 |
 
-## 3. 開關
+## 3. 適用範圍
 
-### 3.1 設定位置
-
-| 項目 | 內容 |
+| Agent | sender 的行為 |
 |---|---|
-| 位置 | Admin BO `Agent Accounts` › `Edit` › `System Config` |
-| 名稱 | `Meta CAPI Customer Matching` |
-| 值 | `Enable`、`Deny` |
-| 預設值 | `Deny` |
-| 層級 | 每個 Agent 各自設定 |
-| 誰能改 | 沿用該頁既有的編輯權限 |
+| 已接入 Meta 的 Agent | 照第 6 節送出事件 |
+| 沒有接入 Meta 的 Agent | 與現況相同，不送 Meta 事件 |
 
-Agent BO 不顯示這個開關。
-
-後端不接受 Agent BO 帳號修改這個開關。
-
-Agent BO 帳號直接呼叫設定 API 修改這個開關時，後端也不接受。
-
-### 3.2 開關的影響
-
-| 項目 | `Enable` | `Deny` |
-|---|---|---|
-| 前端取得與送出比對參數 | 照第 4 節做 | 照第 4 節做 |
-| 後端保存比對參數 | 照第 5 節做 | 照第 5 節做 |
-| sender 送出的事件內容 | 照第 6 節加欄位 | 與現況完全相同 |
-| 前台 Pixel 的 `external_id` | 帶雜湊 ID | 不帶 |
-
-開關為 `Deny` 時，後端仍保存比對參數。開關改成 `Enable` 後，sender 之後送出的事件使用已保存的值。
-
-### 3.3 任務
-
-- **後端（API）**：Agent 設定新增開關欄位，預設 `Deny`。
-- **後端（API）**：玩家資料 API 回傳 `meta_capi_enabled`（見 7.2）。
-- **後端（API）**：Admin BO 畫面新增開關。畫面見 mockup。
+- 本案不新增設定畫面。Admin BO 與 Agent BO 的畫面都不變。
+- 不論 Agent 是否已接入 Meta，前端都照第 4 節取得與送出比對參數。
+- 不論 Agent 是否已接入 Meta，後端都照第 5 節保存比對參數。
+- Agent 之後才接入 Meta 時，sender 送出的事件使用已保存的值。
 
 ## 4. 前端（Web/H5）：取得與送出比對參數
 
@@ -187,25 +164,22 @@ Agent BO 帳號直接呼叫設定 API 修改這個開關時，後端也不接受
 - 前端組 request 前再檢查一次 `ts`。已過期的參數，前端不帶。
 - `meta_fbc` 與 `meta_fbp` 的值取自 `meta_match`（4.1）。`meta_match` 沒有某個值時，前端不帶該欄位，不送空字串。
 - `meta_event_source_url` 是玩家當下所在頁面的完整網址。
-- 不論開關狀態，前端都照本節送出。
 
 ### 4.4 Pixel 帶 `external_id`
 
-- 玩家已登入且 `meta_capi_enabled` 為 `true` 時，前端初始化 Pixel 帶上 `external_id`。
+- 玩家已登入時，前端初始化 Pixel 帶上 `external_id`。
 - 前端不自行雜湊 `external_id`。
 - 適用的 Pixel 事件：`PageView`、`CompleteRegistration`、`Lead`。
 - 玩家未登入時，前端初始化 Pixel 不帶 `external_id`。
-- `meta_capi_enabled` 為 `false` 時，前端初始化 Pixel 不帶 `external_id`。
 - `external_id` 的值來自登入、註冊或玩家資料 API 回傳的 `meta_external_id`（見 7.2）。
 
 Pixel 使用者資料在同一頁內的變化：
 
 | 情境 | 前端對 Pixel 使用者資料的動作 |
 |---|---|
-| 登入、註冊或玩家資料 API 回傳 `meta_capi_enabled` 為 `true` | 設為該回傳的 `meta_external_id` |
-| 登入、註冊或玩家資料 API 回傳 `meta_capi_enabled` 為 `false` | 移除 `external_id` |
+| 登入、註冊或玩家資料 API 回傳 `meta_external_id` | 設為該回傳的 `meta_external_id` |
 | 登出 | 移除 `external_id` |
-| 換成另一位玩家登入 | 依該玩家的登入回傳，照第一、二列處理 |
+| 換成另一位玩家登入 | 設為該玩家登入回傳的 `meta_external_id` |
 
 - 前端在送出下一個 Pixel 事件前完成上表的動作。
 
@@ -216,10 +190,8 @@ Pixel 使用者資料在同一頁內的變化：
 
 註冊成功時，前端照下列順序執行：
 
-1. 前端讀取註冊 API 回傳的 `meta_capi_enabled`。
-2. `meta_capi_enabled` 為 `false` 時，前端照現況送 Pixel `CompleteRegistration`，流程結束。
-3. `meta_capi_enabled` 為 `true` 時，前端用註冊 API 回傳的 `meta_external_id` 更新 Pixel 的使用者資料。
-4. 前端送 Pixel `CompleteRegistration`，`eventID` 用註冊 API 回傳的 `meta_registration_event_id`。
+1. 前端用註冊 API 回傳的 `meta_external_id` 更新 Pixel 的使用者資料。
+2. 前端送 Pixel `CompleteRegistration`，`eventID` 用註冊 API 回傳的 `meta_registration_event_id`。
 
 - 前端只送一次 Pixel `CompleteRegistration`。
 - 後端的 `CompleteRegistration` 使用同一個 `event_id`，Meta 以此去重。
@@ -267,9 +239,9 @@ request 沒有某個值時，存款單的該欄位為 NULL。
 
 ### 6.1 適用條件
 
-- 開關為 `Enable` 時，sender 照本節組事件。
-- 開關為 `Deny` 時，sender 送出的事件與現況完全相同。
-- 只有 Web／H5 發起的存款與註冊適用本節。App 發起的事件維持現況。
+- Agent 已接入 Meta 時，sender 照本節組 Web／H5 發起的事件。
+- App 發起的事件維持現況。
+- Agent 沒有接入 Meta 時，sender 照現況不送 Meta 事件。
 
 ### 6.2 `Purchase` 與 `AddToCart`
 
@@ -316,7 +288,7 @@ request 沒有某個值時，存款單的該欄位為 NULL。
 
 ### 6.4 `Marketing Event Delivery Report` 的 Details
 
-- 開關為 `Enable` 時，`Purchase`、`AddToCart` 的 request properties 顯示該事件送出的新增欄位：`event_id`、`action_source`、`event_source_url`、`user_data` 各欄、`currency`、`value`。
+- `Purchase`、`AddToCart` 的 request properties 顯示該事件送出的新增欄位：`event_id`、`action_source`、`event_source_url`、`user_data` 各欄、`currency`、`value`。
 - sender 沒有帶的欄位，Details 不顯示。
 - Details 把 `external_id` 顯示為雜湊 ID。
 - Details 把 `fbc`、`fbp`、`client_user_agent`、`event_source_url` 顯示為原值。
@@ -344,13 +316,12 @@ request 沒有某個值時，存款單的該欄位為 NULL。
 
 | API | 欄位 | 型別 | 說明 |
 |---|---|---|---|
-| 玩家資料 | `meta_capi_enabled` | boolean | 該玩家所屬 Agent 的開關為 `Enable` 時為 `true`，`Deny` 時為 `false` |
-| 玩家資料 | `meta_external_id` | string | 雜湊 ID。`meta_capi_enabled` 為 `false` 時不回傳 |
-| 登入成功 | `meta_capi_enabled` | boolean | 該玩家所屬 Agent 的開關為 `Enable` 時為 `true`，`Deny` 時為 `false` |
-| 登入成功 | `meta_external_id` | string | 雜湊 ID。`meta_capi_enabled` 為 `false` 時不回傳 |
-| 註冊成功 | `meta_capi_enabled` | boolean | 該玩家所屬 Agent 的開關為 `Enable` 時為 `true`，`Deny` 時為 `false` |
-| 註冊成功 | `meta_external_id` | string | 雜湊 ID。`meta_capi_enabled` 為 `false` 時不回傳 |
-| 註冊成功 | `meta_registration_event_id` | string | `reg_<玩家內部 ID>`。`meta_capi_enabled` 為 `false` 時不回傳 |
+| 玩家資料 | `meta_external_id` | string | 雜湊 ID。一律回傳 |
+| 登入成功 | `meta_external_id` | string | 雜湊 ID。一律回傳 |
+| 註冊成功 | `meta_external_id` | string | 雜湊 ID。一律回傳 |
+| 註冊成功 | `meta_registration_event_id` | string | `reg_<玩家內部 ID>`。一律回傳 |
+
+- 不論 Agent 是否已接入 Meta，後端都回傳上表欄位。
 
 ## 8. 待技術主管指派
 
@@ -376,13 +347,13 @@ flowchart TD
   A[前端 Web/H5：玩家落地<br/>取 fbclid、_fbc、_fbp] --> B[前端：存瀏覽器 7 天]
   B --> C[前端：註冊、登入、發起存款<br/>帶 meta_fbc、meta_fbp<br/>註冊與發起存款另帶 meta_event_source_url]
   C --> D[後端 API：讀 IP、UA<br/>超過長度上限的欄位當成沒帶<br/>存玩家資料與存款單]
-  D --> J[後端：註冊成功<br/>sender 準備 CompleteRegistration]
+  D --> J[後端：註冊成功<br/>註冊 API 回傳 meta_external_id<br/>meta_registration_event_id<br/>sender 準備 CompleteRegistration]
   D --> E[後端：入款成功<br/>sender 準備 Purchase、AddToCart]
-  J --> K{該 Agent 開關是 Enable?}
-  K -->|否| G[照現況送出事件]
-  K -->|是| L[加 event_id reg_玩家內部 ID、action_source<br/>event_source_url、user_data<br/>註冊 API 回傳 meta_capi_enabled<br/>meta_external_id、meta_registration_event_id]
+  J --> K{該 Agent 已接入 Meta?}
+  K -->|否| G[照現況，不送 Meta 事件]
+  K -->|是| L[加 event_id reg_玩家內部 ID、action_source<br/>event_source_url、user_data]
   L --> M[送出 Meta CAPI，不寫報表<br/>前端 Pixel 用同一個 eventID 去重]
-  E --> F{該 Agent 開關是 Enable?}
+  E --> F{該 Agent 已接入 Meta?}
   F -->|否| G
   F -->|是| H[加 event_id、action_source、event_source_url<br/>user_data：雜湊 ID、fbc、fbp、IP、UA<br/>custom_data：currency、value]
   H --> I[送出 Meta CAPI<br/>寫 delivery log，Details 遮罩 IP]

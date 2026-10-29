@@ -2,13 +2,13 @@ flowchart TD
   A[前端 Web/H5：玩家落地<br/>取 fbclid、_fbc、_fbp] --> B[前端：存瀏覽器 7 天]
   B --> C[前端：註冊、登入、發起存款<br/>帶 meta_fbc、meta_fbp<br/>註冊與發起存款另帶 meta_event_source_url]
   C --> D[後端 API：讀 IP、UA<br/>超過長度上限的欄位當成沒帶<br/>存玩家資料與存款單]
-  D --> J[後端：註冊成功<br/>sender 準備 CompleteRegistration]
+  D --> J[後端：註冊成功<br/>註冊 API 回傳 meta_external_id<br/>meta_registration_event_id<br/>sender 準備 CompleteRegistration]
   D --> E[後端：入款成功<br/>sender 準備 Purchase、AddToCart]
-  J --> K{該 Agent 開關是 Enable?}
-  K -->|否| G[照現況送出事件]
-  K -->|是| L[加 event_id reg_玩家內部 ID、action_source<br/>event_source_url、user_data<br/>註冊 API 回傳 meta_capi_enabled<br/>meta_external_id、meta_registration_event_id]
+  J --> K{該 Agent 已接入 Meta?}
+  K -->|否| G[照現況，不送 Meta 事件]
+  K -->|是| L[加 event_id reg_玩家內部 ID、action_source<br/>event_source_url、user_data]
   L --> M[送出 Meta CAPI，不寫報表<br/>前端 Pixel 用同一個 eventID 去重]
-  E --> F{該 Agent 開關是 Enable?}
+  E --> F{該 Agent 已接入 Meta?}
   F -->|否| G
   F -->|是| H[加 event_id、action_source、event_source_url<br/>user_data：雜湊 ID、fbc、fbp、IP、UA<br/>custom_data：currency、value]
   H --> I[送出 Meta CAPI<br/>寫 delivery log，Details 遮罩 IP]
