@@ -19,7 +19,7 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 
 上線後，所有已接入 Meta 的 Agent 都套用本案。
 
-任務分三類標示：**前端（Web/H5）**、**後端（API）**、**待技術主管指派**。
+任務分兩類標示：**前端（Web/H5）**、**後端（API）**。轉址由客戶負責，要求見第 8 節。
 
 ## 2. 名詞表
 
@@ -32,7 +32,7 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 | 雜湊 ID | 玩家內部 ID 以 SHA-256 雜湊後的小寫 16 進位字串 |
 | sender | 後端送出 Meta Conversions API 事件的程式 |
 | 前台網域 | 玩家使用的前台網站網域。一個 Agent 可以有多個前台網域，而且會變動 |
-| PWA 網域 | 玩家安裝的 PWA 所在網域 |
+| PWA 網域 | 玩家安裝的 PWA 所在網域，由客戶管理 |
 | 落地 | 玩家從外部連結進入前台網域的第一個頁面 |
 
 ## 3. 適用範圍
@@ -75,6 +75,7 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 ### 4.1.1 網域範圍
 
 - 前端不寫死前台網域。新增或更換前台網域時，前端不需要改程式。
+- 前端不區分 iOS 與 Android。玩家在 iOS 的 Web／H5 頁面時，前端同樣照第 4 節取得比對參數。
 - 前端在當下頁面的 origin 讀寫 `meta_match`。
 - 前端從當下頁面的 `document.cookie` 讀取 `_fbc` cookie 與 `_fbp` cookie。
 - 前端不另外讀取 PWA 網域與 tracker link 網域上的 cookie。
@@ -172,6 +173,8 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 - 適用的 Pixel 事件：`PageView`、`CompleteRegistration`、`Lead`。
 - 玩家未登入時，前端初始化 Pixel 不帶 `external_id`。
 - `external_id` 的值來自登入、註冊或玩家資料 API 回傳的 `meta_external_id`（見 7.2）。
+- 前端不讀取網址上的 `external_id`、`user_id` 參數。
+- 客戶的轉址服務會在落地網址加上 `external_id`、`user_id` 參數。這兩個參數不是雜湊 ID。
 
 Pixel 使用者資料在同一頁內的變化：
 
@@ -323,11 +326,19 @@ request 沒有某個值時，存款單的該欄位為 NULL。
 
 - 不論 Agent 是否已接入 Meta，後端都回傳上表欄位。
 
-## 8. 待技術主管指派
+## 8. 客戶負責的轉址
+
+PWA 網域、tracker link 與轉址服務由客戶管理。本案不開發 PWA 網域、tracker link 與轉址服務。
 
 | 項目 | 要求 |
 |---|---|
-| tracker link 轉址 | 玩家經 PWA 網域 → tracker link → 前台網域時，負責轉址的服務在每一次轉址都保留網址上的 `fbclid`，不改動其值 |
+| 轉址保留 `fbclid` | 玩家從客戶廣告的入口網址，經客戶的 PWA 網域與 tracker link 轉址到前台網域。客戶的轉址服務在每一次轉址都保留網址上的 `fbclid`，不改動其值 |
+
+限制：
+
+- 轉址的終點是前台網域的 Web／H5 頁面時，前端照第 4 節取得比對參數。
+- 轉址的終點是原生 App 時，前端取不到 `fbc`、`fbp`。
+- 客戶的 PWA 不支援 iOS。iOS 玩家無法經 PWA 網域轉址到前台網域，本節的轉址做法不適用 iOS 玩家。
 
 ## 9. 範圍外
 

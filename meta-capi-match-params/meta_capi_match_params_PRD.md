@@ -1,6 +1,6 @@
 # PRD：Meta CAPI 事件加帶比對參數
 
-**版本**：v1.3（2026-10-28）　**類型**：功能變更　**負責**：PM
+**版本**：v1.4（2026-10-30）　**類型**：功能變更　**負責**：PM
 **Mockup**：[mockup](https://guswei.github.io/betally-bo-mockup/meta-capi-match-params/mockup.html)
 **相關**：[RD Spec](https://github.com/guswei/betally-bo-mockup/blob/main/meta-capi-match-params/meta_capi_match_params_spec.md)
 
@@ -15,13 +15,13 @@ BA032 的 Meta `Purchase` 事件，Events Manager 收到的筆數與 BO 紀錄�
 | # | 變更 (FR) | 說明 | 負責端 |
 |---|---|---|---|
 | FR-1 | 適用範圍 | 所有已接入 Meta 的 Agent 都套用本案；沒有接入 Meta 的 Agent 照現況不送 Meta 事件；不新增設定畫面 | 後端（API） |
-| FR-2 | 前台取得比對參數 | 落地時取得 `fbc`、`fbp`，存在瀏覽器 7 天；註冊、登入、發起存款時帶給後端 | 前端（Web/H5） |
+| FR-2 | 前台取得比對參數 | 落地時取得 `fbc`、`fbp`，存在瀏覽器 7 天；註冊、登入、發起存款時帶給後端；iOS 與 Android 相同 | 前端（Web/H5） |
 | FR-3 | 後端保存比對參數 | 註冊與登入時更新玩家資料；發起存款時記在存款單；IP 與 UA 由後端讀 request | 後端（API） |
 | FR-4 | `Purchase`、`AddToCart` 加欄位 | 加 `event_id`、`action_source`、`event_source_url`、`user_data`、`custom_data.currency`／`value` | 後端（API） |
 | FR-5 | `CompleteRegistration` 加欄位 | 註冊成功送出的事件加 `event_id`、`action_source`、`event_source_url`、`user_data`；不加 `custom_data` | 後端（API） |
 | FR-6 | Pixel 帶 `external_id` | 玩家已登入時，Pixel 帶後端回傳的雜湊 ID；註冊成功時，Pixel 先帶註冊 API 回傳的雜湊 ID，再把註冊 API 回傳的 `meta_registration_event_id` 帶入 Pixel `CompleteRegistration` 的 `eventID` 去重 | 前端（Web/H5） |
 | FR-7 | 報表 Details 顯示新欄位 | `Marketing Event Delivery Report` 的 Details 顯示新欄位，`client_ip_address` 遮罩為 `***` | 後端（API） |
-| FR-8 | 轉址保留 `fbclid` | PWA 網域 → tracker link → 前台網域，每一次轉址都保留 `fbclid` | 待技術主管指派 |
+| FR-8 | 轉址保留 `fbclid` | 廣告點擊經客戶的 PWA 網域與 tracker link 轉址到前台網域，每一次轉址都保留 `fbclid` | 客戶 |
 
 範圍：Web／H5 前台、註冊／登入／存款 API、Meta sender、`Marketing Event Delivery Report` 的 Details。OUT：App 事件、`em`／`ph`、移除明文 `Username`、補送舊事件、Adjust 與 CleverTap、Meta 後台設定、Ads Manager 歸因成效。
 
@@ -102,6 +102,8 @@ flowchart TD
 
 sender 相關的 AC（FR-4、FR-5、FR-7）都以「已接入 Meta 的 Agent、Web／H5 發起的事件」為前提。AC-01、AC-02、AC-26、AC-27、AC-30 另寫明 Agent 條件。
 
+FR-2 的 AC 在 iOS 與 Android 的 Web／H5 頁面各執行一次，兩者結果相同。
+
 | AC-ID | 對應 FR | 驗收條件 |
 |---|---|---|
 | AC-01 | FR-1 | BA032 以外、已接入 Meta 的 Agent，Web／H5 首次入款成功送出的 `Purchase` 帶 `event_id = ftd_<存款單號>` 與 `user_data.external_id`。 |
@@ -132,7 +134,7 @@ sender 相關的 AC（FR-4、FR-5、FR-7）都以「已接入 Meta 的 Agent、W
 | AC-26 | FR-6 | 已接入 Meta 的 Agent，Web／H5 註冊成功時，Pixel `CompleteRegistration` 的 `eventID` 等於後端 `CompleteRegistration` 的 `event_id`。 |
 | AC-27 | FR-7 | 已接入 Meta 的 Agent，Details 的 request properties 顯示該事件送出的 `event_id`、`action_source`、`event_source_url`、`external_id`、`fbc`、`fbp`、`client_user_agent`、`currency`、`value`。 |
 | AC-28（負向） | FR-7 | Details 的 `client_ip_address` **不得**顯示原值，一律顯示 `***`。 |
-| AC-29 | FR-8 | 從 PWA 網域帶 `?fbclid=AbC1` 進入並經 tracker link 轉址後，前台網域的網址帶 `fbclid=AbC1`。 |
+| AC-29 | FR-8 | 在 Android 裝置上，從客戶廣告實際使用的入口網址帶 `?fbclid=AbC1` 進入，走完全部轉址後，終點是前台網域的 Web／H5 頁面，該頁網址帶 `fbclid=AbC1`。終點開啟原生 App 時，本條不通過。 |
 | AC-30（負向） | FR-1 | 已接入 Meta 的 Agent，App 發起的存款入款成功後，`Purchase` **不得**與上線前的 payload 有任何差異。 |
 | AC-31（負向） | FR-2 | 已保存 `fbc` 為 `fb.1.5000.NewB` 且 `ts` 未超過 7 天、`_fbc` cookie 為 `fb.1.2000.OldA` 時，前端**不得**把 `fbc` 改成 cookie 的值。 |
 | AC-32（負向） | FR-2 | 網址為 `?fbclid=`（空字串）時，前端**不得**把 `fbc` 設為以 `fb.1.<毫秒>.` 結尾、沒有 `fbclid` 的值。 |
@@ -156,6 +158,7 @@ sender 相關的 AC（FR-4、FR-5、FR-7）都以「已接入 Meta 的 Agent、W
 | AC-50（負向） | FR-2 | 已保存 `fb.1.1000.AbC1` 且未過期、網址為 `?fbclid=AbC1`、`_fbc` cookie 為 `fb.1.1500.OtherB` 時，前端**不得**把 `fbc` 改成 cookie 的值。 |
 | AC-51 | FR-2 | 已保存 `fbp` 未過期、`_fbp` cookie 為另一個值時，`fbp` 改為 cookie 的值，`ts` 改為目前時間。 |
 | AC-52（負向） | FR-2 | `meta_match` 沒有 `fbc`、`fbp` 時，登入的 request **不得**帶 `meta_fbc`、`meta_fbp`。 |
+| AC-53（負向） | FR-6 | 玩家未登入、落地網址為 `?fbclid=AbC1&external_id=tt45&user_id=tt45` 時，Pixel **不得**帶 `external_id`。 |
 
 ## 8. 非功能需求（NFR）
 
@@ -170,9 +173,11 @@ sender 相關的 AC（FR-4、FR-5、FR-7）都以「已接入 Meta 的 Agent、W
 | ID | 內容 |
 |---|---|
 | ASM-1 | 前端的 `fbp` 只來自 `_fbp` cookie 或保存期限內的副本。兩者都沒有時，前端不帶 `meta_fbp`。sender 照取值順序改用玩家資料的 `fbp`；存款單與玩家資料都沒有時，事件不帶 `fbp`，照常送出。 |
-| ASM-2 | FR-8 tracker link 轉址的負責端由技術主管指派。 |
-| ASM-3 | 一個 Agent 可以有多個前台網域，而且會變動。前端不寫死前台網域。前端在當下頁面的 origin 讀寫 `meta_match`。`localStorage` 依 origin 分開保存，前端讀不到 PWA 網域與 tracker link 網域上的 `localStorage`。本案經由轉址保留網址上的 `fbclid`，把 PWA 網域的廣告點擊帶到前台網域（FR-8）。 |
+| ASM-2 | PWA 網域、tracker link 與轉址服務由客戶管理。本案不開發 PWA 網域、tracker link 與轉址服務。客戶的轉址服務在每一次轉址保留 `fbclid`（FR-8）。 |
+| ASM-3 | 一個 Agent 可以有多個前台網域，而且會變動。前端不寫死前台網域。前端在當下頁面的 origin 讀寫 `meta_match`。`localStorage` 依 origin 分開保存，前端讀不到 PWA 網域與 tracker link 網域上的 `localStorage`。本案經由轉址保留網址上的 `fbclid`，把 PWA 網域的廣告點擊帶到前台網域（FR-8）。iOS 的限制見 CST-5。 |
 | ASM-4 | 假設玩家從落地到註冊、登入、發起存款都在同一個 origin。玩家換到另一個 origin 時，前端讀不到原 origin 的 `meta_match`，改讀新 origin 的 `meta_match`，照表 A、表 B 處理。新 origin 沒有未過期的 `fbc`、網址沒有 `fbclid`、當下頁面也讀不到 `_fbc` cookie 時，前端這次取不到 `fbc`，request 不帶 `meta_fbc`。 |
 | CST-1 | 只處理 Web／H5 發起的註冊與存款；App 事件維持現況。 |
 | CST-2 | 不送 `em`、`ph`；不移除明文 `Username` 自訂參數。 |
 | CST-3 | 驗收只核對事件 payload，不核對 Ads Manager 的歸因成效。 |
+| CST-4 | 轉址的終點是前台網域的 Web／H5 頁面時，前端取得比對參數。轉址的終點是原生 App 時，前端取不到 `fbc`、`fbp`。 |
+| CST-5 | 客戶的 PWA 不支援 iOS。iOS 玩家無法經 PWA 網域轉址到前台網域，FR-8 的轉址做法不適用 iOS 玩家。 |

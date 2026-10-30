@@ -90,7 +90,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
           <tr><td>Meta Pixel</td><td>裝在前台網頁的 Meta 追蹤程式碼</td><td>從瀏覽器把事件送給 Meta</td></tr>
           <tr><td>CAPI（Conversions API）</td><td>後端呼叫的 Meta API</td><td>從伺服器把事件送給 Meta</td></tr>
           <tr><td>前台網域</td><td>玩家使用的前台網站網域。一個 Agent 可以有多個，而且會變動</td><td>前端不寫死前台網域</td></tr>
-          <tr><td>PWA 網域</td><td>玩家安裝的 PWA 所在網域</td><td>廣告點擊經 tracker link 從這裡轉到前台網域</td></tr>
+          <tr><td>PWA 網域</td><td>玩家安裝的 PWA 所在網域，由客戶管理</td><td>廣告點擊經客戶的轉址服務轉到前台網域</td></tr>
           <tr><td>sender</td><td>後端送出 CAPI 事件的程式</td><td>入款成功、註冊成功時組 payload 並送出</td></tr>
           <tr><td><code>fbclid</code></td><td>玩家點 Facebook 廣告時，Meta 加在網址上的參數，例如 <code>?fbclid=IwAR2xYz</code></td><td>代表一次廣告點擊</td></tr>
           <tr><td><code>fbc</code></td><td>由 <code>fbclid</code> 組成的字串，格式 <code>fb.1.&lt;建立毫秒&gt;.&lt;fbclid&gt;</code></td><td>Meta 用它把轉換對回廣告點擊</td></tr>
@@ -152,8 +152,12 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
         前端不另外讀取 PWA 網域與 tracker link 網域上的 cookie。<br>
         前端在前台網域讀不到 PWA 網域與 tracker link 網域上的 <code>localStorage</code>。<br>
         本案經由網址上的 <code>fbclid</code>，把廣告點擊從 PWA 網域帶到前台網域。<br>
-        每次轉址時，負責轉址的服務保留網址上的 <code>fbclid</code> 原值。<br>
+        每次轉址時，客戶的轉址服務保留網址上的 <code>fbclid</code> 原值。<br>
         轉址後網址沒有 <code>fbclid</code> 時，前端照表 A 的 A4 到 A7 處理。<br>
+        轉址的終點是前台網域的 Web／H5 頁面時，前端照本頁規則取得比對參數。<br>
+        轉址的終點是原生 App 時，前端取不到 <code>fbc</code>、<code>fbp</code>。<br>
+        客戶的 PWA 不支援 iOS。iOS 玩家無法經 PWA 網域轉址到前台網域，轉址做法不適用 iOS 玩家。<br>
+        前端不區分 iOS 與 Android。玩家在 iOS 的 Web／H5 頁面時，前端同樣照本頁規則取得比對參數。<br>
         <code>localStorage</code> 依 origin 分開保存。scheme、主機名稱、port 任一項不同時，前端讀不到另一個 origin 的 <code>meta_match</code>。<br>
         玩家換到另一個 origin 時，前端讀取新 origin 的 <code>meta_match</code>，再照表 A、表 B 重新決定 <code>fbc</code>、<code>fbp</code>。
       </div>
@@ -231,7 +235,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
           <tr><td>F2</td><td>某個參數沒有值時，前端寫入的 JSON 不包含該參數。</td></tr>
           <tr><td>F3</td><td>前端讀寫 <code>localStorage</code> 時攔截例外，頁面照常運作。</td></tr>
           <tr><td>F4</td><td><code>localStorage</code> 無法讀寫時，前端把比對參數存在本頁記憶體。<code>localStorage</code> 無法讀寫時，前端依第 3 區規則，在本頁的 request 帶上本頁記憶體中的值。</td></tr>
-          <tr><td>F5</td><td>前端不寫死前台網域。前端在當下頁面的 origin 讀寫 <code>meta_match</code>。前端從當下頁面的 <code>document.cookie</code> 讀取 <code>_fbc</code>、<code>_fbp</code> cookie。</td></tr>
+          <tr><td>F5</td><td>前端不寫死前台網域。前端在當下頁面的 origin 讀寫 <code>meta_match</code>。前端從當下頁面的 <code>document.cookie</code> 讀取 <code>_fbc</code>、<code>_fbp</code> cookie。前端不區分 iOS 與 Android。玩家在 iOS 的 Web／H5 頁面時，前端同樣照本頁規則取得比對參數。</td></tr>
         </tbody></table></div>
     </div>
 
@@ -282,7 +286,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
         <tbody>
           <tr><td>F11</td><td>玩家已登入時，前端初始化 Pixel 帶上 <code>external_id</code>，值為 <code>meta_external_id</code>。</td></tr>
           <tr><td>F12</td><td>玩家未登入時，前端初始化 Pixel 不帶 <code>external_id</code>。</td></tr>
-          <tr><td>F13</td><td><code>external_id</code> 的值來自 API 回傳的 <code>meta_external_id</code>。</td></tr>
+          <tr><td>F13</td><td><code>external_id</code> 的值來自 API 回傳的 <code>meta_external_id</code>。前端不讀取網址上的 <code>external_id</code>、<code>user_id</code> 參數。客戶的轉址服務會在落地網址加上 <code>external_id</code>、<code>user_id</code> 參數。這兩個參數不是雜湊 ID。</td></tr>
           <tr><td>F14</td><td>上表的 API 指登入、註冊、玩家資料三支 API。</td></tr>
           <tr><td>F15</td><td>F11 到 F13 與上表適用於 <code>PageView</code>、<code>CompleteRegistration</code>、<code>Lead</code> 三個 Pixel 事件。</td></tr>
           <tr><td>F16</td><td>前端不自行雜湊 <code>external_id</code>。</td></tr>
@@ -427,7 +431,7 @@ pre{background:#20252a;color:#d7f7dc;padding:14px;border-radius:6px;overflow:aut
 
     <div class="card">
       <div class="sect">7. 不在後端範圍</div>
-      <div class="gnote">tracker link 每次轉址保留 <code>fbclid</code>，由技術主管指派負責端。</div>
+      <div class="gnote">PWA 網域、tracker link 與轉址服務由客戶管理。本案不開發 PWA 網域、tracker link 與轉址服務。客戶的轉址服務每次轉址保留 <code>fbclid</code>。</div>
     </div>
   </section>
 </div>
