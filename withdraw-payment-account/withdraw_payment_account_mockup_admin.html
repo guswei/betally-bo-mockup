@@ -85,11 +85,8 @@
       ・<code>Enable</code>：Agent BO 的 <code>11.2 Role Setting</code> 在 <code>Payment Management</code> 底下出現群組 <code>Payment Account Transactions</code> 與它的五個權限節點（<code>VIEW</code>、<code>EXPORT</code>、<code>Internal Transfer</code>、<code>External Transfer</code>、<code>Adjust Balance</code>）。五個節點預設都不勾，由 Agent 自己開給角色；有勾 <code>VIEW</code> 的角色才看得到選單。<br>
       ・<code>Deny</code>：Agent BO 的 <code>11.2 Role Setting</code> 不顯示群組 <code>Payment Account Transactions</code> 與它的節點；所有帳號（含最高權限帳號）的選單都不顯示 <code>3.11</code>；<code>3.7</code> 列表不顯示 <code>Transactions</code> 按鈕；直接輸入網址時依既有的無權限處理。另外：<br>
       　- <code>3.2</code> 核准對話框選 <code>BANK-OFFLINE</code> 時不顯示 <code>Payment Account</code>，送出的結果與 <code>Not specified</code> 相同。<br>
-      　- <code>3.2</code> 兩張表不顯示四個出款帳號欄位。<br>
-      　- <code>3.2</code> 篩選區不顯示 <code>Payment Account</code>。<br>
-      　- <code>3.2</code> 的 <code>Export CSV</code> 不帶出四個出款帳號欄位。<br>
       　- <code>3.7</code> 編輯頁、新增頁、列表不顯示六個新欄位（<code>Allow Withdraw</code>、<code>Withdraw Threshold</code>、<code>Allow Withdraw Over Threshold</code>、<code>Balance</code>、<code>Account Code</code>、<code>Account Group</code>），也不顯示 <code>Account Code</code>、<code>Account Group</code> 篩選。<br>
-      <b>前端＋後端都要擋</b>：<code>Deny</code> 的 Agent 呼叫 <code>3.11</code> 的任何介面（交易紀錄查詢、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）一律回 <code>403</code>，不可只靠隱藏選單。<code>Deny</code> 的 Agent 取得核准對話框的帳號清單、核准時帶出款帳號 ID、在 <code>3.2</code> 用出款帳號篩選、在 <code>3.7</code> 用代碼或分組篩選，後端也回 <code>403</code>。<code>3.7</code> 的新增或編輯請求帶了五個可編輯新欄位時，後端忽略它們。編輯時，已存的值不變。新增時，後端以 <code>Allow Withdraw = No</code>、<code>Withdraw Threshold</code> 為空、<code>Allow Withdraw Over Threshold = No</code>、代碼與分組為空儲存。<br>
+      <b>前端＋後端都要擋</b>：<code>Deny</code> 的 Agent 呼叫 <code>3.11</code> 的任何介面（交易紀錄查詢、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）一律回 <code>403</code>，不可只靠隱藏選單。<code>Deny</code> 的 Agent 取得核准對話框的帳號清單、核准時帶出款帳號 ID、在 <code>3.7</code> 用代碼或分組篩選，後端也回 <code>403</code>。<code>3.7</code> 的新增或編輯請求帶了五個可編輯新欄位時，後端忽略它們。編輯時，已存的值不變。新增時，後端以 <code>Allow Withdraw = No</code>、<code>Withdraw Threshold</code> 為空、<code>Allow Withdraw Over Threshold = No</code>、代碼與分組為空儲存。<br>
       <b>由 Enable 改成 Deny</b>：按 <code>SAVE</code> 後立即生效，已登入的使用者下一次操作就被擋下。角色原本勾選的五個節點保留不清除，但不生效；之後改回 <code>Enable</code>，原本的勾選恢復生效。帳號的餘額與交易紀錄都保留。<br>
       <b>Deny 期間的資料</b>：玩家存款核准照常產生 <code>DEPOSIT</code> 並增加餘額（Agent BO 開發 Spec 第 4 節）。<code>Deny</code> 期間不能指定出款帳號，所以不會產生 <code>WITHDRAW</code>。<code>3.7</code> 已存的出款設定、代碼與分組，以及出款單上記錄的出款帳號都保留，改回 <code>Enable</code> 後照原值顯示。<br>
       <b>誰能操作</b>：能在 Admin BO 編輯 <code>Agent List</code> 的人，沿用這一頁既有的權限，不新增 Admin BO 的權限節點。<br>

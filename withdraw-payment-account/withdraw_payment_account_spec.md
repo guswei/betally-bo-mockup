@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.33（2026-11-11）
+- 版本：v0.34（2026-11-11）
 
 ---
 
@@ -13,7 +13,7 @@
 本次做五件事：
 
 1. `3.7 Payment Account`：帳號可以設定能不能出款、每日出款門檻、帳號代碼與分組；並顯示系統記錄的餘額。
-2. `3.2 Withdraw List`：Finance Approval 核准時選到 `BANK-OFFLINE`，財務可以選擇是否指定出款帳號；出款單記錄所選的帳號，列表、篩選與 CSV 帶出。
+2. `3.2 Withdraw List`：Finance Approval 核准時選到 `BANK-OFFLINE`，財務可以選擇是否指定出款帳號；出款單記錄所選的帳號。`3.2` 的列表欄位、篩選與 `Export CSV` 不變。
 3. 帳號餘額：系統記錄每個帳號的餘額。玩家存款、玩家出款、手動單都會改變餘額。
 4. `3.11 Payment Account Transactions`（新頁）：每個帳號的交易紀錄、每個帳號的合計表（`Summary by Account`），以及三種手動單：內部轉帳、轉到外部、調整餘額。
 5. 權限：新增五個權限節點；Admin BO 可以決定每個 Agent 能不能使用本次的功能（13.4）。
@@ -368,7 +368,7 @@
 
 | 欄位（建議名稱） | 型別 | 內容 |
 |---|---|---|
-| `paymentAccountId` | 與 `3.7` 帳號 ID 相同的型別 | 所選帳號的 ID。用於 `3.2` 的 `Payment Account` 篩選 |
+| `paymentAccountId` | 與 `3.7` 帳號 ID 相同的型別 | 所選帳號的 ID |
 | `paymentAccountBankName` | 字串，長度同 `3.7` 的 `Bank Name` | 核准當下帳號的銀行名稱 |
 | `paymentAccountName` | 字串，長度同 `3.7` 的 `Account Name` | 核准當下帳號的戶名。AES-256 欄位加密 |
 | `paymentAccountNo` | 字串，長度同 `3.7` 的 `Bank Account No` | 核准當下帳號的號碼。AES-256 欄位加密 |
@@ -408,39 +408,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 ## 10. `3.2 Withdraw List` 列表、篩選與匯出
 
-### 10.1 列表欄位
-
-現有 40 欄的順序不變：`Risk Verification`、`Finance Approval`、`Force Approve`、`Remark`、`Status`、`Approval Seq No`、`Withdrawal No`、`Payment Channel`、`Binding Account Type`、`Tags`、`Automation Management Process`、`Created Date`、`Is manual`、`Bank Name`、`Bank Branch Name`、`Account Name`、`Affiliate`、`Bank Account No`、`Wallet Address`、`Crypto Amount`、`Amount`、`Currency Exchange`、`Currency Exchange Amount`、`Exchange Rate`、`Fee`、`System Fee`、`Username`、`Withdraw Fail Response`、`Vendor TX ID`、`TX ID`、`Checked By`、`Checked Date`、`Processed By`、`Processed Time`、`Completed By`、`Completed Time`、`Consume Time`、`Updated By`、`Updated Time`、`Remark Records`。
-
-四個新欄位插在 `Payment Channel`（第 8 欄）與 `Binding Account Type` 之間，`Pending Requests` 表與下方的主表都加：
-
-| 欄位序 | 欄名 | 內容 |
-|---|---|---|
-| 9 | `Payment Account Bank` | `paymentAccountBankName` |
-| 10 | `Payment Account Name` | `paymentAccountName` |
-| 11 | `Payment Account No` | `paymentAccountNo` |
-| 12 | `Payment Account Wallet Address` | `paymentAccountWalletAddress` |
-
-- 沒有出款帳號的單，四欄都顯示 `—`。
-- 既有的 `Bank Name`、`Account Name`、`Bank Account No`、`Wallet Address` 仍然是玩家收款帳號，內容與位置都不變。
-- `Columns Settings`：兩張表各有自己的 `Columns Settings`，都可以拖曳調整順序並儲存。處理方式與 3.5 相同：四個新欄位加入兩張表的 `Columns Settings` 並預設顯示；上表是預設順序；已儲存自訂順序的使用者，新欄位接在他目前順序的最後面。
-- Admin BO 設定為 `Deny` 時（13.4），兩張表都不顯示四個新欄位，也不列在 `Columns Settings`。使用者已儲存的欄位順序保留。
-
-### 10.2 篩選
-
-篩選區加一個 `Payment Account` 欄位（placeholder：`Payment Account: search bank, account name or account no`），單選，可清除。
-
-- 輸入文字後才查詢候選，部分比對 `Account Code`、`Bank Name`、`Account Name`、`Bank Account No`，不分大小寫。候選筆數有上限，上限由 RD 決定；超過上限時在最後顯示 `{N} more. Keep typing to narrow down.`；沒有符合時顯示 `No matching payment account.`。
-- 候選範圍：未被刪除的 BANK-OFFLINE 帳號，含 `ACTIVE` 與 `INACTIVE`，也含 `Allow Withdraw = No` 的帳號。只包含登入者所屬代理的帳號。`INACTIVE` 的帳號加標籤 `INACTIVE`。
-- 候選顯示 `{帳號標示}`。
-- 必須從候選中選取才算設定了條件；只輸入文字、沒有選取就按 `Search`，不套用這個條件並清空輸入。
-- 條件：`paymentAccountId` 等於所選帳號。因為比對的是 ID，帳號在 `3.7` 改過戶名或號碼後，仍查得到改之前核准的單。
-- 這個條件同時套用到 `Pending Requests` 表、主表、上方的統計列與 `Export CSV`，方式與其他篩選條件相同。
-- Admin BO 設定為 `Deny` 時（13.4），篩選區不顯示 `Payment Account`。
-
-### 10.3 匯出
-
-`Export CSV` 在 `Payment Channel` 之後帶出 10.1 的四欄，一欄一個值，欄名與畫面相同。`paymentAccountId` 不匯出。Admin BO 設定為 `Deny` 時，`Export CSV` 不帶出這四欄。
+本期不改 `3.2` 的列表欄位、篩選與 `Export CSV`。第 8 節的五個欄位只記在出款單上，`3.2` 的兩張表、篩選區與匯出檔都不顯示。`Columns Settings` 不變。
 
 ---
 
@@ -730,8 +698,6 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 看 `3.7` 的新欄位，含 `Today Withdraw Amount` 與 `Balance`；用 `Account Code`、`Account Group` 篩選 `3.7` 列表；取得分組選項 | `3.7 Payment Account` 既有的檢視權限 |
 | 新增帳號時設定 `3.7` 的五個可編輯新欄位 | `3.7 Payment Account` 既有的新增權限 |
 | 修改 `3.7` 的五個可編輯新欄位 | `3.7 Payment Account` 既有的編輯權限 |
-| 看 `3.2` 的四個新欄位、用 `Payment Account` 篩選、取得這個篩選的候選帳號 | `3.2 Withdraw List` 既有的檢視權限 |
-| `3.2` 的 `Export CSV` 帶出新欄位 | `3.2 Withdraw List` 既有的匯出權限 |
 
 上表的動作另外受 13.4 的 Admin BO 設定控制。
 
@@ -770,7 +736,6 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | `11.2 Role Setting` | 不顯示群組 `Payment Account Transactions` 與五個節點 | — |
 | `3.11` | 所有帳號的選單都不顯示 `3.11` | `3.11` 的所有查詢與動作（交易紀錄、每帳號合計、摘要卡、帳號下拉選項、匯出、三種手動單）回 `403` |
 | `3.2` 核准對話框 | 不顯示 `Payment Account` 這一列（5.3） | 取得帳號清單回 `403`。<br>核准請求帶了出款帳號 ID 時回 `403`，不核准 |
-| `3.2` 列表 | 兩張表不顯示四個出款帳號欄位。<br>篩選區不顯示 `Payment Account`。<br>`Export CSV` 不帶出四欄（第 10 節） | 列表的回應不含四個欄位。<br>匯出的檔案不含四個欄位。<br>查詢帶了 `paymentAccountId` 條件時回 `403`。<br>呼叫 `Payment Account` 篩選的候選帳號時回 `403` |
 | `3.7` 編輯頁、新增頁 | 不顯示六個新欄位（3.2） | 單筆讀取的回應不含 `todayWithdrawAmount`、`balance` 與五個可編輯新欄位。<br>請求帶了五個可編輯新欄位時，後端忽略它們。<br>編輯時，已存的值不變。<br>新增時，後端以 `Allow Withdraw = No`、`Withdraw Threshold` 為空、`Allow Withdraw Over Threshold = No`、`Account Code` 與 `Account Group` 為空儲存 |
 | `3.7` 列表 | 不顯示六個新欄位。<br>不顯示 `Account Code` 與 `Account Group` 篩選。<br>不顯示 `Transactions` 按鈕（3.5） | 列表的回應不含 `todayWithdrawAmount`、`balance` 與五個可編輯新欄位。<br>匯出的檔案不含這六欄。<br>查詢帶了 `accountCode` 或 `accountGroup` 條件時回 `403`。<br>呼叫分組選項時回 `403` |
 
@@ -807,16 +772,6 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 - 需要 `3.7 Payment Account` 既有的檢視權限，或 `3.11` 的 `VIEW`。
 - Admin BO 設定為 `Deny` 時回 `403`（13.4）。
 - 回應：`groupOptions`，登入者所屬代理、未刪除的 BANK-OFFLINE 帳號用到的分組名稱，不分大小寫去除重複，依名稱排序。
-
-**`3.2` 列表**（既有）
-
-- 每筆增加第 8 節的五個欄位；查詢條件增加出款帳號 ID。
-
-**`3.2` 篩選的候選帳號**（新增，讀取）
-
-- 需要 `3.2 Withdraw List` 既有的檢視權限。
-- 請求：搜尋文字、筆數上限。
-- 回應：未刪除的 BANK-OFFLINE 帳號與符合的總筆數。每筆包含：帳號 ID、`accountCode`、`bankName`、`accountName`、`accountNo`、`status`。不含餘額與門檻。
 
 **`3.11` 的帳號下拉選項與單一帳號的摘要**（新增，讀取；供 `3.11` 的 `Payment Account` 篩選、摘要卡、三種手動單的下拉選單使用）
 
@@ -872,7 +827,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 既有的出款單 | 第 8 節的五個欄位為空。上線前已核准的單不回補 |
 | 權限 | 五個新節點，所有角色預設不勾選 |
 | Admin BO 的 `Payment Account Transactions` | 所有 Agent 都是 `Deny`（13.4） |
-| `Columns Settings` | 依 3.5、10.1 處理 |
+| `Columns Settings` | 依 3.5 處理 |
 
 上線時所有 Agent 都是 `Deny`，`3.2`、`3.7`、`3.11` 的新功能都不顯示，出款核准與現況相同。客戶要開始使用指定帳號出款與手動單時，做下列設定：
 
