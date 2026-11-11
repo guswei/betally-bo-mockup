@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.32（2026-10-19）
+- 版本：v0.33（2026-11-11）
 
 ---
 
@@ -665,12 +665,12 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 - `Set balance to` 時，欄位下方即時顯示 `Current balance: {餘額} · Difference: {+／-}{差額}`。所填金額等於目前餘額時不建單：使用者按 `Submit` 後，前端顯示 12.4 的 `BALANCE_UNCHANGED` 訊息；後端收到這樣的請求回 `409 BALANCE_UNCHANGED`。
 - `Set balance to` 的餘額檢查（前端＋後端都要擋）：
   1. 表單上顯示的目前餘額，是前端最近一次從後端取得的這個帳號的餘額。前端在三個時機取得：選定帳號時（帳號下拉選項回傳的餘額）、切換到 `Set balance to` 時（重新向後端查詢這個帳號的餘額）、收到 `409 BALANCE_CHANGED` 時（回應的 `currentBalance`）。帳號欄位下方的 `Balance` 與金額欄位下方的 `Current balance` 顯示同一個值。
-  2. 送出時，前端把這個值放在請求的 `expectedBalance` 一起送出。
-  3. 後端讀到的帳號餘額與 `expectedBalance` 相同時，後端照上表建單。比對、算差額、建單三件事要用同一個餘額完成：比對通過之後餘額又被別的交易改變時，後端不得用新的餘額建單，改回 `409 BALANCE_CHANGED`。
-  4. 後端讀到的帳號餘額與 `expectedBalance` 不同時，後端回 `409 BALANCE_CHANGED`，不建單，並回傳最新的餘額。這項檢查先於「所填金額等於目前餘額」的檢查。
+  2. 送出時，前端把這個值放在請求的 `balance` 一起送出。
+  3. 後端讀到的帳號餘額與 `balance` 相同時，後端照上表建單。比對、算差額、建單三件事要用同一個餘額完成：比對通過之後餘額又被別的交易改變時，後端不得用新的餘額建單，改回 `409 BALANCE_CHANGED`。
+  4. 後端讀到的帳號餘額與 `balance` 不同時，後端回 `409 BALANCE_CHANGED`，不建單，並回傳最新的餘額。這項檢查先於「所填金額等於目前餘額」的檢查。
   5. 前端收到 `409 BALANCE_CHANGED` 時，保持表單開啟，把 `Balance`、`Current balance` 與 `Difference` 更新成最新的值，並顯示 12.4 的訊息。
   6. 使用者確認後再按一次 `Submit`。這一次是新的請求，使用新的 `Idempotency-Key`。更新後所填金額等於目前餘額時，後端回 `409 BALANCE_UNCHANGED`。
-  7. `direction` 是 `SET` 而請求沒有 `expectedBalance`，或它不是大於等於 0、最多兩位小數的數字時，後端回 `400 EXPECTED_BALANCE_INVALID`，不建單。後端不可用自己讀到的餘額代替這個值。
+  7. `direction` 是 `SET` 而請求沒有 `balance`，或它不是大於等於 0、最多兩位小數的數字時，後端回 `400 EXPECTED_BALANCE_INVALID`，不建單。後端不可用自己讀到的餘額代替這個值。
 - `Increase` 與 `Decrease` 填的是變動金額，不做上面的餘額檢查。
 - 調整不計入今日存款累計或今日出款累計，不受每日門檻與 `Allow Withdraw` 限制。
 - 未認領的入帳：銀行已經入帳、但還找不到對應存款單時，財務建一筆 `Increase`，並在 `Remark` 寫明是未認領的入帳，讓餘額與銀行一致。之後找到存款單並核准時，系統照 4.1 產生 `DEPOSIT` 並增加餘額；財務再建一筆 `Decrease`、金額相同的調整，把先前記入的那一筆沖掉。系統不自動沖銷，也不把兩筆調整與存款單關聯；對應關係由財務寫在 `Remark`。存款單核准之後、財務沖銷之前，這筆錢在餘額裡算了兩次，系統不另外限制這段期間的轉出；財務要在存款單核准後立刻沖銷。沖銷時餘額不足會依 12.4 被拒絕，等餘額足夠後再建。一張存款單的錢分成多筆、進了不同帳號時，也用同樣的做法處理多出來的入帳。
@@ -693,7 +693,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 | 轉出依每日門檻不可轉出 | `409 PAYMENT_ACCOUNT_THRESHOLD_EXCEEDED` | `This amount cannot be transferred under the daily withdraw threshold of this account.` |
 | `Set balance to` 的金額等於目前餘額 | `409 BALANCE_UNCHANGED` | `The balance is already {餘額}.` |
 | `Set balance to` 送出時，帳號餘額與表單上顯示的目前餘額不同 | `409 BALANCE_CHANGED` | `The balance changed to {餘額}. Check the Actual Balance. Submit again.` |
-| `Set balance to` 的請求沒有 `expectedBalance`，或它的格式不對 | `400 EXPECTED_BALANCE_INVALID` | 畫面操作不會產生這個情況；前端依既有的錯誤處理顯示 |
+| `Set balance to` 的請求沒有 `balance`，或它的格式不對 | `400 EXPECTED_BALANCE_INVALID` | 畫面操作不會產生這個情況；前端依既有的錯誤處理顯示 |
 | 交易會讓任何一個帳號的餘額或今日累計超過金額上限（4.2） | `409 AMOUNT_LIMIT_EXCEEDED` | `The amount exceeds the maximum value allowed for this account.` |
 
 - 三張表單的 `Remark` 輸入框最多輸入 200 字，超過的字無法輸入。
@@ -857,7 +857,7 @@ BANK-OFFLINE 帳號有兩個今日累計，都與既有的 `Today Deposit Amount
 
 - Internal Transfer：轉出帳號 ID、轉入帳號 ID、`amount`、`remark`。
 - External Transfer：轉出帳號 ID、`amount`、`recipientBank`、`recipientAccountName`、`recipientAccountNo`、`txId`、`remark`。
-- Adjust Balance：帳號 ID、`direction`（`INCREASE`／`DECREASE`／`SET`）、`amount`、`remark`；`direction` 是 `SET` 時必須帶 `expectedBalance`（表單上顯示的目前餘額，`DECIMAL(18,2)`）。
+- Adjust Balance：帳號 ID、`direction`（`INCREASE`／`DECREASE`／`SET`）、`amount`、`remark`；`direction` 是 `SET` 時必須帶 `balance`（表單上顯示的目前餘額，`DECIMAL(18,2)`）。
 - 回應：手動單的單號。
 - `409 BALANCE_CHANGED` 的回應另帶 `currentBalance`（帳號最新的餘額，`DECIMAL(18,2)`），供前端更新畫面。
 

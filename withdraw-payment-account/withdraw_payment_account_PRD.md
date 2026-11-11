@@ -1,8 +1,8 @@
 # PRD：Payment Account 管理（出款指定帳號、帳號餘額與手動單）
 
-**版本**：v1.10（2026-10-19）　**類型**：新功能＋功能變更　**負責**：PM
+**版本**：v1.11（2026-11-11）　**類型**：新功能＋功能變更　**負責**：PM
 **Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)、[操作示範影片（約 2 分鐘）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_demo.mp4)。兩份 mockup 都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`；Agent BO 的 mockup 也可切換 Admin BO 設定，看 `Deny` 時的畫面
-**相關**：RD Spec `withdraw_payment_account_spec.md` v0.32（欄位、錯誤碼、介面欄位的完整定義）
+**相關**：RD Spec `withdraw_payment_account_spec.md` v0.33（欄位、錯誤碼、介面欄位的完整定義）
 
 ## 1. 需求背景
 客戶在 `BANK-OFFLINE` 通道底下有兩百多個公司銀行帳號，同時用來收玩家存款與付玩家出款。現在財務在 `3.2 Withdraw List` 核准出款時只能選通道，不能指定由哪個帳號付款；系統也不知道每個帳號裡還有多少錢。客戶目前用 Excel 逐筆記錄每個帳號的存款、出款、內部調撥、銀行手續費、利息、未認領的入帳與借貸，每天人工對帳。
@@ -207,7 +207,7 @@ Agent BO 新增 `3.11` 一個選單項；`3.2`、`3.7` 沿用現有選單。Admi
 | AC-39 | FR-13 | 帳號餘額 1,200，選 `Set balance to` 填 `80000`、`Remark` 填 `Opening balance`：畫面即時顯示 `Current balance: 1,200.00 · Difference: +78,800.00`；送出後產生一筆 `ADJUST IN` 78,800.00，餘額 80,000.00，今日累計不變。 |
 | AC-40（負向） | FR-13 | 表單開著時（畫面顯示餘額 1,200），同帳號先有一筆存款入帳 300；之後送出 `Set balance to 80000`：後端回 `409 BALANCE_CHANGED`，不建單，餘額維持 1,500.00；表單保持開啟，顯示 `The balance changed to 1,500.00. Check the Actual Balance. Submit again.`，帳號欄位下方的 `Balance` 與 `Current balance` 都更新為 1,500.00、`Difference` 更新為 +78,500.00。使用者再按一次 `Submit`（新的請求，使用新的 `Idempotency-Key`）：產生 `ADJUST IN` 78,500.00，餘額 80,000.00。同樣情況下送出 `Decrease 10`：照常建單，不回 `BALANCE_CHANGED`。 |
 | AC-41 | FR-13 | 未認領入帳：先 `Increase` 300（`Remark` 寫明是未認領的入帳），存款單核准後再 `Decrease` 300；兩筆都出現在 `3.11`，`Details(Remark)` 只顯示各自的 `Remark`；合計表 `Adjust In` 與 `Adjust Out` 各增加 300，餘額淨增加的只有那筆 `DEPOSIT`。 |
-| AC-42（負向） | FR-13 | `Decrease` 金額大於餘額回 `409 PAYMENT_ACCOUNT_INSUFFICIENT_BALANCE`；`Set balance to` 金額等於目前餘額回 `409 BALANCE_UNCHANGED`；餘額變動與金額等於新餘額同時成立時，先回 `409 BALANCE_CHANGED`，更新後再送出才回 `409 BALANCE_UNCHANGED`；`Set balance to` 的請求沒有 `expectedBalance`、或它不是大於等於 0 且最多兩位小數的數字時，回 `400 EXPECTED_BALANCE_INVALID`，不建單；`Remark` 沒填回 `400 REMARK_REQUIRED`；表單與請求都沒有類別欄位；調整建立後沒有修改、取消、刪除入口。 |
+| AC-42（負向） | FR-13 | `Decrease` 金額大於餘額回 `409 PAYMENT_ACCOUNT_INSUFFICIENT_BALANCE`；`Set balance to` 金額等於目前餘額回 `409 BALANCE_UNCHANGED`；餘額變動與金額等於新餘額同時成立時，先回 `409 BALANCE_CHANGED`，更新後再送出才回 `409 BALANCE_UNCHANGED`；`Set balance to` 的請求沒有 `balance`、或它不是大於等於 0 且最多兩位小數的數字時，回 `400 EXPECTED_BALANCE_INVALID`，不建單；`Remark` 沒填回 `400 REMARK_REQUIRED`；表單與請求都沒有類別欄位；調整建立後沒有修改、取消、刪除入口。 |
 | AC-43 | FR-14 | Agent 開關為 `Enable`、第一次開通時，所有角色的五個節點都不勾；只勾 `VIEW` 的角色看得到 `3.11` 但看不到三個建單按鈕與 `Export CSV`；再加勾 `Internal Transfer` 時只多出 `Internal Transfer` 按鈕。 |
 | AC-44（負向） | FR-14 | 沒有 `VIEW` 的使用者呼叫 `3.11` 任何介面回 `403`；有 `VIEW` 但缺 `EXPORT`、`Internal Transfer`、`External Transfer` 或 `Adjust Balance` 的，只有對應的匯出或建單回 `403`、不建單，查詢照常。表單開著時權限被收回，送出也回 `403`。 |
 | AC-45 | FR-15 | 從未開通過的 Agent，Admin BO 把 `Payment Account Transactions` 改成 `Enable` 並按 `SAVE` 後，該 Agent 的 `11.2 Role Setting` 出現群組 `Payment Account Transactions` 與五個節點，全部不勾；`3.2` 核准對話框選 `BANK-OFFLINE` 時出現 `Payment Account`；`3.7` 出現六個新欄位。 |
