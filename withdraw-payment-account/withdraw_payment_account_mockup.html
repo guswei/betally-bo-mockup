@@ -511,7 +511,7 @@
         <b>門檻判定</b>（<code>S</code> = 今日出款累計，<code>T</code> = 出款門檻，<code>A</code> = 這張單的金額）：<code>Allow Withdraw Over Threshold = Yes</code> 的帳號 <code>S &lt; T</code> 即可選；<code>No</code> 的帳號要 <code>S + A ≤ T</code>。判定由後端做，前端不自行計算。<br>
         <b>數量</b>：通道底下的帳號可達兩百個以上，搜尋、篩選、排序、分頁都由後端處理，建議每頁 10 筆、輸入停止 300ms 後才查詢。右上的筆數是「符合目前搜尋與篩選的筆數 of 這張單可用的帳號總數」。<br>
         <b>搜尋</b>：三個獨立的文字欄位 <code>Account Code</code>、<code>Account Name</code>、<code>Account No</code>，各自部分比對同名的資料，<code>Account Code</code> 與 <code>Account Name</code> 不分大小寫。欄位留空表示不套用。<b>Bank 篩選</b>：下拉選單，選項是可用帳號用到的銀行。三個文字欄位、<code>Bank</code> 下拉與 <code>Min Balance</code> 之間是「而且」的關係。<br>
-        <b>Min Balance</b><span class="pill-new">NEW</span>：<code>DECIMAL(18,2)</code>，只列 <code>Balance</code> 大於等於輸入值的帳號。有效值大於等於 0、不得大於 <code>9999999999999999.99</code>、最多兩位小數。前端＋後端都要擋。<br>
+        <b>Min Balance</b><span class="pill-new">NEW</span>：<code>DECIMAL(18,2)</code>，只列 <code>Balance</code> 大於等於輸入值的帳號。有效值大於 0、不得大於 <code>9999999999999999.99</code>、最多兩位小數。前端＋後端都要擋。<br>
         ・開啟清單時，前端把 <code>Min Balance</code> 設為這張單的 <code>Amount</code>。財務可以修改這個值。<br>
         ・切換通道時，前端把 <code>Min Balance</code> 設回 <code>Amount</code>。切到 <code>Specify account</code> 時，前端把 <code>Min Balance</code> 設回 <code>Amount</code>。<br>
         ・財務改了 <code>Min Balance</code> 時，清單回到第 1 頁。<br>
@@ -1145,7 +1145,7 @@ Array.prototype.forEach.call(document.querySelectorAll('input[data-perm]'),funct
 $('fCh').addEventListener('change',function(){ST.channelId=this.value||null;setMode(false);ST.page=1;qClear();minReset();ST.bank='';$('err').classList.remove('on');renderDlg()});
 [['qCode','qc'],['qName','qn'],['qNo','qo']].forEach(function(x){$(x[0]).addEventListener('input',function(){ST[x[1]]=this.value;ST.page=1;renderDlg()})});
 $('fBank').addEventListener('change',function(){ST.bank=this.value;ST.page=1;renderDlg()});
-$('qMin').addEventListener('input',function(){var v=this.value.replace(/,/g,'').trim(),ok=v===''||/^\d{1,16}(\.\d{1,2})?$/.test(v);this.classList.toggle('bad',!ok);if(!ok)return;ST.min=v===''?0:Number(v);ST.page=1;renderDlg()});   // 不符合格式時標紅、不重新查詢
+$('qMin').addEventListener('input',function(){var v=this.value.replace(/,/g,'').trim(),ok=v===''||(/^\d{1,16}(\.\d{1,2})?$/.test(v)&&Number(v)>0);this.classList.toggle('bad',!ok);if(!ok)return;ST.min=v===''?0:Number(v);ST.page=1;renderDlg()});   // 不符合格式時標紅、不重新查詢
 $('fSort').addEventListener('change',function(){ST.sort=this.value;ST.page=1;renderDlg()});
 Array.prototype.forEach.call(document.querySelectorAll('input[name=paMode]'),function(r){r.addEventListener('change',function(){setMode(this.value==='yes');ST.page=1;qClear();minReset();ST.bank='';$('err').classList.remove('on');renderDlg()})});
 $('pgPrev').addEventListener('click',function(){ST.page--;renderDlg()});

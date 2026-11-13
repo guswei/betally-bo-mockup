@@ -1,8 +1,8 @@
 # PRD：Payment Account 管理（出款指定帳號、帳號餘額與手動單）
 
-**版本**：v1.12（2026-11-11）　**類型**：新功能＋功能變更　**負責**：PM
+**版本**：v1.13（2026-11-13）　**類型**：新功能＋功能變更　**負責**：PM
 **Mockup**：[Agent BO（3.2／3.7／3.11）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup.html)、[Admin BO（Role Setting）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_mockup_admin.html)、[操作示範影片（約 2 分鐘）](https://guswei.github.io/betally-bo-mockup/withdraw-payment-account/withdraw_payment_account_demo.mp4)。兩份 mockup 都可切換「顯示 RD 註記」；Agent BO 的 mockup 可切換 `3.11` 的五個權限節點，Admin BO 的 mockup 可操作 Agent 的 `Enable`／`Deny`；Agent BO 的 mockup 也可切換 Admin BO 設定，看 `Deny` 時的畫面
-**相關**：RD Spec `withdraw_payment_account_spec.md` v0.34（欄位、錯誤碼、介面欄位的完整定義）
+**相關**：RD Spec `withdraw_payment_account_spec.md` v0.35（欄位、錯誤碼、介面欄位的完整定義）
 
 ## 1. 需求背景
 客戶在 `BANK-OFFLINE` 通道底下有兩百多個公司銀行帳號，同時用來收玩家存款與付玩家出款。現在財務在 `3.2 Withdraw List` 核准出款時只能選通道，不能指定由哪個帳號付款；系統也不知道每個帳號裡還有多少錢。客戶目前用 Excel 逐筆記錄每個帳號的存款、出款、內部調撥、銀行手續費、利息、未認領的入帳與借貸，每天人工對帳。
@@ -56,7 +56,7 @@
 | `Account Code` | `VARCHAR(32)` | 否 | 只限 `BANK-OFFLINE` 帳號；去前後空白；不檢查重複 |
 | `Account Group` | `VARCHAR(32)` | 否 | 只限 `BANK-OFFLINE` 帳號；去前後空白；與既有分組只差大小寫時存成既有寫法 |
 | `Payment Account`（核准對話框） | 畫面上二選一（`Not specified`／`Specify account`）；核准請求只多一個選填的帳號 ID | 選 `BANK-OFFLINE` 且 Admin BO 設定為 `Enable` 時顯示 | 預設 `Not specified`，請求不帶帳號 ID。選 `Specify account` 時必須選一個帳號，請求帶該帳號 ID |
-| `Min Balance`（核准對話框的帳號清單） | `DECIMAL(18,2)` | 否 | 預設這張單的 `Amount`。大於等於 0，不得大於 `9999999999999999.99`，最多兩位小數。只列餘額大於等於此值的帳號；餘額小於 `Amount` 的帳號一律不列出。清空時不套用。前端＋後端都要擋 |
+| `Min Balance`（核准對話框的帳號清單） | `DECIMAL(18,2)` | 否 | 預設這張單的 `Amount`。大於 0，不得大於 `9999999999999999.99`，最多兩位小數。只列餘額大於等於此值的帳號；餘額小於 `Amount` 的帳號一律不列出。清空時不套用。前端＋後端都要擋 |
 | `Amount`（手動單） | `DECIMAL(18,2)` | 是 | 大於 0、最多兩位小數；轉出與 `Decrease` 不得大於餘額。前端＋後端都要擋 |
 | `Actual Balance`（`Set balance to`） | `DECIMAL(18,2)` | 是 | 大於等於 0，不得等於目前餘額。請求另帶表單上顯示的目前餘額；後端讀到的餘額與它不同時回 `409 BALANCE_CHANGED`。前端＋後端都要擋 |
 | `Direction` | `enum('INCREASE','DECREASE','SET')` | 是 | 預設 `DECREASE` |
@@ -176,9 +176,9 @@ Agent BO 新增 `3.11` 一個選單項；`3.2`、`3.7` 沿用現有選單。Admi
 | AC-13a | FR-5 | 出款單 `Amount = 1,500.00`：開啟帳號清單時，`Min Balance` 顯示 `1,500.00`。 |
 | AC-13b | FR-5 | 同一張單把 `Min Balance` 改成 `60000`：清單只列餘額 ≥ 60,000 的可用帳號。 |
 | AC-13c | FR-5 | 同一張單把 `Min Balance` 改成 `60000`：筆數的 `{m}` 不變。 |
-| AC-13d | FR-5 | 同一張單把 `Min Balance` 改成 `0` 或清空：結果與 `1,500.00` 相同，餘額不足 1,500 的帳號不出現。 |
-| AC-13e（負向） | FR-5 | `Min Balance` 輸入負數或三位小數：欄位標紅，清單以上一次的有效值查詢。 |
-| AC-13f（負向） | FR-5 | 直接呼叫帳號清單、`minBalance` 為負數或三位小數：後端回 `400 MIN_BALANCE_INVALID`。 |
+| AC-13d | FR-5 | 同一張單把 `Min Balance` 清空：結果與 `1,500.00` 相同，餘額不足 1,500 的帳號不出現。 |
+| AC-13e（負向） | FR-5 | `Min Balance` 輸入 `0`、負數或三位小數：欄位標紅，清單以上一次的有效值查詢。 |
+| AC-13f（負向） | FR-5 | 直接呼叫帳號清單、`minBalance` 為 `0`、負數或三位小數：後端回 `400 MIN_BALANCE_INVALID`。 |
 | AC-14（負向） | FR-5 | 對話框開啟後，所選帳號被停用、刪除或 `Allow Withdraw` 改成 No 時，送出回 `409 PAYMENT_ACCOUNT_UNAVAILABLE`；餘額不足回 `409 PAYMENT_ACCOUNT_INSUFFICIENT_BALANCE`；依門檻不可轉出回 `409 PAYMENT_ACCOUNT_THRESHOLD_EXCEEDED`。出款單、交易紀錄、餘額、累計都不變，對話框保持開啟、清空已選帳號並重新載入清單。 |
 | AC-15（負向） | FR-5 | 以 `BANK-OFFLINE` 以外的通道核准、請求卻帶了帳號 ID，後端回 `400 PAYMENT_ACCOUNT_NOT_APPLICABLE`。帶了不屬於登入者所屬代理的帳號 ID，一律拒絕。 |
 | AC-16 | FR-5 | 送出後沒有收到後端回應時，對話框顯示 `Unable to confirm the result. Please check the order status before trying again.`，不顯示成核准失敗；財務查到這張單已核准時，不會再產生第二筆 `WITHDRAW`。 |

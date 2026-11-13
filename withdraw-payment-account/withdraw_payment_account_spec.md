@@ -2,7 +2,7 @@
 
 - 對象系統：GCP Agent BO；Admin BO（13.4）
 - 位置：Agent BO 的 `3.7 Payment Account`、`3.2 Withdraw List`、`3.11 Payment Account Transactions`（新頁）、`11.2 Role Setting`；Admin BO 的 `Agent-Setting › Agent List › Edit › Role Setting`
-- 版本：v0.34（2026-11-11）
+- 版本：v0.35（2026-11-13）
 
 ---
 
@@ -247,7 +247,7 @@
 
 `Min Balance` 的規則：
 
-- 型別 `DECIMAL(18,2)`。有效值大於等於 0，不得大於 `9999999999999999.99`，最多兩位小數。
+- 型別 `DECIMAL(18,2)`。有效值大於 0，不得大於 `9999999999999999.99`，最多兩位小數。
 - 前端顯示時加千分位。前端送給後端的值不含千分位。
 - 開啟帳號清單時，前端把 `Min Balance` 設為這張單的 `Amount`。財務可以修改這個值。
 - 切換 `Payment Channel` 時，前端把 `Min Balance` 設回這張單的 `Amount`。
@@ -268,6 +268,7 @@
 | `60,000.00` | 可用的帳號中，餘額大於等於 60,000.00 的帳號 |
 | `500.00` | 與輸入 `1,500.00` 相同 |
 | 空 | 與輸入 `1,500.00` 相同 |
+| `0` 或負數 | 欄位標紅，清單維持上一次有效值的結果 |
 
 **表格欄位**：
 
