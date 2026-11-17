@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3.7 Payment Account Field Order</title>
+<style>
+  :root{--green:#2f9e0f;--line:#e3e6ea;--mute:#7a828c;--red:#d93025;--bg:#eff0f1;--note:#fff8dc;--note-b:#e6c200;--mv:#e8f0fe}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;color:#222;background:var(--bg)}
+  .top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+  .top .seg{display:flex;border:1px solid #c9ced4;border-radius:6px;overflow:hidden}
+  .top .seg button{border:0;background:#fff;padding:7px 14px;font-size:13px;cursor:pointer}
+  .top .seg button.on{background:var(--green);color:#fff;font-weight:600}
+  .top .sp{flex:1}
+  .top label.t{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+  .wrap{max-width:1100px;margin:16px auto;padding:0 16px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+  h2{margin:0 0 14px;font-size:17px}
+  .eform{display:grid;grid-template-columns:220px 1fr;gap:12px 20px;align-items:center}
+  .eform>label{font-size:14px}
+  .eform>label .req{color:var(--red);margin-right:3px}
+  .eform input[type=text],.eform select{width:100%;padding:8px 10px;border:1px solid #cfd4da;border-radius:5px;font-size:14px;background:#fff}
+  .eform input[readonly],.eform input:disabled,.eform select:disabled{background:#f2f3f5;color:#666}
+  .radios{display:flex;flex-wrap:wrap;gap:18px;font-size:13px}
+  .radios label{display:flex;align-items:center;gap:5px;cursor:pointer}
+  .sub-info{font-size:12.5px;color:var(--mute);margin-top:4px}
+  .upload{display:block;width:100%;padding:9px;border:0;border-radius:5px;background:#5a5a5a;color:#fff;font-size:14px}
+  body.rd [data-g=mv]{background:var(--mv);box-shadow:0 0 0 6px var(--mv)}
+  .pill{display:none;margin-left:6px;padding:1px 7px;border-radius:9px;font-size:11px;font-weight:600;vertical-align:1px}
+  .pill.mv{background:#c7d7fb;color:#1e3a8a}
+  .pill.nw{background:#e8f5e2;color:#1f6b1f}
+  body.rd .pill{display:inline-block}
+  .foot{display:flex;gap:14px;padding:18px 0 4px 240px}
+  .btn{border:1px solid #c9ced4;background:#fff;border-radius:5px;padding:7px 22px;font-size:13px;cursor:pointer}
+  .btn.p{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+  .rd-note{display:none;margin-top:16px;background:var(--note);border:1px solid var(--note-b);border-radius:6px;padding:12px 14px;font-size:13px;line-height:1.7}
+  body.rd .rd-note{display:block}
+  .rd-note code{background:#fff3b0;padding:0 3px;border-radius:3px}
+  .rd-note table{border-collapse:collapse;margin:6px 0;background:#fff}
+  .rd-note th,.rd-note td{border:1px solid #e0d48a;padding:3px 8px;text-align:left}
+  [hidden]{display:none!important}
+  @media (max-width:720px){
+    .eform{grid-template-columns:1fr;gap:6px}
+    .eform>label{margin-top:8px}
+    .foot{padding-left:0}
+    .rd-note{overflow-x:auto}
+  }
+</style>
+</head>
+<body class="rd">
+<div class="top">
+  <div class="seg" id="segPage">
+    <button data-p="editBank" class="on">Edit (BANK-OFFLINE)</button>
+    <button data-p="add">Add</button>
+    <button data-p="editOther">Edit (QRIS-OFFLINE)</button>
+  </div>
+  <div class="seg" id="segAdm" title="Admin BO：Agent List › Edit › Role Setting › Payment Account Transactions">
+    <button data-a="enable" class="on">Admin BO: Enable</button>
+    <button data-a="deny">Admin BO: Deny</button>
+  </div>
+  <span class="sp"></span>
+  <label class="t"><input type="checkbox" id="rdToggle" checked> 顯示 RD 註記</label>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <h2 id="title">3.7 Payment Account - Edit</h2>
+    <div class="eform" id="form">
+      <label>ID</label><input type="text" id="fId" readonly>
+      <label><span class="req">*</span>Sort</label><select id="fSort"><option>0</option><option>1</option></select>
+      <label><span class="req">*</span>Payment Channel</label><select id="fCh"></select>
+
+      <label class="bk">Bank Name</label><select class="bk" id="fBank"><option></option><option>KBANK</option><option>SCB</option></select>
+      <label class="bk">Bank Branch Name</label><input class="bk" type="text" id="fBr">
+      <label>Account Name</label><input type="text" id="fName" maxlength="64">
+      <label class="bk">Account No</label><input class="bk" type="text" id="fNo" maxlength="32">
+      <label class="qr"><span class="req">*</span>Address</label><input class="qr" type="text" id="fAddr">
+
+      <label><span class="req">*</span>Operator Fee</label><input type="text" id="fFee">
+      <label><span class="req">*</span>Min. Deposit (Fiat)</label><input type="text" id="fMinF">
+      <label><span class="req">*</span>Max. Deposit (Fiat)</label><input type="text" id="fMaxF">
+      <label><span class="req">*</span>Deposit Player Fee</label>
+      <div class="radios"><label><input type="radio" checked disabled> Use Channel Settings</label><label><input type="radio" disabled> No Charge</label><label><input type="radio" disabled> Fixed</label><label><input type="radio" disabled> Percentage</label></div>
+      <label><span class="req">*</span>Min Deposit (Crypto)</label><input type="text" id="fMinC">
+      <label><span class="req">*</span>Max Deposit (Crypto)</label><input type="text" id="fMaxC">
+      <label><span class="req">*</span>Threshold</label>
+      <div><input type="text" id="fDepT"><div class="sub-info">Today Deposit Amount: 0</div></div>
+      <label><span class="req">*</span>Allow Deposit Over Threshold</label>
+      <div class="radios"><label><input type="radio" name="dOver" value="yes"> Yes</label><label><input type="radio" name="dOver" value="no" checked> No</label></div>
+
+      <label data-g="mv"><span class="req">*</span>Payment Level<span class="pill mv">位置調整</span></label>
+      <div data-g="mv" class="radios"><label><input type="radio" name="lvl" checked> All</label><label><input type="radio" name="lvl"> Optional</label></div>
+      <label data-g="mv">Image<span class="pill mv">位置調整</span></label>
+      <div data-g="mv"><button class="upload" type="button">Upload: Images only</button><div class="radios" style="margin-top:8px"><label><input type="checkbox" id="fWebp" checked> WebP</label></div></div>
+
+      <label class="nw"><span class="req">*</span>Allow Withdraw<span class="pill nw">#25258 欄位</span></label>
+      <div class="nw radios"><label><input type="radio" name="wd" value="yes"> Yes</label><label><input type="radio" name="wd" value="no"> No</label></div>
+      <label class="nw" id="lWdT"><span class="req">*</span>Withdraw Threshold<span class="pill nw">#25258 欄位</span></label>
+      <div class="nw"><input type="text" id="fWdT"><div class="sub-info">Today Withdraw Amount: 0</div></div>
+      <label class="nw" id="lWdO"><span class="req">*</span>Allow Withdraw Over Threshold<span class="pill nw">#25258 欄位</span></label>
+      <div class="nw radios"><label><input type="radio" name="wdOver" value="yes"> Yes</label><label><input type="radio" name="wdOver" value="no"> No</label></div>
+      <label class="nw">Balance<span class="pill nw">#25258 欄位</span></label>
+      <div class="nw"><input type="text" id="fBal" readonly></div>
+      <label class="nw">Account Code<span class="pill nw">#25258 欄位</span></label>
+      <div class="nw"><input type="text" id="fCode" maxlength="32"></div>
+      <label class="nw">Account Group<span class="pill nw">#25258 欄位</span></label>
+      <div class="nw"><input type="text" id="fGrp" maxlength="32" list="grpList" autocomplete="off"><datalist id="grpList"><option value="Main"><option value="Backup"></datalist></div>
+    </div>
+    <div class="foot"><button class="btn">Cancel</button><button class="btn p">Submit</button></div>
+
+    <div class="rd-note">
+      <b>本單只改編輯頁與新增頁的欄位排列順序（前端）</b><br>
+      前端把 <code>Payment Level</code>、<code>Image</code> 排在 <code>Allow Deposit Over Threshold</code> 正下方。<br>
+      前端顯示六個 #25258 欄位時，把六個欄位排在 <code>Image</code> 之後。順序是 <code>Allow Withdraw</code>、<code>Withdraw Threshold</code>、<code>Allow Withdraw Over Threshold</code>、<code>Balance</code>、<code>Account Code</code>、<code>Account Group</code>。<br>
+      新增頁（<code>Add</code>）的欄位順序與編輯頁相同。<br>
+      新增頁改選 <code>Payment Channel</code> 時，<code>Payment Level</code>、<code>Image</code> 仍在 <code>Allow Deposit Over Threshold</code> 正下方。<br>
+      Admin BO 設定為 <code>Enable</code> 時，新增頁改選 <code>Payment Channel</code>，六個欄位依 #25258 的顯示條件在 <code>Image</code> 之後出現或消失。<br>
+      <table>
+        <tr><th>情況</th><th>Allow Deposit Over Threshold 之後的順序</th></tr>
+        <tr><td>帳號是 <code>BANK-OFFLINE</code>，且 Admin BO 設定為 <code>Enable</code></td><td><code>Payment Level</code> → <code>Image</code> → 六個 #25258 欄位</td></tr>
+        <tr><td>帳號不是 <code>BANK-OFFLINE</code>，或 Admin BO 設定為 <code>Deny</code></td><td><code>Payment Level</code> → <code>Image</code>（與現況相同）</td></tr>
+      </table>
+      Admin BO 設定：Admin BO <code>Agent List › Edit › Role Setting</code> 的 <code>Payment Account Transactions</code>。<br>
+      不改的部分：欄位的值、預設值、驗證、必填、可否編輯、送出的 request 內容、API、<code>3.7</code> 列表的欄位順序。<br>
+      通道專屬欄位（<code>Bank Name</code>、<code>Bank Branch Name</code>、<code>Account No</code>、<code>Address</code>）的顯示規則不變。<br>
+      本頁的預填值是示意資料。<br>
+      <code>Allow Withdraw = No</code> 時，前端停用 <code>Withdraw Threshold</code> 與 <code>Allow Withdraw Over Threshold</code>。這兩個欄位保留已填的值。這是 #25258 的現有行為。<br>
+      本頁只示範欄位排列與上方的切換。<code>Submit</code>、<code>Cancel</code>、<code>Upload</code> 在本頁不動作，不能用來驗證 request、錯誤訊息或儲存結果。<br>
+      淺藍底是本單移動的兩個欄位；綠色標籤是 #25258 已有的欄位，本單只改位置。
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var page='editBank', adm='enable';
+  var CH=['BANK-OFFLINE','QRIS-OFFLINE'];
+  var DATA={
+    editBank:{id:'230',sort:'0',bank:'KBANK',br:'Silom',dOver:'no',lvl:0,ch:'BANK-OFFLINE',name:'jamestest',no:'1234567890',addr:'',fee:'0.00',minF:'1',maxF:'1000',minC:'1',maxC:'1000',depT:'100000',wd:'yes',wdT:'500000',wdO:'no',bal:'12,500.00',code:'A01',grp:'Main'},
+    editOther:{id:'231',sort:'0',bank:'',br:'',dOver:'no',lvl:0,ch:'QRIS-OFFLINE',name:'jamestest',no:'',addr:'123412341234',fee:'0.00',minF:'1',maxF:'1000',minC:'1',maxC:'1000',depT:'100000',wd:'no',wdT:'',wdO:'no',bal:'',code:'',grp:''},
+    add:{id:'',sort:'0',bank:'',br:'',dOver:'no',lvl:0,ch:'BANK-OFFLINE',name:'',no:'',addr:'',fee:'',minF:'',maxF:'',minC:'',maxC:'',depT:'',wd:'yes',wdT:'',wdO:'no',bal:'0.00',code:'',grp:''}
+  };
+  var ch=document.getElementById('fCh');
+  function $(id){return document.getElementById(id);}
+  function q(s){return Array.prototype.slice.call(document.querySelectorAll(s));}
+  function setRadio(n,v){q('input[name='+n+']').forEach(function(r){r.checked=(r.value===v);});}
+  function getRadio(n){var r=q('input[name='+n+']').filter(function(x){return x.checked;})[0];return r?r.value:'';}
+  function load(){
+    var d=DATA[page];
+    // 通道不可搬移：BANK-OFFLINE 帳號編輯時通道唯讀；其他通道的帳號編輯時選項不含 BANK-OFFLINE（沿用 #25258）
+    var opts=CH.filter(function(c){return page!=='editOther'||c!=='BANK-OFFLINE';});
+    ch.innerHTML=opts.map(function(c){return '<option'+(c===d.ch?' selected':'')+'>'+c+'</option>';}).join('');
+    ch.disabled=(page==='editBank');
+    $('title').textContent='3.7 Payment Account - '+(page==='add'?'Add':'Edit');
+    $('fId').value=d.id;$('fSort').value=d.sort;$('fBank').value=d.bank;$('fBr').value=d.br;setRadio('dOver',d.dOver);q('input[name=lvl]')[d.lvl].checked=true;$('fWebp').checked=true;$('fName').value=d.name;$('fNo').value=d.no;$('fAddr').value=d.addr;
+    $('fFee').value=d.fee;$('fMinF').value=d.minF;$('fMaxF').value=d.maxF;$('fMinC').value=d.minC;$('fMaxC').value=d.maxC;$('fDepT').value=d.depT;
+    setRadio('wd',d.wd);$('fWdT').value=d.wdT;setRadio('wdOver',d.wdO);$('fBal').value=d.bal;$('fCode').value=d.code;$('fGrp').value=d.grp;
+    render();
+  }
+  function render(){
+    var bank=ch.value==='BANK-OFFLINE';
+    var showNew=bank && adm==='enable';
+    q('.bk').forEach(function(e){e.hidden=!bank;});
+    q('.qr').forEach(function(e){e.hidden=bank;});
+    q('.nw').forEach(function(e){e.hidden=!showNew;});
+    // Allow Withdraw = No：兩個相依欄位不可編輯、不顯示必填星號、保留已填的值（沿用 #25258）
+    var wd=getRadio('wd')==='yes';
+    $('fWdT').disabled=!wd;
+    q('input[name=wdOver]').forEach(function(r){r.disabled=!wd;});
+    $('lWdT').firstElementChild.style.visibility=wd?'':'hidden';
+    $('lWdO').firstElementChild.style.visibility=wd?'':'hidden';
+  }
+  function setOn(seg,btn){q('#'+seg+' button').forEach(function(b){b.classList.toggle('on',b===btn);});}
+  q('#segPage button').forEach(function(b){b.addEventListener('click',function(){page=b.dataset.p;setOn('segPage',b);load();});});
+  q('#segAdm button').forEach(function(b){b.addEventListener('click',function(){adm=b.dataset.a;setOn('segAdm',b);render();});});
+  ch.addEventListener('change',render);
+  q('input[name=wd]').forEach(function(r){r.addEventListener('change',render);});
+  $('rdToggle').addEventListener('change',function(e){document.body.classList.toggle('rd',e.target.checked);});
+  load();
+})();
+</script>
+</body>
+</html>
